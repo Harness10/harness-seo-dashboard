@@ -41,7 +41,6 @@ export default async function handler(req, res) {
 
 ### Backlink Profile
 - Live Backlinks: ${ctx.bl?.live?.toLocaleString() ?? 'N/A'}
-- Referring Domains: ${ctx.bl?.live_refdomains?.toLocaleString() ?? 'N/A'}
 
 ### Rank Tracker Keywords (positions from Ahrefs RT)
 ${(ctx.rankings || []).slice(0, 50).map(k => `- "${k.keyword}" → pos ${k.position ?? 'N/R'} (vol: ${k.volume?.toLocaleString() ?? '?'}, traffic: ${k.traffic?.toLocaleString() ?? 0})${k.tags?.length ? ' [' + k.tags.join(', ') + ']' : ''}`).join('\n') || 'No RT data'}

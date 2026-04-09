@@ -146,7 +146,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .hb-chg.up{color:var(--gn)}.hb-chg.dn{color:var(--rd)}.hb-chg-label{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px}
 
 /* KPI Grid */
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
 .kpi{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:12px;text-align:center;position:relative;overflow:hidden}
 .kpi .label{font-size:.58rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);margin-bottom:3px;font-weight:600}
 .kpi .value{font-family:var(--mono);font-weight:700;font-size:1.3rem;line-height:1.2}
@@ -463,7 +463,6 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
     <div class="kpi"><div class="label">Organic Keywords</div><div class="value" id="kpi-tracked">--</div><div class="sub" id="kpi-ranked"></div></div>
     <div class="kpi"><div class="label">Traffic Value</div><div class="value" id="kpi-value">--</div><div class="sub">est. monthly</div></div>
     <div class="kpi"><div class="label">Backlinks</div><div class="value" id="kpi-bl">--</div><div class="sub" id="kpi-bl-sub"></div></div>
-    <div class="kpi"><div class="label">Referring Domains</div><div class="value" id="kpi-rd">--</div><div class="sub" id="kpi-rd-sub"></div></div>
   </section>
 
   <section class="charts-row">
@@ -490,7 +489,6 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <button class="tab" data-tab="sitehealth">Site Health</button>
       <button class="tab" data-tab="ai">AI Writer</button>
       <button class="tab" data-tab="pages">Top Pages</button>
-      <button class="tab" data-tab="refdomains">Referring Domains</button>
       <button class="tab" data-tab="competitors">Competitors</button>
     </div>
     <div class="tab-content active" id="tab-organic">
@@ -561,10 +559,6 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <th data-sort="url" data-tbl="pages">URL</th><th data-sort="sum_traffic" data-tbl="pages">Traffic</th><th data-sort="value" data-tbl="pages">Value</th>
       <th data-sort="keywords" data-tbl="pages">Keywords</th><th data-sort="top_keyword" data-tbl="pages">Top Keyword</th><th data-sort="top_keyword_best_position" data-tbl="pages">Pos</th>
     </tr></thead><tbody id="body-pages"></tbody></table></div></div>
-    <div class="tab-content" id="tab-refdomains"><div class="table-scroll"><table class="data-table" id="tbl-refdomains"><thead><tr>
-      <th data-sort="domain" data-tbl="refdomains">Domain</th><th data-sort="domain_rating" data-tbl="refdomains">DR</th><th data-sort="links_to_target" data-tbl="refdomains">Links</th>
-      <th data-sort="dofollow_links" data-tbl="refdomains">Dofollow</th><th data-sort="traffic_domain" data-tbl="refdomains">Traffic</th><th data-sort="first_seen" data-tbl="refdomains">First Seen</th>
-    </tr></thead><tbody id="body-refdomains"></tbody></table></div></div>
     <div class="tab-content" id="tab-competitors"><div class="table-scroll"><table class="data-table" id="tbl-competitors"><thead><tr>
       <th data-sort="competitor_domain" data-tbl="competitors">Competitor</th><th data-sort="keywords_common" data-tbl="competitors">Common KWs</th>
       <th data-sort="traffic" data-tbl="competitors">Traffic</th><th data-sort="share" data-tbl="competitors">Overlap</th><th data-sort="domain_rating" data-tbl="competitors">DR</th>
@@ -924,7 +918,7 @@ const App = {
     $('loading-text').textContent = proj.project_name;
     $('ld-sub').textContent = 'Connecting to Ahrefs API...';
     $('ld-icon').textContent = '📊';
-    const stepNames = ['Rank Tracker','Organic Keywords','Domain Rating','Site Metrics','Backlinks','Traffic History','Top Pages','Referring Domains','Competitors'];
+    const stepNames = ['Rank Tracker','Organic Keywords','Domain Rating','Site Metrics','Backlinks','Traffic History','Top Pages','Competitors'];
     $('ld-steps').innerHTML = stepNames.map(s => `<div class="ld-step active" id="lds-${s.replace(/\s/g,'')}"><div class="ld-dot"></div><span>${s}</span></div>`).join('');
     this.activeTag = null; this.kwFilter = ''; this.orgFilter = ''; this.rtFilter = 'all';
     const safetyTimer = setTimeout(() => { $('loading').classList.remove('show'); this.showErr('Loading took too long — some data may be missing.'); }, 45000);
@@ -942,7 +936,7 @@ const App = {
       const cachedRT = this.rtRaw[pid];
       const cachedOrg = this.orgData[pid];
       $('ld-sub').textContent = 'Fetching rankings & site data...';
-      const [rankings, orgKws, dr, metrics, bl, hist, pages, refs, comps] = await Promise.allSettled([
+      const [rankings, orgKws, dr, metrics, bl, hist, pages, comps] = await Promise.allSettled([
         tracked(cachedRT ? Promise.resolve({ overviews: cachedRT }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,serp_features,is_informational,is_transactional,is_commercial,is_local' }), 'Rank Tracker'),
         tracked(cachedOrg ? Promise.resolve({ keywords: cachedOrg }) : this.api('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 50, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }), 'Organic Keywords'),
         tracked(this.api('site-explorer/domain-rating', { target: domain, date }), 'Domain Rating'),
@@ -950,7 +944,6 @@ const App = {
         tracked(this.api('site-explorer/backlinks-stats', { target: domain, date }), 'Backlinks'),
         tracked(this.api('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'us', history_grouping: 'monthly' }), 'Traffic History'),
         tracked(this.api('site-explorer/top-pages', { target: domain, date, country: 'us', limit: 50, select: 'url,sum_traffic,value,keywords,top_keyword,top_keyword_best_position', order_by: 'sum_traffic:desc' }), 'Top Pages'),
-        tracked(this.api('site-explorer/referring-domains', { target: domain.split('/')[0], limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }), 'Referring Domains'),
         tracked(this.api('site-explorer/organic-competitors', { target: domain, date, country: 'us', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }), 'Competitors'),
       ]);
       const orgKeywords = val(orgKws, 'keywords') || [];
@@ -974,7 +967,6 @@ const App = {
         bl: val(bl, 'metrics') || {},
         history: val(hist, 'metrics') || [],
         pages: val(pages, 'pages') || [],
-        refdomains: val(refs, 'refdomains') || [],
         competitors: val(comps, 'competitors') || [],
         audit: auditProj,
         auditIssues: (auditRes.status === 'fulfilled' && auditRes.value) ? (auditRes.value.issues || []) : [],
@@ -984,10 +976,10 @@ const App = {
       };
       if (!cachedRT) { this.rtRaw[pid] = this.detail.rankings; }
       if (!cachedOrg) this.orgData[pid] = orgKeywords;
-      const names = ['Rank Tracker','Organic Keywords','Domain Rating','Site Metrics','Backlinks','Traffic History','Top Pages','Referring Domains','Competitors'];
-      const all = [rankings,orgKws,dr,metrics,bl,hist,pages,refs,comps];
+      const names = ['Rank Tracker','Organic Keywords','Domain Rating','Site Metrics','Backlinks','Traffic History','Top Pages','Competitors'];
+      const all = [rankings,orgKws,dr,metrics,bl,hist,pages,comps];
       const failed = all.map((r,i) => r.status==='rejected' ? names[i] : null).filter(Boolean);
-      if (failed.length === 9) throw new Error(all[0].reason?.message || 'All API calls failed');
+      if (failed.length === 8) throw new Error(all[0].reason?.message || 'All API calls failed');
       if (failed.length > 0) this.showErr(`Failed to load: ${failed.join(', ')}`);
       this.renderDetail();
     } catch (e) { this.showErr(e.message); }
@@ -996,7 +988,7 @@ const App = {
 
   renderDetail() {
     const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
-    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderGSC, this.renderContentSuggestions, this.renderSiteHealth, this.renderAIChat, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderGSC, this.renderContentSuggestions, this.renderSiteHealth, this.renderAIChat, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderCompetitors].forEach(safe);
   },
 
   renderGSC() {
@@ -1242,7 +1234,6 @@ traffic:
   traffic_value_cents: ${d.metrics?.org_cost ?? 0}
 backlinks:
   live: ${d.bl?.live ?? 0}
-  referring_domains: ${d.bl?.live_refdomains ?? 0}
   all_time: ${d.bl?.all_time ?? 0}
 site_audit:
   health_score: ${d.audit?.health_score ?? 'N/A'}
@@ -1254,8 +1245,7 @@ rank_tracker_keywords:\n${y(rt, 1)}
 organic_keywords_site_explorer:\n${y(org, 1)}
 google_search_console_90d:\n${y(gsc, 1)}
 top_pages:\n${y((d.pages||[]).slice(0,20).map(p=>({ url: p.url, traffic: p.sum_traffic, keywords: p.keywords, top_keyword: p.top_keyword })), 1)}
-competitors:\n${y((d.competitors||[]).slice(0,10).map(c=>({ domain: c.competitor_domain, common_keywords: c.keywords_common, traffic: c.traffic, domain_rating: c.domain_rating?.toFixed(0) })), 1)}
-referring_domains:\n${y((d.refdomains||[]).slice(0,15).map(r=>({ domain: r.domain, dr: r.domain_rating?.toFixed(0), links: r.links_to_target })), 1)}`;
+competitors:\n${y((d.competitors||[]).slice(0,10).map(c=>({ domain: c.competitor_domain, common_keywords: c.keywords_common, traffic: c.traffic, domain_rating: c.domain_rating?.toFixed(0) })), 1)}`;
   },
 
   async generateActionItems() {
@@ -1461,8 +1451,6 @@ Be specific, actionable, and reference the data. No generic advice.`;
     const drVal = dr.domain_rating || 0;
     if (drVal < 20) recs.push({ pri: 'critical', text: `Domain Rating is ${Math.round(drVal)} — critically low. Aggressive link building needed.` });
     else if (drVal < 40) recs.push({ pri: 'high', text: `Domain Rating is ${Math.round(drVal)} — below average. Focus on earning quality backlinks.` });
-
-    if ((bl.live_refdomains||0) < 50) recs.push({ pri: 'high', text: `Only ${bl.live_refdomains||0} referring domains. Target local directories, chambers of commerce, and industry sites.` });
 
     const ranked = rt.filter(k => k.position != null).length;
     const notRanked = rt.length - ranked;
@@ -1877,8 +1865,6 @@ Be specific, actionable, and reference the data. No generic advice.`;
     $('kpi-value').textContent = '$' + fmtN(Math.round((m.org_cost || 0) / 100));
     $('kpi-bl').textContent = fmtN(bl.live || 0);
     $('kpi-bl-sub').textContent = bl.all_time ? fmtN(bl.all_time) + ' all time' : '';
-    $('kpi-rd').textContent = fmtN(bl.live_refdomains || 0);
-    $('kpi-rd-sub').textContent = bl.all_time_refdomains ? fmtN(bl.all_time_refdomains) + ' all time' : '';
   },
 
   renderTrafficChart() {
@@ -1987,10 +1973,6 @@ Be specific, actionable, and reference the data. No generic advice.`;
     $('body-pages').innerHTML = this.detail.pages.map(p => `<tr><td class="url-cell"><a href="${esc(p.url||'#')}" target="_blank">${esc(tryPath(p.url))}</a></td><td class="mono">${fmtN(p.sum_traffic)}</td><td class="mono">${p.value?'$'+fmtN(Math.round(p.value/100)):'—'}</td><td class="mono">${fmtN(p.keywords)}</td><td class="kw-cell">${esc(p.top_keyword||'—')}</td><td>${posBadgeD(p.top_keyword_best_position)}</td></tr>`).join('');
   },
 
-  renderRefDomains() {
-    $('body-refdomains').innerHTML = this.detail.refdomains.map(r => `<tr><td><strong>${esc(r.domain)}</strong></td><td><div class="dr-i"><span class="mono">${r.domain_rating!=null?r.domain_rating.toFixed(0):'—'}</span><div class="dr-b"><div class="dr-f" style="width:${r.domain_rating||0}%;background:${drCol(r.domain_rating)}"></div></div></div></td><td class="mono">${fmtN(r.links_to_target)}</td><td class="mono">${fmtN(r.dofollow_links)}</td><td class="mono">${fmtN(r.traffic_domain)}</td><td class="mono">${r.first_seen?new Date(r.first_seen).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—'}</td></tr>`).join('');
-  },
-
   renderCompetitors() {
     $('body-competitors').innerHTML = this.detail.competitors.map(c => `<tr><td><strong>${esc(c.competitor_domain||'')}</strong></td><td class="mono">${fmtN(c.keywords_common)}</td><td class="mono">${fmtN(c.traffic)}</td><td class="mono">${c.share!=null?(c.share*100).toFixed(1)+'%':'—'}</td><td><div class="dr-i"><span class="mono">${c.domain_rating!=null?c.domain_rating.toFixed(0):'—'}</span><div class="dr-b"><div class="dr-f" style="width:${c.domain_rating||0}%;background:${drCol(c.domain_rating)}"></div></div></div></td></tr>`).join('');
   },
@@ -2007,9 +1989,9 @@ Be specific, actionable, and reference the data. No generic advice.`;
       this.sortState[tbl] = { col, dir };
       th.closest('thead').querySelectorAll('th').forEach(h=>h.classList.remove('sorted-asc','sorted-desc'));
       th.classList.add('sorted-'+dir);
-      const map = { organic:'organic', rankings:'rankings', pages:'pages', refdomains:'refdomains', competitors:'competitors' };
+      const map = { organic:'organic', rankings:'rankings', pages:'pages', competitors:'competitors' };
       this.detail[map[tbl]]?.sort((a,b) => { let va=a[col],vb=b[col]; if(va==null) va=dir==='desc'?-Infinity:Infinity; if(vb==null) vb=dir==='desc'?-Infinity:Infinity; if(typeof va==='string') return dir==='desc'?vb.localeCompare(va):va.localeCompare(vb); return dir==='desc'?vb-va:va-vb; });
-      ({ organic:'renderOrganic', rankings:'renderRankings', pages:'renderPages', refdomains:'renderRefDomains', competitors:'renderCompetitors' })[tbl] && this[({ organic:'renderOrganic', rankings:'renderRankings', pages:'renderPages', refdomains:'renderRefDomains', competitors:'renderCompetitors' })[tbl]]();
+      ({ organic:'renderOrganic', rankings:'renderRankings', pages:'renderPages', competitors:'renderCompetitors' })[tbl] && this[({ organic:'renderOrganic', rankings:'renderRankings', pages:'renderPages', competitors:'renderCompetitors' })[tbl]]();
     }));
   },
 
@@ -2059,7 +2041,6 @@ Be specific, actionable, and reference the data. No generic advice.`;
       competitors: (d.competitors||[]).slice(0,10),
       audit: d.audit ? { health_score: d.audit.health_score, urls_with_errors: d.audit.urls_with_errors, urls_with_warnings: d.audit.urls_with_warnings } : null,
       auditIssues: (d.auditIssues||[]).filter(i=>i.importance==='Error').slice(0,10).map(i=>({ name:i.name, crawled:i.crawled })),
-      refdomains: (d.refdomains||[]).slice(0,10).map(r=>({ domain:r.domain, domain_rating:r.domain_rating })),
     };
   },
 

@@ -3,7 +3,37 @@
     "allow": [
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "mcp__189475bf-171f-4a09-83e9-55a2179ec2f1__deploy_to_vercel",
+      "Bash(vercel deploy:*)",
+      "Bash(npx vercel:*)",
+      "Bash(gh api:*)",
+      "Bash(gh org:*)",
+      "Bash(git remote:*)",
+      "mcp__e908912d-2e22-4131-9786-836d83ea9071__doc",
+      "Bash(git rm:*)",
+      "Bash(git push:*)",
+      "mcp__189475bf-171f-4a09-83e9-55a2179ec2f1__web_fetch_vercel_url",
+      "WebFetch(domain:seo-dashboard-alpha-five.vercel.app)",
+      "WebFetch(domain:seo-dashboard-one-sigma.vercel.app)",
+      "Bash(curl -s \"https://seo-dashboard-one-sigma.vercel.app/api/ahrefs?endpoint=management/projects\")",
+      "Bash(curl -s \"https://seo-dashboard-one-sigma.vercel.app/api/ahrefs?endpoint=rank-tracker/overview&project_id=7634979&date=2026-04-07&date_compared=2026-03-07&device=mobile&select=keyword,position,position_diff,volume,traffic,tags,location&limit=10\")",
+      "Bash(python3 -m json.tool)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__e908912d-2e22-4131-9786-836d83ea9071__management-projects",
+      "mcp__e908912d-2e22-4131-9786-836d83ea9071__rank-tracker-overview",
+      "mcp__e908912d-2e22-4131-9786-836d83ea9071__management-project-keywords",
+      "Read(//c/Users/talls/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/fc1546d5-e741-4b5b-af18-711b3f4b8376/70649301-be1a-4af6-905a-ea715d885361/skills/xlsx/**)",
+      "Bash(python -c ':*)",
+      "Bash(pip install:*)",
+      "mcp__e908912d-2e22-4131-9786-836d83ea9071__rank-tracker-competitors-overview",
+      "mcp__e908912d-2e22-4131-9786-836d83ea9071__site-audit-projects",
+      "mcp__e908912d-2e22-4131-9786-836d83ea9071__gsc-keywords",
+      "mcp__e908912d-2e22-4131-9786-836d83ea9071__gsc-performance-history",
+      "mcp__32bdeff4-d6d4-4383-b8fa-cb6185cd3fca__apply_migration",
+      "mcp__32bdeff4-d6d4-4383-b8fa-cb6185cd3fca__execute_sql"
     ]
   }
 }

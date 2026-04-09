@@ -109,12 +109,11 @@ async function getDetail(db, res, projectId, date) {
   const { data: proj } = await db.from('projects').select('*').eq('id', projectId).single();
 
   // Fetch all data tables in parallel
-  const [snapshot, rankings, organic, pages, refs, comps, trafficHist, auditIssues, gscKw, gscPages, gscHist] = await Promise.all([
+  const [snapshot, rankings, organic, pages, comps, trafficHist, auditIssues, gscKw, gscPages, gscHist] = await Promise.all([
     db.from('project_snapshots').select('*').eq('project_id', projectId).eq('snapshot_date', snapshotDate).single(),
     db.from('rank_tracker_keywords').select('*').eq('project_id', projectId).eq('snapshot_date', snapshotDate),
     db.from('organic_keywords').select('*').eq('project_id', projectId).eq('snapshot_date', snapshotDate),
     db.from('top_pages').select('*').eq('project_id', projectId).eq('snapshot_date', snapshotDate).order('sum_traffic', { ascending: false }),
-    db.from('referring_domains').select('*').eq('project_id', projectId).eq('snapshot_date', snapshotDate).order('domain_rating', { ascending: false }),
     db.from('organic_competitors').select('*').eq('project_id', projectId).eq('snapshot_date', snapshotDate).order('keywords_common', { ascending: false }),
     db.from('traffic_history').select('*').eq('project_id', projectId).eq('snapshot_date', snapshotDate).order('month_date'),
     db.from('site_audit_issues').select('*').eq('project_id', projectId).eq('snapshot_date', snapshotDate),
@@ -139,10 +138,6 @@ async function getDetail(db, res, projectId, date) {
     bl: s ? { live: s.backlinks_live, all_time: s.backlinks_all_time, live_refdomains: s.refdomains_live, all_time_refdomains: s.refdomains_all_time } : {},
     history: (trafficHist.data || []).map(h => ({ date: h.month_date, org_traffic: h.org_traffic })),
     pages: pages.data || [],
-    refdomains: (refs.data || []).map(r => ({
-      domain: r.domain, domain_rating: parseFloat(r.domain_rating), links_to_target: r.links_to_target,
-      dofollow_links: r.dofollow_links, traffic_domain: r.traffic_domain, first_seen: r.first_seen,
-    })),
     competitors: (comps.data || []).map(c => ({
       competitor_domain: c.competitor_domain, keywords_common: c.keywords_common,
       traffic: c.traffic, share: parseFloat(c.share), domain_rating: parseFloat(c.domain_rating),

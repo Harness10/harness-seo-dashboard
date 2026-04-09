@@ -32,7 +32,7 @@ async function refreshProject(db, proj, date, dateCmp, dateFrom) {
   const rootDomain = domain.split('/')[0];
 
   // Fetch core data
-  const [rtRes, orgRes, drRes, metricsRes, blRes, histRes, pagesRes, refsRes, compsRes] = await Promise.all([
+  const [rtRes, orgRes, drRes, metricsRes, blRes, histRes, pagesRes, compsRes] = await Promise.all([
     ahrefsCall('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,serp_features,is_informational,is_transactional,is_commercial,is_local' }),
     ahrefsCall('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 50, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }),
     ahrefsCall('site-explorer/domain-rating', { target: domain, date }),
@@ -40,7 +40,6 @@ async function refreshProject(db, proj, date, dateCmp, dateFrom) {
     ahrefsCall('site-explorer/backlinks-stats', { target: domain, date }),
     ahrefsCall('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'us', history_grouping: 'monthly' }),
     ahrefsCall('site-explorer/top-pages', { target: domain, date, country: 'us', limit: 50, select: 'url,sum_traffic,value,keywords,top_keyword,top_keyword_best_position', order_by: 'sum_traffic:desc' }),
-    ahrefsCall('site-explorer/referring-domains', { target: rootDomain, limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }),
     ahrefsCall('site-explorer/organic-competitors', { target: domain, date, country: 'us', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
   ]);
 
@@ -59,7 +58,6 @@ async function refreshProject(db, proj, date, dateCmp, dateFrom) {
   const bl = blRes?.metrics || {};
   const hist = histRes?.metrics || [];
   const pages = pagesRes?.pages || [];
-  const refs = refsRes?.refdomains || [];
   const comps = compsRes?.competitors || [];
   const gscKw = gscKwRes?.keywords || [];
   const gscHist = gscHistRes?.metrics || [];
@@ -98,7 +96,6 @@ async function refreshProject(db, proj, date, dateCmp, dateFrom) {
     replace('rank_tracker_keywords', rt.map(k => ({ project_id: pid, snapshot_date: date, keyword: k.keyword, position: k.position, position_prev: k.position_prev, position_diff: k.position_diff, volume: k.volume, traffic: k.traffic, traffic_diff: k.traffic_diff, keyword_difficulty: k.keyword_difficulty, url: k.url, tags: k.tags, location: k.location, best_position_kind: k.best_position_kind, serp_features: k.serp_features, is_informational: k.is_informational, is_transactional: k.is_transactional, is_commercial: k.is_commercial, is_local: k.is_local }))),
     replace('organic_keywords', org.map(k => ({ project_id: pid, snapshot_date: date, keyword: k.keyword, best_position: k.best_position, sum_traffic: k.sum_traffic, volume: k.volume, keyword_difficulty: k.keyword_difficulty, best_position_url: k.best_position_url, is_local: k.is_local, is_commercial: k.is_commercial, is_transactional: k.is_transactional, is_informational: k.is_informational }))),
     replace('top_pages', pages.map(p => ({ project_id: pid, snapshot_date: date, url: p.url, sum_traffic: p.sum_traffic, value: p.value, keywords: p.keywords, top_keyword: p.top_keyword, top_keyword_best_position: p.top_keyword_best_position }))),
-    replace('referring_domains', refs.map(r => ({ project_id: pid, snapshot_date: date, domain: r.domain, domain_rating: r.domain_rating, links_to_target: r.links_to_target, dofollow_links: r.dofollow_links, traffic_domain: r.traffic_domain, first_seen: r.first_seen }))),
     replace('organic_competitors', comps.map(c => ({ project_id: pid, snapshot_date: date, competitor_domain: c.competitor_domain, keywords_common: c.keywords_common, traffic: c.traffic, share: c.share, domain_rating: c.domain_rating }))),
     replace('traffic_history', hist.map(h => ({ project_id: pid, snapshot_date: date, month_date: h.date?.split('T')[0], org_traffic: h.org_traffic }))),
     replace('gsc_keywords', gscKw.map(k => ({ project_id: pid, snapshot_date: date, keyword: k.keyword, clicks: k.clicks, impressions: k.impressions, ctr: k.ctr, position: k.position, top_url: k.top_url }))),
