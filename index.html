@@ -50,7 +50,7 @@ header{background:linear-gradient(180deg,#0b0d14,#0e1018);border-bottom:1px soli
 .progress-text{font-size:.62rem;color:var(--mt);margin-top:3px;font-family:var(--mono)}
 
 /* ===== AGGREGATE STATS ===== */
-.agg-bar{display:none;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.agg-bar{display:none;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:14px}
 .agg-bar.show{display:grid}
 .agg{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center}
 .agg .av{font-family:var(--mono);font-weight:700;font-size:1.1rem}.agg .al{font-size:.55rem;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
@@ -192,6 +192,23 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .opp-vol{font-family:var(--mono);font-size:.6rem;color:var(--mt)}
 @media(max-width:900px){.opps-grid{grid-template-columns:1fr}}
 
+/* AI Overview */
+.aio-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px;border-bottom:1px solid var(--bd)}
+.aio-stat{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;text-align:center}
+.aio-stat .aio-v{font-family:var(--mono);font-weight:800;font-size:1.3rem}
+.aio-stat .aio-l{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+.aio-stat .aio-pct{font-family:var(--mono);font-size:.7rem;font-weight:600;margin-top:2px}
+.aio-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
+.aio-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--radius);padding:12px;overflow:hidden}
+.aio-card h4{font-size:.72rem;font-weight:700;color:var(--tx2);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.aio-card .aio-list{list-style:none;max-height:260px;overflow-y:auto}
+.aio-card .aio-list li{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(255,255,255,.03);font-size:.66rem;gap:6px}
+.aio-card .aio-list li:first-child{border-top:none}
+.aio-kw{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx2)}
+.aio-badge{display:inline-flex;align-items:center;gap:3px;font-size:.54rem;font-weight:600;padding:2px 6px;border-radius:4px}
+.aio-badge.cited{background:rgba(16,185,129,.12);color:var(--gn)}.aio-badge.present{background:rgba(139,92,246,.1);color:var(--ac2)}.aio-badge.none{background:rgba(125,134,152,.08);color:var(--mt)}
+@media(max-width:900px){.aio-stats{grid-template-columns:repeat(2,1fr)}.aio-grid{grid-template-columns:1fr}}
+
 /* Average Rank */
 .ar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;padding:14px}
 .ar-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--radius);padding:14px;position:relative;overflow:hidden}
@@ -322,6 +339,8 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
     <div class="agg"><div class="av" id="agg-top10">0</div><div class="al">Ranking Top 10</div></div>
     <div class="agg"><div class="av" id="agg-top3">0</div><div class="al">Ranking Top 3</div></div>
     <div class="agg"><div class="av" id="agg-health">--</div><div class="al">Avg Health</div></div>
+    <div class="agg"><div class="av" id="agg-aio" style="color:var(--ac2)">0</div><div class="al">AI Overview SERPs</div></div>
+    <div class="agg"><div class="av" id="agg-aio-cited" style="color:var(--gn)">0</div><div class="al">Cited in AIO</div></div>
   </div>
   <div class="grid" id="grid"></div>
 </div>
@@ -377,6 +396,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
   <section class="table-card">
     <div class="tab-bar">
       <button class="tab active" data-tab="organic">Organic Rankings</button>
+      <button class="tab" data-tab="aiov">AI Overviews</button>
       <button class="tab" data-tab="avgrank">Average Rank</button>
       <button class="tab" data-tab="rankings">Tracked Rankings</button>
       <button class="tab" data-tab="pages">Top Pages</button>
@@ -390,6 +410,9 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
         <th data-sort="sum_traffic" data-tbl="organic">Traffic</th><th data-sort="volume" data-tbl="organic">Volume</th><th data-sort="keyword_difficulty" data-tbl="organic">KD</th>
         <th data-sort="is_local" data-tbl="organic">Type</th><th data-sort="best_position_url" data-tbl="organic">URL</th>
       </tr></thead><tbody id="body-organic"></tbody></table></div>
+    </div>
+    <div class="tab-content" id="tab-aiov">
+      <div id="aiov-content"></div>
     </div>
     <div class="tab-content" id="tab-avgrank">
       <div id="avgrank-content"></div>
@@ -661,7 +684,7 @@ const App = {
       const results = await Promise.allSettled(batch.map(p =>
         this.api('rank-tracker/overview', {
           project_id: p.project_id, date, date_compared: dateCmp, device: 'mobile', limit: 100,
-          select: 'keyword,position,position_prev,position_diff,volume,traffic,keyword_difficulty,url,tags,location,is_informational,is_transactional,is_commercial,is_local'
+          select: 'keyword,position,position_prev,position_diff,volume,traffic,keyword_difficulty,url,tags,location,best_position_kind,serp_features,is_informational,is_transactional,is_commercial,is_local'
         })
       ));
       results.forEach((r, j) => {
@@ -725,19 +748,27 @@ const App = {
 
   updateAggregates() {
     const ab = $('agg-bar'); ab.classList.add('show');
-    let totalKws = 0, totalTop10 = 0, totalTop3 = 0, healthSum = 0, healthCount = 0;
-    this.projects.forEach(p => {
+    let totalKws = 0, totalTop10 = 0, totalTop3 = 0, healthSum = 0, healthCount = 0, totalAIO = 0, totalAIOCited = 0;
+    this.filtered.forEach(p => {
       const rd = this.rankData[p.project_id];
       if (!rd) return;
       const s = this.calcStats(rd);
       totalKws += rd.length; totalTop10 += s.top10; totalTop3 += s.top3;
       healthSum += s.health; healthCount++;
+      // AI Overview stats from raw RT data
+      const rt = this.rtRaw[p.project_id] || [];
+      rt.forEach(k => {
+        if ((k.serp_features||[]).some(f => f === 'ai_overview' || f === 'ai_overview_sitelink' || f === 'ai_overview_found')) totalAIO++;
+        if (k.best_position_kind === 'ai_overview' || k.best_position_kind === 'ai_overview_sitelink') totalAIOCited++;
+      });
     });
-    $('agg-projects').textContent = this.projects.length;
+    $('agg-projects').textContent = this.filtered.length;
     $('agg-kws').textContent = fmtN(totalKws);
     $('agg-top10').textContent = fmtN(totalTop10);
     $('agg-top3').textContent = fmtN(totalTop3);
     $('agg-health').textContent = healthCount > 0 ? Math.round(healthSum / healthCount) : '--';
+    $('agg-aio').textContent = fmtN(totalAIO);
+    $('agg-aio-cited').textContent = fmtN(totalAIOCited);
   },
 
   showMain() {
@@ -771,7 +802,7 @@ const App = {
       const cachedRT = this.rtRaw[pid];
       const cachedOrg = this.orgData[pid];
       const [rankings, orgKws, dr, metrics, bl, hist, pages, refs, comps] = await Promise.allSettled([
-        cachedRT ? Promise.resolve({ overviews: cachedRT }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,is_informational,is_transactional,is_commercial,is_local' }),
+        cachedRT ? Promise.resolve({ overviews: cachedRT }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,serp_features,is_informational,is_transactional,is_commercial,is_local' }),
         cachedOrg ? Promise.resolve({ keywords: cachedOrg }) : this.api('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 50, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }),
         this.api('site-explorer/domain-rating', { target: domain, date }),
         this.api('site-explorer/metrics', { target: domain, date, country: 'us' }),
@@ -808,7 +839,61 @@ const App = {
 
   renderDetail() {
     const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
-    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAvgRank, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+  },
+
+  renderAIOverview() {
+    const kws = this.detail.rankings || [];
+    if (!kws.length) { $('aiov-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mt);font-size:.8rem">No tracked keywords available.</div>'; return; }
+
+    // Analyze AI Overview data
+    const total = kws.length;
+    const withAIO = kws.filter(k => (k.serp_features||[]).some(f => f === 'ai_overview' || f === 'ai_overview_sitelink' || f === 'ai_overview_found'));
+    const citedInAIO = kws.filter(k => k.best_position_kind === 'ai_overview' || k.best_position_kind === 'ai_overview_sitelink');
+    const organicWithAIO = withAIO.filter(k => k.best_position_kind === 'organic');
+    const notInAIO = kws.filter(k => !(k.serp_features||[]).some(f => f === 'ai_overview' || f === 'ai_overview_sitelink' || f === 'ai_overview_found'));
+
+    const aioPct = total > 0 ? Math.round(withAIO.length / total * 100) : 0;
+    const citedPct = withAIO.length > 0 ? Math.round(citedInAIO.length / withAIO.length * 100) : 0;
+
+    // SERP feature breakdown
+    const serpCounts = {};
+    kws.forEach(k => (k.serp_features||[]).forEach(f => { serpCounts[f] = (serpCounts[f]||0) + 1; }));
+    const serpFeatures = Object.entries(serpCounts).sort((a,b) => b[1] - a[1]);
+
+    const serpLabel = (f) => ({ ai_overview:'AI Overview', ai_overview_sitelink:'AI Overview Sitelink', ai_overview_found:'AI Overview Found', question:'People Also Ask', local_pack:'Local Pack', local_teaser:'Local Teaser', snippet:'Featured Snippet', image:'Images', image_th:'Image Thumbnail', video:'Video', video_th:'Video Thumbnail', discussion:'Discussions', news:'News', shopping:'Shopping', review:'Reviews', knowledge_card:'Knowledge Card', knowledge_panel:'Knowledge Panel', tweet:'X/Twitter', organic:'Organic', sitelink:'Sitelinks', article:'Articles', organic_shopping:'Organic Shopping', paid_top:'Paid Top', paid_bottom:'Paid Bottom' })[f] || f;
+
+    const serpColor = (f) => {
+      if (f.startsWith('ai_overview')) return 'var(--ac2)';
+      if (f === 'local_pack' || f === 'local_teaser') return 'var(--gn)';
+      if (f === 'question') return 'var(--cy)';
+      if (f === 'snippet') return 'var(--am)';
+      return 'var(--mt)';
+    };
+
+    $('aiov-content').innerHTML =
+      `<div class="aio-stats">
+        <div class="aio-stat"><div class="aio-v" style="color:var(--ac2)">${withAIO.length}</div><div class="aio-l">SERPs with AI Overview</div><div class="aio-pct" style="color:var(--ac2)">${aioPct}% of tracked</div></div>
+        <div class="aio-stat"><div class="aio-v" style="color:var(--gn)">${citedInAIO.length}</div><div class="aio-l">Cited in AI Overview</div><div class="aio-pct" style="color:var(--gn)">${citedPct}% citation rate</div></div>
+        <div class="aio-stat"><div class="aio-v" style="color:var(--am)">${organicWithAIO.length}</div><div class="aio-l">Organic + AIO Present</div><div class="aio-pct" style="color:var(--mt)">Competing with AIO</div></div>
+        <div class="aio-stat"><div class="aio-v">${notInAIO.length}</div><div class="aio-l">No AI Overview</div><div class="aio-pct" style="color:var(--mt)">${total > 0 ? 100 - aioPct : 0}% traditional SERP</div></div>
+      </div>
+      <div class="aio-grid">
+        <div class="aio-card" style="border-top:3px solid var(--ac2)">
+          <h4><span style="font-size:.9rem">🤖</span> Keywords with AI Overview on SERP</h4>
+          ${withAIO.length > 0 ? `<ul class="aio-list">${withAIO.sort((a,b)=>(b.volume||0)-(a.volume||0)).map(k => {
+            const cited = k.best_position_kind === 'ai_overview' || k.best_position_kind === 'ai_overview_sitelink';
+            return `<li><span class="aio-kw">${esc(k.keyword)}</span><span style="display:flex;gap:4px;align-items:center"><span class="opp-vol">${fmtN(k.volume)} vol</span>${cited ? '<span class="aio-badge cited">Cited</span>' : '<span class="aio-badge present">AIO Present</span>'}${posBadgeD(k.position)}</span></li>`;
+          }).join('')}</ul>` : '<div style="padding:20px;text-align:center;color:var(--mt);font-size:.7rem">No AI Overviews detected on tracked keyword SERPs</div>'}
+        </div>
+        <div class="aio-card" style="border-top:3px solid var(--cy)">
+          <h4><span style="font-size:.9rem">📊</span> SERP Feature Landscape</h4>
+          <ul class="aio-list">${serpFeatures.map(([f, count]) => {
+            const pct = Math.round(count / total * 100);
+            return `<li><span class="aio-kw" style="color:${serpColor(f)}">${serpLabel(f)}</span><span style="display:flex;gap:6px;align-items:center"><span style="font-family:var(--mono);font-size:.6rem;color:var(--mt)">${pct}%</span><span style="font-family:var(--mono);font-size:.68rem;font-weight:600">${count}</span></span></li>`;
+          }).join('')}</ul>
+        </div>
+      </div>`;
   },
 
   renderAvgRank() {
