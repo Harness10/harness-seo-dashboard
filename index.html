@@ -403,7 +403,8 @@ const App = {
     $('loading').classList.add('show'); $('loading-text').textContent = 'Loading projects...';
     try {
       const res = await this.api('management/projects');
-      this.projects = (res.projects || []).filter(p => p.keyword_count > 0).sort((a, b) => a.project_name.localeCompare(b.project_name));
+      const hidden = ['8451778']; // Duplicate Aircomfortsolutions (use OKC + Tulsa instead)
+      this.projects = (res.projects || []).filter(p => p.keyword_count > 0 && !hidden.includes(String(p.project_id))).sort((a, b) => a.project_name.localeCompare(b.project_name));
       this.filtered = this.projects;
       this.renderGrid();
       $('fetch-btn').disabled = false;
