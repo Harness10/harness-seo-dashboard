@@ -31,6 +31,7 @@ export default async function handler(req, res) {
     'management/project-competitors',
     'site-audit/issues',
     'site-audit/projects',
+    'site-audit/page-explorer',
     'gsc/keywords',
     'gsc/pages',
     'gsc/performance-history',
@@ -61,7 +62,11 @@ export default async function handler(req, res) {
       },
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) {
+      return res.status(response.status || 500).json({ error: text || 'Unknown API error' });
+    }
 
     if (!response.ok) {
       return res.status(response.status).json(data);

@@ -890,7 +890,7 @@ const App = {
         this.api('site-explorer/backlinks-stats', { target: domain, date }),
         this.api('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'us', history_grouping: 'monthly' }),
         this.api('site-explorer/top-pages', { target: domain, date, country: 'us', limit: 50, select: 'url,sum_traffic,value,keywords,top_keyword,top_keyword_best_position', order_by: 'sum_traffic:desc' }),
-        this.api('site-explorer/referring-domains', { target: domain, limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }),
+        this.api('site-explorer/referring-domains', { target: domain.split('/')[0], limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }),
         this.api('site-explorer/organic-competitors', { target: domain, date, country: 'us', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
       ]);
       const orgKeywords = val(orgKws, 'keywords') || [];
@@ -1026,42 +1026,47 @@ const App = {
     // 1. Quick wins: positions 4-20, high volume → optimize existing pages
     const quickWins = rt.filter(k => k.position && k.position >= 4 && k.position <= 20 && (k.volume||0) >= 50).sort((a,b) => (b.volume||0) - (a.volume||0));
     if (quickWins.length > 0) {
-      actions.push({ pri: 'critical', title: 'Optimize Existing Pages (Quick Wins)', desc: 'These keywords rank positions 4-20 with significant volume. Optimize title tags, H1s, and on-page content to push into top 3.', kws: quickWins.slice(0,8).map(k => ({ kw: k.keyword, meta: `Pos ${k.position} · ${fmtN(k.volume)} vol`, tags: k.tags })) });
+      const topQW = quickWins[0];
+      actions.push({ pri: 'critical', title: 'Optimize Existing Pages (Quick Wins)', desc: 'These keywords rank positions 4-20 with significant volume. Optimize title tags, H1s, and on-page content to push into top 3.', aiPrompt: `Rewrite and optimize the page ${topQW.url || 'the ranking page'} for the keyword "${topQW.keyword}" (currently position ${topQW.position}, ${topQW.volume} monthly searches). Include optimized title tag, meta description, H1, and body content.`, kws: quickWins.slice(0,8).map(k => ({ kw: k.keyword, meta: `Pos ${k.position} · ${fmtN(k.volume)} vol`, tags: k.tags, url: k.url })) });
     }
 
     // 2. Declining keywords → defend content
     const declining = rt.filter(k => k.position_diff != null && k.position_diff > 3 && k.position != null).sort((a,b) => b.position_diff - a.position_diff);
     if (declining.length > 0) {
-      actions.push({ pri: 'high', title: 'Defend Declining Rankings', desc: 'These keywords dropped 3+ positions in the last 30 days. Update content, check for technical issues, and refresh with new information.', kws: declining.slice(0,6).map(k => ({ kw: k.keyword, meta: `Dropped ${k.position_diff} pos · Now #${k.position}`, tags: k.tags })) });
+      const topD = declining[0];
+      actions.push({ pri: 'high', title: 'Defend Declining Rankings', desc: 'These keywords dropped 3+ positions in the last 30 days. Update content, check for technical issues, and refresh with new information.', aiPrompt: `Analyze and rewrite the page for "${topD.keyword}" which dropped ${topD.position_diff} positions (now #${topD.position}). Fetch the page at ${topD.url || 'the ranking URL'} and suggest improvements to recover rankings.`, kws: declining.slice(0,6).map(k => ({ kw: k.keyword, meta: `Dropped ${k.position_diff} pos · Now #${k.position}`, tags: k.tags, url: k.url })) });
     }
 
     // 3. Content gaps: tracked keywords not ranking → new content needed
     const gaps = rt.filter(k => k.position == null && (k.volume||0) >= 100).sort((a,b) => (b.volume||0) - (a.volume||0));
     if (gaps.length > 0) {
-      actions.push({ pri: 'high', title: 'Create New Content (Keyword Gaps)', desc: 'High-volume tracked keywords with no ranking. Create dedicated service pages or blog posts targeting these terms.', kws: gaps.slice(0,8).map(k => ({ kw: k.keyword, meta: `${fmtN(k.volume)} vol · Not ranking`, tags: k.tags })) });
+      const gapKws = gaps.slice(0,5).map(k=>k.keyword).join('", "');
+      actions.push({ pri: 'high', title: 'Create New Content (Keyword Gaps)', desc: 'High-volume tracked keywords with no ranking. Create dedicated service pages or blog posts targeting these terms.', aiPrompt: `Write a comprehensive service page or blog post targeting these keywords that we don't rank for yet: "${gapKws}". Include title tag, meta description, H1, and full body content optimized for these terms.`, kws: gaps.slice(0,8).map(k => ({ kw: k.keyword, meta: `${fmtN(k.volume)} vol · Not ranking`, tags: k.tags })) });
     }
 
     // 4. AI Overview opportunities
     const aioOpps = rt.filter(k => (k.serp_features||[]).some(f => f.startsWith('ai_overview')) && k.best_position_kind === 'organic' && k.position && k.position <= 10).sort((a,b) => (b.volume||0) - (a.volume||0));
     if (aioOpps.length > 0) {
-      actions.push({ pri: 'medium', title: 'Target AI Overview Citations', desc: 'Keywords where you rank top 10 and an AI Overview exists but doesn\'t cite you. Add structured FAQ schema, concise answer paragraphs, and authoritative data.', kws: aioOpps.slice(0,6).map(k => ({ kw: k.keyword, meta: `Pos ${k.position} · AIO present · ${fmtN(k.volume)} vol`, tags: k.tags })) });
+      const topAio = aioOpps[0];
+      actions.push({ pri: 'medium', title: 'Target AI Overview Citations', desc: 'Keywords where you rank top 10 and an AI Overview exists but doesn\'t cite you. Add structured FAQ schema, concise answer paragraphs, and authoritative data.', aiPrompt: `Optimize the page ${topAio.url || ''} for AI Overview citation on the keyword "${topAio.keyword}". Generate FAQ schema markup, concise answer paragraphs, and structured content that Google AI can cite.`, kws: aioOpps.slice(0,6).map(k => ({ kw: k.keyword, meta: `Pos ${k.position} · AIO present · ${fmtN(k.volume)} vol`, tags: k.tags, url: k.url })) });
     }
 
     // 5. Local content opportunities
     const localGaps = rt.filter(k => (k.tags||[]).includes('Local') && (k.position == null || k.position > 10)).sort((a,b) => (b.volume||0) - (a.volume||0));
     if (localGaps.length > 0) {
-      actions.push({ pri: 'medium', title: 'Improve Local Service Pages', desc: 'Local keywords not in the top 10. Ensure each service area has a dedicated page with unique local content, NAP info, and embedded map.', kws: localGaps.slice(0,6).map(k => ({ kw: k.keyword, meta: k.position ? `Pos ${k.position}` : 'Not ranking' + ` · ${fmtN(k.volume)} vol`, tags: k.tags })) });
+      const localKws = localGaps.slice(0,3).map(k=>k.keyword).join('", "');
+      actions.push({ pri: 'medium', title: 'Improve Local Service Pages', desc: 'Local keywords not in the top 10. Ensure each service area has a dedicated page with unique local content, NAP info, and embedded map.', aiPrompt: `Write a local service area page targeting these local keywords: "${localKws}". Include localized H1, city-specific content, NAP details, and FAQ section.`, kws: localGaps.slice(0,6).map(k => ({ kw: k.keyword, meta: (k.position ? `Pos ${k.position}` : 'Not ranking') + ` · ${fmtN(k.volume)} vol`, tags: k.tags, url: k.url })) });
     }
 
     // 6. Organic keywords with high traffic but no tracked RT keyword → add to RT
     const orgNotTracked = org.filter(k => k.best_position && k.best_position <= 10 && (k.sum_traffic||0) > 20 && !rt.some(r => r.keyword === k.keyword)).sort((a,b) => (b.sum_traffic||0) - (a.sum_traffic||0));
     if (orgNotTracked.length > 0) {
-      actions.push({ pri: 'low', title: 'Add to Rank Tracker', desc: 'Organic keywords driving traffic that aren\'t being tracked in Ahrefs RT. Add these to monitor performance over time.', kws: orgNotTracked.slice(0,6).map(k => ({ kw: k.keyword, meta: `Pos ${k.best_position} · ${fmtN(k.sum_traffic)} traffic/mo` })) });
+      actions.push({ pri: 'low', title: 'Add to Rank Tracker', desc: 'Organic keywords driving traffic that aren\'t being tracked in Ahrefs RT. Add these to monitor performance over time.', kws: orgNotTracked.slice(0,6).map(k => ({ kw: k.keyword, meta: `Pos ${k.best_position} · ${fmtN(k.sum_traffic)} traffic/mo`, url: k.best_position_url })) });
     }
 
     // 7. Backlink/DR suggestions
     if ((dr.domain_rating||0) < 30) {
-      actions.push({ pri: 'high', title: 'Build Domain Authority', desc: `Domain Rating is ${Math.round(dr.domain_rating||0)}. Focus on earning backlinks from local directories, industry associations, and partner businesses to improve authority.`, kws: [] });
+      actions.push({ pri: 'high', title: 'Build Domain Authority', desc: `Domain Rating is ${Math.round(dr.domain_rating||0)}. Focus on earning backlinks from local directories, industry associations, and partner businesses to improve authority.`, aiPrompt: `Create a link building outreach strategy for this site with DR ${Math.round(dr.domain_rating||0)}. Suggest specific types of sites to target, email templates, and content that would earn links.`, kws: [] });
     }
 
     // GSC-powered insights
@@ -1094,9 +1099,48 @@ const App = {
       <div class="act-grid">${actions.map(a => `<div class="act-card p-${a.pri}">
         <div class="act-hdr"><span class="act-title">${esc(a.title)}</span><span class="act-pri ${a.pri}">${a.pri}</span></div>
         <div class="act-desc">${a.desc}</div>
-        ${a.kws.length > 0 ? `<ul class="act-kws">${a.kws.map(k => `<li><span class="aio-kw">${esc(k.kw)} ${(k.tags||[]).filter(t=>t!=='Bare').slice(0,2).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('')}</span><span class="act-impact">${k.meta}</span></li>`).join('')}</ul>` : ''}
+        ${a.kws.length > 0 ? `<ul class="act-kws">${a.kws.map(k => `<li>
+          <span class="aio-kw">${esc(k.kw)} ${(k.tags||[]).filter(t=>t!=='Bare').slice(0,2).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('')}${k.url ? `<br><span style="font-family:var(--mono);font-size:.52rem;color:var(--cy);opacity:.7">${esc(tryPath(k.url))}</span>` : ''}</span>
+          <span class="act-impact">${k.meta}</span>
+        </li>`).join('')}</ul>` : ''}
+        ${a.aiPrompt ? `<button class="btn" style="margin-top:8px;font-size:.62rem;padding:5px 10px" onclick="App.goAIWriter('${a.aiPrompt.replace(/'/g,"\\'")}')">✨ Generate with AI Writer</button>` : ''}
       </div>`).join('')}</div>
     </div>`;
+  },
+
+  async toggleIssue(id, projectId, issueId) {
+    const el = $(id);
+    const arrow = $(id + '-arrow');
+    if (!el) return;
+    if (el.style.display !== 'none') { el.style.display = 'none'; if (arrow) arrow.style.transform = ''; return; }
+    el.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(90deg)';
+    // If already loaded, don't refetch
+    if (el.dataset.loaded) return;
+    try {
+      const res = await this.api('site-audit/page-explorer', { project_id: projectId, limit: 20 });
+      // page-explorer returns pages - filter/show relevant ones
+      const pages = res.pages || [];
+      if (pages.length > 0) {
+        el.innerHTML = `<div style="padding:4px 0">${pages.slice(0,20).map(p =>
+          `<div style="font-size:.6rem;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.02)"><a href="${esc(p.url||'')}" target="_blank" style="color:var(--cy);font-family:var(--mono);word-break:break-all">${esc(p.url||'Unknown')}</a></div>`
+        ).join('')}${pages.length > 20 ? `<div style="font-size:.54rem;color:var(--mt);padding:4px 0">+${pages.length-20} more pages</div>` : ''}</div>`;
+      } else {
+        el.innerHTML = '<div style="padding:6px 0;font-size:.6rem;color:var(--mt)">View affected URLs in <a href="https://app.ahrefs.com/site-audit/' + projectId + '" target="_blank" style="color:var(--cy)">Ahrefs Site Audit</a></div>';
+      }
+    } catch(e) {
+      el.innerHTML = `<div style="padding:6px 0;font-size:.6rem;color:var(--mt)">View in <a href="https://app.ahrefs.com/site-audit/${projectId}" target="_blank" style="color:var(--cy)">Ahrefs Site Audit →</a></div>`;
+    }
+    el.dataset.loaded = '1';
+  },
+
+  goAIWriter(prompt) {
+    // Switch to AI Writer tab and send the prompt
+    document.querySelectorAll('.tab-bar .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-tab="ai"]').classList.add('active');
+    $('tab-ai').classList.add('active');
+    setTimeout(() => this.sendChat(prompt), 200);
   },
 
   renderSiteHealth() {
@@ -1107,34 +1151,45 @@ const App = {
     const bl = this.detail.bl || {};
     const rt = this.detail.rankings || [];
 
-    // Site audit section
     let auditHtml = '';
     if (audit) {
       const hs = audit.health_score || 0;
       const hsCol = hs >= 90 ? '#10b981' : hs >= 70 ? '#f59e0b' : '#ef4444';
       const circ = 2 * Math.PI * 28;
       const offset = circ - (circ * hs / 100);
-      const errors = issues.filter(i => i.importance === 'Error').sort((a,b) => b.crawled - a.crawled);
-      const warnings = issues.filter(i => i.importance === 'Warning').sort((a,b) => b.crawled - a.crawled);
-      const notices = issues.filter(i => i.importance === 'Notice').sort((a,b) => b.crawled - a.crawled);
+      const errors = issues.filter(i => i.importance === 'Error' && i.crawled > 0).sort((a,b) => b.crawled - a.crawled);
+      const warnings = issues.filter(i => i.importance === 'Warning' && i.crawled > 0).sort((a,b) => b.crawled - a.crawled);
+      const notices = issues.filter(i => i.importance === 'Notice' && i.crawled > 0).sort((a,b) => b.crawled - a.crawled);
+
+      const issueCard = (i, color, idx) => {
+        const id = `sh-issue-${idx}`;
+        return `<div style="background:var(--card);border:1px solid var(--bd);border-radius:6px;border-left:3px solid ${color};overflow:hidden">
+          <div style="padding:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="App.toggleIssue('${id}','${audit.project_id}','${esc(i.issue_id)}')">
+            <div style="flex:1;min-width:0"><div style="font-size:.66rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.name)}</div><div style="font-size:.5rem;color:var(--mt)">${esc(i.category)}${i.is_indexable ? ' · indexable only' : ''}</div></div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              ${i.change != null && i.change !== 0 ? `<span style="font-size:.5rem;color:${i.change > 0 ? 'var(--rd)' : 'var(--gn)'}">${i.change > 0 ? '+' : ''}${i.change}</span>` : ''}
+              <span style="font-family:var(--mono);font-weight:700;font-size:.76rem">${fmtN(i.crawled)}</span>
+              <span style="font-size:.6rem;color:var(--mt);transition:transform .2s" id="${id}-arrow">▸</span>
+            </div>
+          </div>
+          <div id="${id}" style="display:none;padding:0 8px 8px;border-top:1px solid var(--bd);max-height:200px;overflow-y:auto">
+            <div style="padding:6px 0;font-size:.6rem;color:var(--mt)">Loading affected URLs...</div>
+          </div>
+        </div>`;
+      };
 
       const issueRow = (items, label, color) => items.length > 0 ? `<div style="margin-bottom:14px">
         <h4 style="font-size:.7rem;font-weight:700;color:${color};margin-bottom:6px">${label} (${items.length} types, ${items.reduce((s,i)=>s+i.crawled,0)} URLs)</h4>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px">
-          ${items.slice(0,12).map(i => `<div style="background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:8px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid ${color}">
-            <div style="flex:1;min-width:0"><div style="font-size:.66rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name)}</div><div style="font-size:.52rem;color:var(--mt)">${esc(i.category)}</div></div>
-            <div style="text-align:right;flex-shrink:0;margin-left:8px"><div style="font-family:var(--mono);font-weight:700;font-size:.76rem">${fmtN(i.crawled)}</div>
-            ${i.change != null && i.change !== 0 ? `<div style="font-size:.5rem;color:${i.change > 0 ? 'var(--rd)' : 'var(--gn)'}">${i.change > 0 ? '+' : ''}${i.change}</div>` : ''}</div>
-          </div>`).join('')}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px">
+          ${items.map((i, idx) => issueCard(i, color, label.charAt(0)+idx)).join('')}
         </div>
-        ${items.length > 12 ? `<div style="font-size:.56rem;color:var(--mt);margin-top:4px">+${items.length - 12} more ${label.toLowerCase()}</div>` : ''}
       </div>` : '';
 
       auditHtml = `<div class="sh-score">
         <div class="sh-ring"><svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="28" fill="none" stroke="var(--bd)" stroke-width="5"/><circle cx="35" cy="35" r="28" fill="none" stroke="${hsCol}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/></svg><div class="sh-val" style="color:${hsCol}">${hs}</div></div>
         <div>
           <div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Site Health Score</div>
-          <div style="font-size:.62rem;color:var(--mt)">Last crawl: ${new Date(audit.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · ${fmtN(audit.total)} pages</div>
+          <div style="font-size:.62rem;color:var(--mt)">Last crawl: ${new Date(audit.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · ${fmtN(audit.total)} pages · Click any issue to see affected URLs</div>
         </div>
         <div class="sh-issues">
           <div class="sh-issue"><div class="sh-n" style="color:var(--rd)">${fmtN(audit.urls_with_errors)}</div><div class="sh-l">Errors</div></div>
