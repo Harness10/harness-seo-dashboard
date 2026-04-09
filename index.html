@@ -507,58 +507,72 @@ const App = {
     const dateCmp = fmtDate(daysAgo(today, 32));
     const BATCH = 8;
     const list = this.projects;
-    const total = list.length * 2; // RT + organic for each
     let done = 0, fails = 0;
 
-    // Phase 1: Fetch Rank Tracker data (free API units) + Organic Keywords (real rankings) in parallel
+    // Phase 1: Fetch Rank Tracker data (free, fast)
+    $('progress-text').textContent = 'Loading rank tracker data...';
     for (let i = 0; i < list.length; i += BATCH) {
       const batch = list.slice(i, i + BATCH);
-      const [rtResults, orgResults] = await Promise.all([
-        Promise.allSettled(batch.map(p =>
-          this.api('rank-tracker/overview', {
-            project_id: p.project_id, date, date_compared: dateCmp, device: 'mobile', limit: 100,
-            select: 'keyword,position,position_prev,position_diff,volume,traffic,keyword_difficulty,url,tags,location,is_informational,is_transactional,is_commercial,is_local'
-          })
-        )),
-        Promise.allSettled(batch.map(p => {
+      const results = await Promise.allSettled(batch.map(p =>
+        this.api('rank-tracker/overview', {
+          project_id: p.project_id, date, date_compared: dateCmp, device: 'mobile', limit: 100,
+          select: 'keyword,position,position_prev,position_diff,volume,traffic,keyword_difficulty,url,tags,location,is_informational,is_transactional,is_commercial,is_local'
+        })
+      ));
+      results.forEach((r, j) => {
+        const pid = batch[j].project_id;
+        if (r.status === 'fulfilled') {
+          const rt = r.value.overviews || [];
+          this.rtRaw[pid] = rt;
+          this.rankData[pid] = rt;
+        } else { fails++; }
+        done++;
+      });
+      $('progress-fill').style.width = (done / list.length * 50) + '%';
+      $('progress-text').textContent = `Rank Tracker: ${done}/${list.length}` + (fails ? ` (${fails} failed)` : '');
+      this.renderGrid();
+      this.updateAggregates();
+    }
+
+    // Phase 2: Fetch organic keywords only for projects with no RT rankings
+    const needsOrg = list.filter(p => {
+      const rt = this.rtRaw[p.project_id];
+      return !rt || rt.every(k => k.position == null);
+    });
+    if (needsOrg.length > 0) {
+      let orgDone = 0;
+      for (let i = 0; i < needsOrg.length; i += BATCH) {
+        const batch = needsOrg.slice(i, i + BATCH);
+        const results = await Promise.allSettled(batch.map(p => {
           const domain = p.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
           return this.api('site-explorer/organic-keywords', {
             target: domain, date, country: 'us', mode: p.mode || 'subdomains', limit: 20,
             order_by: 'sum_traffic:desc',
             select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational'
           });
-        }))
-      ]);
-      batch.forEach((p, j) => {
-        const pid = p.project_id;
-        // Store RT data (always keep raw RT separately)
-        if (rtResults[j].status === 'fulfilled') {
-          const rt = rtResults[j].value.overviews || [];
-          this.rtRaw[pid] = rt;
-          this.rankData[pid] = rt;
-        } else { fails++; }
-        // Store organic data
-        if (orgResults[j].status === 'fulfilled') {
-          const orgKws = (orgResults[j].value.keywords || []).map(k => ({
-            keyword: k.keyword, position: k.best_position, volume: k.volume,
-            traffic: k.sum_traffic, keyword_difficulty: k.keyword_difficulty,
-            url: k.best_position_url, is_local: k.is_local, is_commercial: k.is_commercial,
-            is_transactional: k.is_transactional, is_informational: k.is_informational,
-            _source: 'organic'
-          }));
-          this.orgData[pid] = orgKws;
-          // If RT has no real rankings, use organic for card display
-          const rt = this.rankData[pid];
-          if (!rt || rt.every(k => k.position == null)) {
+        }));
+        results.forEach((r, j) => {
+          if (r.status === 'fulfilled') {
+            const pid = batch[j].project_id;
+            const orgKws = (r.value.keywords || []).map(k => ({
+              keyword: k.keyword, position: k.best_position, volume: k.volume,
+              traffic: k.sum_traffic, keyword_difficulty: k.keyword_difficulty,
+              url: k.best_position_url, is_local: k.is_local, is_commercial: k.is_commercial,
+              is_transactional: k.is_transactional, is_informational: k.is_informational,
+              _source: 'organic'
+            }));
+            this.orgData[pid] = orgKws;
             this.rankData[pid] = orgKws;
           }
-        }
-        done += 2;
-      });
-      $('progress-fill').style.width = (done / total * 100) + '%';
-      $('progress-text').textContent = `${Math.floor(done/2)}/${list.length} projects loaded` + (fails ? ` (${fails} failed)` : '');
-      this.renderGrid();
-      this.updateAggregates();
+          orgDone++;
+        });
+        $('progress-fill').style.width = (50 + orgDone / needsOrg.length * 50) + '%';
+        $('progress-text').textContent = `Organic data: ${orgDone}/${needsOrg.length}`;
+        this.renderGrid();
+        this.updateAggregates();
+      }
+    } else {
+      $('progress-fill').style.width = '100%';
     }
     btn.textContent = 'Refresh Rankings'; btn.disabled = false;
     setTimeout(() => pw.classList.remove('show'), 2000);
@@ -612,7 +626,7 @@ const App = {
       const cachedOrg = this.orgData[pid];
       const [rankings, orgKws, dr, metrics, bl, hist, pages, refs, comps] = await Promise.allSettled([
         cachedRT ? Promise.resolve({ overviews: cachedRT }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,is_informational,is_transactional,is_commercial,is_local' }),
-        cachedOrg ? Promise.resolve({ keywords: cachedOrg }) : this.api('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 100, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }),
+        cachedOrg ? Promise.resolve({ keywords: cachedOrg }) : this.api('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 50, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }),
         this.api('site-explorer/domain-rating', { target: domain, date }),
         this.api('site-explorer/metrics', { target: domain, date, country: 'us' }),
         this.api('site-explorer/backlinks-stats', { target: domain, date }),
