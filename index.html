@@ -196,9 +196,19 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .kd{display:inline-block;padding:2px 5px;border-radius:4px;font-family:var(--mono);font-size:.58rem;font-weight:600}
 .kd-easy{background:rgba(16,185,129,.15);color:var(--gn)}.kd-med{background:rgba(245,158,11,.12);color:var(--am)}.kd-hard{background:rgba(249,115,22,.12);color:var(--or)}.kd-super{background:rgba(239,68,68,.12);color:var(--rd)}
 .dr-i{display:inline-flex;align-items:center;gap:3px}.dr-b{width:34px;height:4px;background:var(--bd);border-radius:2px;overflow:hidden}.dr-f{height:100%;border-radius:2px}
+/* RT Summary */
+.rt-summary{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.rt-stat{display:flex;align-items:center;gap:4px;font-size:.68rem}
+.rt-stat .rv{font-family:var(--mono);font-weight:700;font-size:.82rem}
+.rt-stat .rl{color:var(--mt);font-weight:500}
+.rt-stat.gn .rv{color:var(--gn)}.rt-stat.rd .rv{color:var(--rd)}.rt-stat.am .rv{color:var(--am)}
+.rt-pbar{flex:1;min-width:120px;max-width:200px;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;display:flex}
+.rt-pbar .rt-seg{height:100%}
+.rt-filters{display:flex;gap:3px}
 .tag-pill{display:inline-block;padding:1px 5px;border-radius:3px;font-size:.52rem;font-weight:600;background:rgba(139,92,246,.1);color:var(--ac2);margin-right:2px}
 .qw-badge{background:rgba(16,185,129,.12);color:var(--gn);font-size:.5rem;padding:1px 4px;border-radius:3px;font-weight:600;margin-left:3px}
 .data-table tr.qw{background:rgba(16,185,129,.04)}
+.data-table tr.nr{opacity:.55}.data-table tr.nr:hover{opacity:.85}
 
 /* Loading overlay (for detail) */
 .loading{display:none;position:fixed;inset:0;background:rgba(6,7,11,.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(4px)}
@@ -283,7 +293,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <div class="dr-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="var(--bd)" stroke-width="4"/><circle cx="30" cy="30" r="24" fill="none" stroke="url(#drG)" stroke-width="4" stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="150.8" id="dr-arc"/><defs><linearGradient id="drG" x1="0%" y1="0%" x2="100%"><stop offset="0%" stop-color="var(--ac)"/><stop offset="100%" stop-color="var(--ac2)"/></linearGradient></defs></svg><div class="dr-val" id="dr-val">--</div></div>
       <div class="sub" id="dr-rank"></div></div>
     <div class="kpi"><div class="label">Organic Traffic</div><div class="value" id="kpi-traffic">--</div><div class="sub">monthly</div></div>
-    <div class="kpi"><div class="label">Tracked Keywords</div><div class="value" id="kpi-tracked">--</div><div class="sub" id="kpi-ranked"></div></div>
+    <div class="kpi"><div class="label">Organic Keywords</div><div class="value" id="kpi-tracked">--</div><div class="sub" id="kpi-ranked"></div></div>
     <div class="kpi"><div class="label">Traffic Value</div><div class="value" id="kpi-value">--</div><div class="sub">est. monthly</div></div>
     <div class="kpi"><div class="label">Backlinks</div><div class="value" id="kpi-bl">--</div><div class="sub" id="kpi-bl-sub"></div></div>
     <div class="kpi"><div class="label">Referring Domains</div><div class="value" id="kpi-rd">--</div><div class="sub" id="kpi-rd-sub"></div></div>
@@ -295,8 +305,6 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <div class="intent-grid" id="intent-grid" style="margin-top:10px"><h3 style="grid-column:1/-1;font-size:.66rem;font-weight:700;color:var(--tx2);margin-bottom:2px">Search Intent</h3></div>
     </div>
   </section>
-
-  <div class="tag-bar" id="tag-bar"><span style="font-size:.68rem;color:var(--mt);font-weight:600">Filter:</span></div>
 
   <section class="table-card">
     <div class="tab-bar">
@@ -315,7 +323,17 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       </tr></thead><tbody id="body-organic"></tbody></table></div>
     </div>
     <div class="tab-content" id="tab-rankings">
-      <div class="tab-tools"><input type="text" id="kw-search" placeholder="Search tracked keywords..." oninput="App.filterKW(this.value)"><span style="color:var(--mt);font-size:.6rem;margin-left:auto" id="kw-count"></span></div>
+      <div class="rt-summary" id="rt-summary"></div>
+      <div class="tab-tools">
+        <input type="text" id="kw-search" placeholder="Search tracked keywords..." oninput="App.filterKW(this.value)">
+        <div class="rt-filters" id="rt-filters">
+          <button class="sb on" onclick="App.setRTFilter('all')">All</button>
+          <button class="sb" onclick="App.setRTFilter('ranking')">Ranking</button>
+          <button class="sb" onclick="App.setRTFilter('notranking')">Not Ranking</button>
+        </div>
+        <span style="color:var(--mt);font-size:.6rem;margin-left:auto" id="kw-count"></span>
+      </div>
+      <div class="tag-bar" id="tag-bar" style="padding:4px 12px"><span style="font-size:.68rem;color:var(--mt);font-weight:600">Tags:</span></div>
       <div class="table-scroll"><table class="data-table" id="tbl-rankings"><thead><tr>
         <th data-sort="keyword" data-tbl="rankings">Keyword</th><th data-sort="position" data-tbl="rankings">Pos</th><th data-sort="position_diff" data-tbl="rankings">Change</th>
         <th data-sort="volume" data-tbl="rankings">Volume</th><th data-sort="traffic" data-tbl="rankings">Traffic</th><th data-sort="keyword_difficulty" data-tbl="rankings">KD</th>
@@ -341,7 +359,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 <script>
 const $ = id => document.getElementById(id);
 const App = {
-  projects: [], filtered: [], rankData: {}, orgData: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '',
+  projects: [], filtered: [], rankData: {}, orgData: {}, rtRaw: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '', rtFilter: 'all',
 
   async init() {
     this.bindTabs(); this.bindSort();
@@ -504,9 +522,10 @@ const App = {
       ]);
       batch.forEach((p, j) => {
         const pid = p.project_id;
-        // Store RT data
+        // Store RT data (always keep raw RT separately)
         if (rtResults[j].status === 'fulfilled') {
           const rt = rtResults[j].value.overviews || [];
+          this.rtRaw[pid] = rt;
           this.rankData[pid] = rt;
         } else { fails++; }
         // Store organic data
@@ -572,7 +591,7 @@ const App = {
     $('d-meta').textContent = `Mode: ${proj.mode} · ${proj.keyword_count} tracked keywords`;
     this.hideErr();
     $('loading').classList.add('show'); $('loading-text').textContent = `Loading ${proj.project_name}...`;
-    this.activeTag = null; this.kwFilter = ''; this.orgFilter = '';
+    this.activeTag = null; this.kwFilter = ''; this.orgFilter = ''; this.rtFilter = 'all';
 
     const today = new Date(), date = fmtDate(daysAgo(today, 2)), dateCmp = fmtDate(daysAgo(today, 32)), dateFrom = fmtDate(daysAgo(today, 365));
     const domain = proj.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
@@ -604,7 +623,7 @@ const App = {
         refdomains: val(refs, 'refdomains') || [],
         competitors: val(comps, 'competitors') || [],
       };
-      if (!cached) this.rankData[pid] = this.detail.rankings;
+      if (!cached) { this.rankData[pid] = this.detail.rankings; this.rtRaw[pid] = this.detail.rankings; }
       if (!cachedOrg) this.orgData[pid] = orgKeywords;
       const f = [rankings,orgKws,dr,metrics,bl,hist,pages,refs,comps].filter(r => r.status==='rejected');
       if (f.length === 9) throw new Error(f[0].reason?.message || 'All API calls failed');
@@ -615,7 +634,7 @@ const App = {
   },
 
   renderDetail() {
-    this.renderHealthBanner(); this.renderKPIs(); this.renderTrafficChart(); this.renderPosChart(); this.renderIntents(); this.renderTagBar(); this.renderOrganic(); this.renderRankings(); this.renderPages(); this.renderRefDomains(); this.renderCompetitors();
+    this.renderHealthBanner(); this.renderKPIs(); this.renderTrafficChart(); this.renderPosChart(); this.renderIntents(); this.renderOrganic(); this.renderTagBar(); this.renderRankings(); this.renderPages(); this.renderRefDomains(); this.renderCompetitors();
   },
 
   renderHealthBanner() {
@@ -660,9 +679,10 @@ const App = {
     if (dr.domain_rating != null) { const v = Math.round(dr.domain_rating); $('dr-val').textContent = v; $('dr-arc').setAttribute('stroke-dashoffset', 150.8 - (150.8 * v / 100)); }
     $('dr-rank').textContent = dr.ahrefs_rank ? '#' + fmtN(dr.ahrefs_rank) : '';
     $('kpi-traffic').textContent = fmtN(m.org_traffic || 0);
-    $('kpi-tracked').textContent = rankings.length;
+    const orgCount = (this.detail.organic || []).length;
+    $('kpi-tracked').textContent = fmtN(m.org_keywords || orgCount || 0);
     const rk = rankings.filter(k => k.position != null && k.position <= 100).length;
-    $('kpi-ranked').textContent = `${rk} ranking`;
+    $('kpi-ranked').textContent = `${rk}/${rankings.length} RT ranking`;
     $('kpi-value').textContent = '$' + fmtN(Math.round((m.org_cost || 0) / 100));
     $('kpi-bl').textContent = fmtN(bl.live || 0);
     $('kpi-bl-sub').textContent = bl.all_time ? fmtN(bl.all_time) + ' all time' : '';
@@ -704,27 +724,49 @@ const App = {
 
   renderTagBar() {
     const tags = new Set(); this.detail.rankings.forEach(k => (k.tags||[]).forEach(t => tags.add(t)));
-    const bar = $('tag-bar'); bar.innerHTML = '<span style="font-size:.68rem;color:var(--mt);font-weight:600">Filter:</span><button class="tag-btn on" onclick="App.setTag(null)">All</button>';
+    const bar = $('tag-bar'); bar.innerHTML = '<span style="font-size:.68rem;color:var(--mt);font-weight:600">Tags:</span><button class="tag-btn on" onclick="App.setTag(null)">All</button>';
     [...tags].sort().forEach(t => bar.innerHTML += `<button class="tag-btn" onclick="App.setTag('${esc(t)}')">${esc(t)}</button>`);
+    if (tags.size === 0) bar.innerHTML += '<span style="font-size:.6rem;color:var(--mt);font-style:italic;margin-left:4px">No tags configured</span>';
   },
 
-  setTag(t) { this.activeTag = t; document.querySelectorAll('.tag-btn').forEach(b => b.classList.toggle('on', t===null ? b.textContent==='All' : b.textContent===t)); this.renderRankings(); },
+  setTag(t) { this.activeTag = t; document.querySelectorAll('#tag-bar .tag-btn').forEach(b => b.classList.toggle('on', t===null ? b.textContent==='All' : b.textContent===t)); this.renderRankings(); },
+  setRTFilter(f) { this.rtFilter = f; document.querySelectorAll('#rt-filters .sb').forEach(b => b.classList.toggle('on', b.textContent.toLowerCase().replace(' ','') === f || (f==='all' && b.textContent==='All') || (f==='ranking' && b.textContent==='Ranking') || (f==='notranking' && b.textContent==='Not Ranking'))); this.renderRankings(); },
   filterKW(q) { this.kwFilter = q; this.renderRankings(); },
 
   getFilteredRankings() {
     let kws = this.detail.rankings;
     if (this.activeTag) kws = kws.filter(k => (k.tags||[]).includes(this.activeTag));
+    if (this.rtFilter === 'ranking') kws = kws.filter(k => k.position != null);
+    if (this.rtFilter === 'notranking') kws = kws.filter(k => k.position == null);
     if (this.kwFilter) { const q = this.kwFilter.toLowerCase(); kws = kws.filter(k => (k.keyword||'').toLowerCase().includes(q)); }
     return kws;
   },
 
+  renderRTSummary() {
+    const kws = this.detail.rankings;
+    const total = kws.length;
+    const ranked = kws.filter(k => k.position != null).length;
+    const notRanked = total - ranked;
+    const pct = total > 0 ? Math.round(ranked / total * 100) : 0;
+    const rankedCol = ranked > 0 ? 'gn' : 'rd';
+    $('rt-summary').innerHTML =
+      `<div class="rt-stat ${rankedCol}"><span class="rv">${ranked}</span><span class="rl">ranking</span></div>` +
+      `<div class="rt-stat ${notRanked > 0 ? 'am' : 'gn'}"><span class="rv">${notRanked}</span><span class="rl">not ranking</span></div>` +
+      `<div class="rt-stat"><span class="rv">${total}</span><span class="rl">tracked</span></div>` +
+      `<div class="rt-pbar"><div class="rt-seg" style="width:${pct}%;background:var(--gn)"></div><div class="rt-seg" style="width:${100-pct}%;background:var(--bd2)"></div></div>` +
+      `<span style="font-family:var(--mono);font-size:.62rem;color:${pct >= 50 ? 'var(--gn)' : pct > 0 ? 'var(--am)' : 'var(--rd)'};font-weight:700">${pct}%</span>` +
+      (notRanked > 0 && ranked === 0 ? '<span style="font-size:.58rem;color:var(--am);margin-left:auto">Keywords need updating in Ahrefs RT</span>' : '');
+  },
+
   renderRankings() {
+    this.renderRTSummary();
     const kws = this.getFilteredRankings();
     $('kw-count').textContent = kws.length + ' keywords';
     $('body-rankings').innerHTML = kws.map(k => {
       const isQW = k.position && k.position >= 4 && k.position <= 20 && (k.volume||0) >= 100;
+      const isNR = k.position == null;
       const tags = (k.tags||[]).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
-      return `<tr class="${isQW?'qw':''}"><td class="kw-cell">${esc(k.keyword)}${isQW?'<span class="qw-badge">Quick Win</span>':''}<br>${tags}</td><td>${posBadgeD(k.position)}</td><td>${chgHtml(k.position_diff)}</td><td class="mono">${fmtN(k.volume)}</td><td class="mono">${fmtN(k.traffic)}</td><td><span class="kd ${kdCls(k.keyword_difficulty)}">${k.keyword_difficulty??'—'}</span></td><td style="font-size:.63rem;color:var(--mt)">${esc(k.location||'')}</td><td class="url-cell" title="${esc(k.url||'')}">${esc(tryPath(k.url))}</td></tr>`;
+      return `<tr class="${isQW?'qw':''}${isNR?' nr':''}"><td class="kw-cell">${esc(k.keyword)}${isQW?'<span class="qw-badge">Quick Win</span>':''}<br>${tags}</td><td>${posBadgeD(k.position)}</td><td>${chgHtml(k.position_diff)}</td><td class="mono">${fmtN(k.volume)}</td><td class="mono">${fmtN(k.traffic)}</td><td><span class="kd ${kdCls(k.keyword_difficulty)}">${k.keyword_difficulty??'—'}</span></td><td style="font-size:.63rem;color:var(--mt)">${esc(k.location||'')}</td><td class="url-cell" title="${esc(k.url||'')}">${esc(tryPath(k.url))}</td></tr>`;
     }).join('');
   },
 
