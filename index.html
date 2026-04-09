@@ -411,7 +411,7 @@ const App = {
     return `<div class="c c-skeleton" onclick="App.openProject(${p.project_id})">
       <div class="c-top"><div class="c-nm">${esc(p.project_name)}</div><div class="c-badge">${p.keyword_count} KWs</div></div>
       <div class="c-url">${esc(p.url)}</div>
-      <div class="c-pre">Click "Fetch All Rankings" to load live data</div>
+      <div class="c-pre">Click "Fetch All Rankings & Data" to load live data</div>
     </div>`;
   },
 
@@ -422,11 +422,29 @@ const App = {
     const circ = 2 * Math.PI * 18;
     const offset = circ - (circ * stats.health / 100);
     const pTotal = kws.length || 1;
-    const isOrg = kws.some(k => k._source === 'organic');
-    const srcBadge = isOrg ? '<span style="font-size:.46rem;background:rgba(59,130,246,.12);color:var(--ac);padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px" title="Data from Site Explorer organic keywords">Organic</span>' : '<span style="font-size:.46rem;background:rgba(16,185,129,.12);color:var(--gn);padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px" title="Data from Rank Tracker">Tracked</span>';
+
+    // RT tracking status
+    const rt = this.rtRaw[p.project_id] || [];
+    const rtRanked = rt.filter(k => k.position != null).length;
+    const rtTotal = rt.length;
+    const rtPct = rtTotal > 0 ? Math.round(rtRanked / rtTotal * 100) : 0;
+    const rtColor = rtPct >= 50 ? 'var(--gn)' : rtPct > 0 ? 'var(--am)' : 'var(--mt)';
+
+    // Mini keyword table: show RT tracked keywords (with positions or —), then top organic
+    let kwRows = '';
+    if (rtTotal > 0) {
+      const rtSorted = [...rt].sort((a,b) => (a.position||999) - (b.position||999));
+      const rtShow = rtSorted.slice(0, 4);
+      kwRows = rtShow.map(k => `<tr><td style="color:${k.position != null ? 'var(--cy)' : 'var(--mt)'};font-weight:500">${esc(k.keyword)}</td><td>${posBadge(k.position)}</td></tr>`).join('');
+      if (rtTotal > 4) kwRows += `<tr><td style="color:var(--mt);font-size:.58rem">+${rtTotal - 4} more tracked</td><td></td></tr>`;
+    } else if (topKws.length > 0) {
+      kwRows = topKws.slice(0, 5).map(k => `<tr class="rk"><td>${esc(k.keyword)}</td><td>${posBadge(k.position)}</td></tr>`).join('');
+    } else {
+      kwRows = '<tr><td colspan="2" style="color:var(--mt);text-align:center;padding:8px 0;font-size:.65rem">No rankings found</td></tr>';
+    }
 
     return `<div class="c" onclick="App.openProject(${p.project_id})">
-      <div class="c-top"><div class="c-nm">${esc(p.project_name)}${srcBadge}</div><div class="c-badge">${p.keyword_count} KWs</div></div>
+      <div class="c-top"><div class="c-nm">${esc(p.project_name)}</div><div class="c-badge">${rtTotal} tracked</div></div>
       <div class="c-url">${esc(p.url)}</div>
       <div class="hs-ring"><svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="none" stroke="var(--bd)" stroke-width="3.5"/><circle cx="24" cy="24" r="18" fill="none" stroke="${hsColor}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/></svg><div class="score" style="color:${hsColor}">${stats.health}</div></div>
       <div class="mr">
@@ -443,12 +461,14 @@ const App = {
         <div class="seg seg-100" style="width:${(stats.t51100/pTotal*100).toFixed(1)}%"></div>
         <div class="seg seg-nr" style="width:${(stats.notRanked/pTotal*100).toFixed(1)}%"></div>
       </div>
-      <div class="chg-sum">
-        ${stats.improved > 0 ? `<span class="chg-up">\u25B2${stats.improved} improved</span>` : ''}
-        ${stats.declined > 0 ? `<span class="chg-dn">\u25BC${stats.declined} declined</span>` : ''}
-        ${stats.improved === 0 && stats.declined === 0 ? '<span class="chg-flat">No changes</span>' : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 2px">
+        <span style="font-size:.54rem;color:var(--mt);font-weight:600">RT: <span style="color:${rtColor}">${rtRanked}/${rtTotal} ranking</span></span>
+        <div class="chg-sum" style="margin:0">
+          ${stats.improved > 0 ? `<span class="chg-up">\u25B2${stats.improved}</span>` : ''}
+          ${stats.declined > 0 ? `<span class="chg-dn">\u25BC${stats.declined}</span>` : ''}
+        </div>
       </div>
-      <table class="kt">${topKws.map(k => `<tr class="rk"><td>${esc(k.keyword)}</td><td>${posBadge(k.position)}</td></tr>`).join('')}${topKws.length === 0 ? '<tr><td colspan="2" style="color:var(--mt);text-align:center;padding:8px 0;font-size:.65rem">No rankings found</td></tr>' : ''}</table>
+      <table class="kt">${kwRows}</table>
     </div>`;
   },
 
