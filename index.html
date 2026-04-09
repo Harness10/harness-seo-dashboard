@@ -1103,9 +1103,14 @@ const App = {
           <span class="aio-kw">${esc(k.kw)} ${(k.tags||[]).filter(t=>t!=='Bare').slice(0,2).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('')}${k.url ? `<br><span style="font-family:var(--mono);font-size:.52rem;color:var(--cy);opacity:.7">${esc(tryPath(k.url))}</span>` : ''}</span>
           <span class="act-impact">${k.meta}</span>
         </li>`).join('')}</ul>` : ''}
-        ${a.aiPrompt ? `<button class="btn" style="margin-top:8px;font-size:.62rem;padding:5px 10px" onclick="App.goAIWriter('${a.aiPrompt.replace(/'/g,"\\'")}')">✨ Generate with AI Writer</button>` : ''}
+        ${a.aiPrompt ? `<button class="btn ai-gen-btn" style="margin-top:8px;font-size:.62rem;padding:5px 10px">✨ Generate with AI Writer</button>` : ''}
       </div>`).join('')}</div>
     </div>`;
+    // Bind AI Writer buttons via stored prompts (avoids inline escaping issues)
+    const aiPrompts = actions.filter(a => a.aiPrompt).map(a => a.aiPrompt);
+    document.querySelectorAll('#content-suggestions .ai-gen-btn').forEach((btn, i) => {
+      btn.addEventListener('click', () => { if (aiPrompts[i]) App.goAIWriter(aiPrompts[i]); });
+    });
   },
 
   async toggleIssue(id, projectId, issueId) {
@@ -1135,12 +1140,16 @@ const App = {
   },
 
   goAIWriter(prompt) {
-    // Switch to AI Writer tab and send the prompt
-    document.querySelectorAll('.tab-bar .tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelector('[data-tab="ai"]').classList.add('active');
-    $('tab-ai').classList.add('active');
-    setTimeout(() => this.sendChat(prompt), 200);
+    // Switch to AI Writer tab within the table-card section
+    const card = $('tab-ai')?.closest('.table-card');
+    if (card) {
+      card.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      card.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      const aiTabBtn = card.querySelector('[data-tab="ai"]');
+      if (aiTabBtn) aiTabBtn.classList.add('active');
+      $('tab-ai').classList.add('active');
+    }
+    setTimeout(() => this.sendChat(prompt), 300);
   },
 
   renderSiteHealth() {
