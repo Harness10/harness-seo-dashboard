@@ -1,1 +1,11 @@
-{"buildCommand":null,"outputDirectory":".","framework":null}
+{
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "framework": null,
+  "crons": [
+    {
+      "path": "/api/cron/nightly",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
