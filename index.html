@@ -155,8 +155,9 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 
 /* Charts */
 .charts-row{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:14px}
-.chart-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:14px}
+.chart-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:14px;min-height:0;overflow:hidden}
 .chart-card h3{font-size:.72rem;font-weight:700;margin-bottom:8px;color:var(--tx2)}
+.chart-wrap{position:relative;width:100%}
 .intent-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
 .intent-item{display:flex;align-items:center;gap:5px;font-size:.65rem}
 .intent-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
@@ -300,8 +301,8 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
   </section>
 
   <section class="charts-row">
-    <div class="chart-card"><h3>Organic Traffic — 12 Month Trend</h3><canvas id="traffic-chart" height="220"></canvas></div>
-    <div class="chart-card"><h3>Rank Distribution</h3><canvas id="pos-chart" height="170"></canvas>
+    <div class="chart-card"><h3>Organic Traffic — 12 Month Trend</h3><div class="chart-wrap" style="height:220px"><canvas id="traffic-chart"></canvas></div></div>
+    <div class="chart-card"><h3>Rank Distribution</h3><div class="chart-wrap" style="height:170px"><canvas id="pos-chart"></canvas></div>
       <div class="intent-grid" id="intent-grid" style="margin-top:10px"><h3 style="grid-column:1/-1;font-size:.66rem;font-weight:700;color:var(--tx2);margin-bottom:2px">Search Intent</h3></div>
     </div>
   </section>
