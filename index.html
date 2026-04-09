@@ -169,6 +169,26 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .intent-item .bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
 .intent-item .pct{font-family:var(--mono);font-size:.58rem;color:var(--mt);min-width:26px;text-align:right}
 
+/* Opportunities */
+.opps-section{margin-bottom:14px}
+.opps-title{font-size:.82rem;font-weight:700;margin-bottom:10px;color:var(--tx)}
+.opps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.opp-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:12px;overflow:hidden;position:relative}
+.opp-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.opp-card.strike::before{background:var(--gn)}.opp-card.page2::before{background:var(--am)}.opp-card.gaps::before{background:var(--rd)}
+.opp-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.opp-hdr h4{font-size:.72rem;font-weight:700;color:var(--tx2)}
+.opp-hdr .opp-count{font-family:var(--mono);font-size:.65rem;color:var(--mt);background:var(--sf);padding:2px 7px;border-radius:4px}
+.opp-hdr .opp-icon{font-size:.9rem}
+.opp-desc{font-size:.58rem;color:var(--mt);margin-bottom:8px;line-height:1.4}
+.opp-list{list-style:none}
+.opp-list li{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(255,255,255,.03);font-size:.68rem;gap:6px}
+.opp-list li:first-child{border-top:none}
+.opp-kw{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx2)}
+.opp-meta{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.opp-vol{font-family:var(--mono);font-size:.6rem;color:var(--mt)}
+@media(max-width:900px){.opps-grid{grid-template-columns:1fr}}
+
 /* Tag filter */
 .tag-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
 .tag-btn{background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:3px 9px;font-size:.65rem;color:var(--mt);cursor:pointer;font-weight:600;transition:all .12s;font-family:var(--font)}
@@ -312,6 +332,11 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
     <div class="chart-card"><h3>Rank Distribution</h3><div class="chart-wrap" style="height:170px"><canvas id="pos-chart"></canvas></div>
       <div class="intent-grid" id="intent-grid" style="margin-top:10px"><h3 style="grid-column:1/-1;font-size:.66rem;font-weight:700;color:var(--tx2);margin-bottom:2px">Search Intent</h3></div>
     </div>
+  </section>
+
+  <section class="opps-section" id="opps-section">
+    <h3 class="opps-title">Keyword Opportunities &amp; Gaps</h3>
+    <div class="opps-grid" id="opps-grid"></div>
   </section>
 
   <section class="table-card">
@@ -698,7 +723,54 @@ const App = {
 
   renderDetail() {
     const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
-    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+  },
+
+  renderOpportunities() {
+    const org = this.detail.organic || [];
+    const rt = this.detail.rankings || [];
+
+    // Strike Distance: organic keywords at positions 4-10, sorted by volume
+    const strike = org.filter(k => k.best_position >= 4 && k.best_position <= 10)
+      .sort((a, b) => (b.volume || 0) - (a.volume || 0));
+
+    // Page 2 Potential: organic keywords at positions 11-20, sorted by volume
+    const page2 = org.filter(k => k.best_position >= 11 && k.best_position <= 20)
+      .sort((a, b) => (b.volume || 0) - (a.volume || 0));
+
+    // Keyword Gaps: RT tracked keywords with no ranking + high volume organic not in top 10
+    const rtGaps = rt.filter(k => k.position == null).sort((a, b) => (b.volume || 0) - (a.volume || 0));
+    // Also add organic keywords at 21+ as gap opportunities
+    const orgGaps = org.filter(k => k.best_position > 20).sort((a, b) => (b.volume || 0) - (a.volume || 0));
+    const gaps = [...rtGaps.map(k => ({ keyword: k.keyword, volume: k.volume, pos: null, source: 'RT' })),
+                  ...orgGaps.slice(0, 10).map(k => ({ keyword: k.keyword, volume: k.volume, pos: k.best_position, source: 'SE' }))];
+
+    if (strike.length === 0 && page2.length === 0 && gaps.length === 0) {
+      $('opps-section').style.display = 'none'; return;
+    }
+    $('opps-section').style.display = '';
+
+    const renderList = (items, max, renderItem) => items.slice(0, max).map(renderItem).join('');
+
+    $('opps-grid').innerHTML =
+      `<div class="opp-card strike">
+        <div class="opp-hdr"><div><span class="opp-icon">🎯</span> <h4 style="display:inline">Strike Distance</h4></div><span class="opp-count">${strike.length}</span></div>
+        <div class="opp-desc">Positions 4-10 — one push from top 3. Highest ROI optimization targets.</div>
+        <ul class="opp-list">${strike.length > 0 ? renderList(strike, 6, k => `<li><span class="opp-kw">${esc(k.keyword)}</span><span class="opp-meta"><span class="opp-vol">${fmtN(k.volume)} vol</span>${posBadgeD(k.best_position)}</span></li>`) : '<li style="color:var(--mt);font-size:.62rem;text-align:center;padding:10px 0">None found</li>'}</ul>
+        ${strike.length > 6 ? `<div style="font-size:.56rem;color:var(--mt);text-align:center;margin-top:4px">+${strike.length - 6} more</div>` : ''}
+      </div>
+      <div class="opp-card page2">
+        <div class="opp-hdr"><div><span class="opp-icon">📈</span> <h4 style="display:inline">Page 2 Potential</h4></div><span class="opp-count">${page2.length}</span></div>
+        <div class="opp-desc">Positions 11-20 — close to page 1. Content optimization can push these up.</div>
+        <ul class="opp-list">${page2.length > 0 ? renderList(page2, 6, k => `<li><span class="opp-kw">${esc(k.keyword)}</span><span class="opp-meta"><span class="opp-vol">${fmtN(k.volume)} vol</span>${posBadgeD(k.best_position)}</span></li>`) : '<li style="color:var(--mt);font-size:.62rem;text-align:center;padding:10px 0">None found</li>'}</ul>
+        ${page2.length > 6 ? `<div style="font-size:.56rem;color:var(--mt);text-align:center;margin-top:4px">+${page2.length - 6} more</div>` : ''}
+      </div>
+      <div class="opp-card gaps">
+        <div class="opp-hdr"><div><span class="opp-icon">🔍</span> <h4 style="display:inline">Keyword Gaps</h4></div><span class="opp-count">${gaps.length}</span></div>
+        <div class="opp-desc">Tracked keywords not ranking + low-visibility organic terms. Content creation targets.</div>
+        <ul class="opp-list">${gaps.length > 0 ? renderList(gaps, 6, k => `<li><span class="opp-kw">${esc(k.keyword)} <span style="font-size:.48rem;color:var(--mt)">${k.source}</span></span><span class="opp-meta"><span class="opp-vol">${fmtN(k.volume)} vol</span>${k.pos ? posBadgeD(k.pos) : '<span class="pos pos-100">N/R</span>'}</span></li>`) : '<li style="color:var(--mt);font-size:.62rem;text-align:center;padding:10px 0">None found</li>'}</ul>
+        ${gaps.length > 6 ? `<div style="font-size:.56rem;color:var(--mt);text-align:center;margin-top:4px">+${gaps.length - 6} more</div>` : ''}
+      </div>`;
   },
 
   renderHealthBanner() {
