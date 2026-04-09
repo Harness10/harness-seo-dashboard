@@ -300,13 +300,22 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 
   <section class="table-card">
     <div class="tab-bar">
-      <button class="tab active" data-tab="rankings">Tracked Rankings</button>
+      <button class="tab active" data-tab="organic">Organic Rankings</button>
+      <button class="tab" data-tab="rankings">Tracked Rankings</button>
       <button class="tab" data-tab="pages">Top Pages</button>
       <button class="tab" data-tab="refdomains">Referring Domains</button>
       <button class="tab" data-tab="competitors">Competitors</button>
     </div>
-    <div class="tab-content active" id="tab-rankings">
-      <div class="tab-tools"><input type="text" id="kw-search" placeholder="Search keywords..." oninput="App.filterKW(this.value)"><span style="color:var(--mt);font-size:.6rem;margin-left:auto" id="kw-count"></span></div>
+    <div class="tab-content active" id="tab-organic">
+      <div class="tab-tools"><input type="text" id="org-search" placeholder="Search organic keywords..." oninput="App.filterOrg(this.value)"><span style="color:var(--mt);font-size:.6rem;margin-left:auto" id="org-count"></span></div>
+      <div class="table-scroll"><table class="data-table" id="tbl-organic"><thead><tr>
+        <th data-sort="keyword" data-tbl="organic">Keyword</th><th data-sort="best_position" data-tbl="organic">Pos</th>
+        <th data-sort="sum_traffic" data-tbl="organic">Traffic</th><th data-sort="volume" data-tbl="organic">Volume</th><th data-sort="keyword_difficulty" data-tbl="organic">KD</th>
+        <th data-sort="is_local" data-tbl="organic">Type</th><th data-sort="best_position_url" data-tbl="organic">URL</th>
+      </tr></thead><tbody id="body-organic"></tbody></table></div>
+    </div>
+    <div class="tab-content" id="tab-rankings">
+      <div class="tab-tools"><input type="text" id="kw-search" placeholder="Search tracked keywords..." oninput="App.filterKW(this.value)"><span style="color:var(--mt);font-size:.6rem;margin-left:auto" id="kw-count"></span></div>
       <div class="table-scroll"><table class="data-table" id="tbl-rankings"><thead><tr>
         <th data-sort="keyword" data-tbl="rankings">Keyword</th><th data-sort="position" data-tbl="rankings">Pos</th><th data-sort="position_diff" data-tbl="rankings">Change</th>
         <th data-sort="volume" data-tbl="rankings">Volume</th><th data-sort="traffic" data-tbl="rankings">Traffic</th><th data-sort="keyword_difficulty" data-tbl="rankings">KD</th>
@@ -332,7 +341,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 <script>
 const $ = id => document.getElementById(id);
 const App = {
-  projects: [], filtered: [], rankData: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '',
+  projects: [], filtered: [], rankData: {}, orgData: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '',
 
   async init() {
     this.bindTabs(); this.bindSort();
@@ -385,9 +394,11 @@ const App = {
     const circ = 2 * Math.PI * 18;
     const offset = circ - (circ * stats.health / 100);
     const pTotal = kws.length || 1;
+    const isOrg = kws.some(k => k._source === 'organic');
+    const srcBadge = isOrg ? '<span style="font-size:.48rem;background:rgba(59,130,246,.12);color:var(--ac);padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px">SE</span>' : '<span style="font-size:.48rem;background:rgba(16,185,129,.12);color:var(--gn);padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px">RT</span>';
 
     return `<div class="c" onclick="App.openProject(${p.project_id})">
-      <div class="c-top"><div class="c-nm">${esc(p.project_name)}</div><div class="c-badge">${p.keyword_count} KWs</div></div>
+      <div class="c-top"><div class="c-nm">${esc(p.project_name)}${srcBadge}</div><div class="c-badge">${p.keyword_count} KWs</div></div>
       <div class="c-url">${esc(p.url)}</div>
       <div class="hs-ring"><svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="none" stroke="var(--bd)" stroke-width="3.5"/><circle cx="24" cy="24" r="18" fill="none" stroke="${hsColor}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/></svg><div class="score" style="color:${hsColor}">${stats.health}</div></div>
       <div class="mr">
@@ -490,6 +501,46 @@ const App = {
       this.renderGrid();
       this.updateAggregates();
     }
+    // Second pass: fetch organic keywords for projects with no rank tracker rankings
+    const needsOrg = list.filter(p => {
+      const rd = this.rankData[p.project_id];
+      return rd && rd.every(k => k.position == null);
+    });
+    if (needsOrg.length > 0) {
+      $('progress-text').textContent = `Fetching organic rankings for ${needsOrg.length} projects...`;
+      $('progress-fill').style.width = '0%';
+      let orgDone = 0;
+      for (let i = 0; i < needsOrg.length; i += BATCH) {
+        const batch = needsOrg.slice(i, i + BATCH);
+        const orgResults = await Promise.allSettled(batch.map(p => {
+          const domain = p.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+          return this.api('site-explorer/organic-keywords', {
+            target: domain, date, country: 'us', mode: p.mode || 'subdomains', limit: 100,
+            order_by: 'sum_traffic:desc',
+            select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational'
+          });
+        }));
+        orgResults.forEach((r, j) => {
+          if (r.status === 'fulfilled') {
+            const kws = (r.value.keywords || []).map(k => ({
+              keyword: k.keyword, position: k.best_position, volume: k.volume,
+              traffic: k.sum_traffic, keyword_difficulty: k.keyword_difficulty,
+              url: k.best_position_url, is_local: k.is_local, is_commercial: k.is_commercial,
+              is_transactional: k.is_transactional, is_informational: k.is_informational,
+              _source: 'organic'
+            }));
+            this.orgData[batch[j].project_id] = kws;
+            // Use organic data for card stats when RT has no rankings
+            this.rankData[batch[j].project_id] = kws;
+          }
+          orgDone++;
+        });
+        $('progress-fill').style.width = (orgDone / needsOrg.length * 100) + '%';
+        $('progress-text').textContent = `Organic: ${orgDone}/${needsOrg.length} projects`;
+        this.renderGrid();
+        this.updateAggregates();
+      }
+    }
     btn.textContent = 'Refresh Rankings'; btn.disabled = false;
     setTimeout(() => pw.classList.remove('show'), 2000);
   },
@@ -530,26 +581,30 @@ const App = {
     $('d-meta').textContent = `Mode: ${proj.mode} · ${proj.keyword_count} tracked keywords`;
     this.hideErr();
     $('loading').classList.add('show'); $('loading-text').textContent = `Loading ${proj.project_name}...`;
-    this.activeTag = null; this.kwFilter = '';
+    this.activeTag = null; this.kwFilter = ''; this.orgFilter = '';
 
     const today = new Date(), date = fmtDate(daysAgo(today, 2)), dateCmp = fmtDate(daysAgo(today, 32)), dateFrom = fmtDate(daysAgo(today, 365));
     const domain = proj.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 
     try {
       const cached = this.rankData[pid];
-      const [rankings, dr, metrics, bl, hist, pages, refs, comps] = await Promise.allSettled([
+      const cachedOrg = this.orgData[pid];
+      const [rankings, orgKws, dr, metrics, bl, hist, pages, refs, comps] = await Promise.allSettled([
         cached ? Promise.resolve({ overviews: cached }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,is_informational,is_transactional,is_commercial,is_local' }),
+        cachedOrg ? Promise.resolve({ keywords: cachedOrg }) : this.api('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 100, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }),
         this.api('site-explorer/domain-rating', { target: domain, date }),
-        this.api('site-explorer/metrics', { target: domain, date, country: 'US' }),
+        this.api('site-explorer/metrics', { target: domain, date, country: 'us' }),
         this.api('site-explorer/backlinks-stats', { target: domain, date }),
-        this.api('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'US', history_grouping: 'monthly' }),
-        this.api('site-explorer/top-pages', { target: domain, date, country: 'US', limit: 50, select: 'url,sum_traffic,value,keywords,top_keyword,top_keyword_best_position', order_by: 'sum_traffic:desc' }),
+        this.api('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'us', history_grouping: 'monthly' }),
+        this.api('site-explorer/top-pages', { target: domain, date, country: 'us', limit: 50, select: 'url,sum_traffic,value,keywords,top_keyword,top_keyword_best_position', order_by: 'sum_traffic:desc' }),
         this.api('site-explorer/referring-domains', { target: domain, limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }),
-        this.api('site-explorer/organic-competitors', { target: domain, date, country: 'US', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
+        this.api('site-explorer/organic-competitors', { target: domain, date, country: 'us', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
       ]);
+      const orgKeywords = val(orgKws, 'keywords') || [];
       this.detail = {
         project: proj,
         rankings: val(rankings, 'overviews') || [],
+        organic: orgKeywords,
         dr: val(dr, 'domain_rating') || {},
         metrics: val(metrics, 'metrics') || {},
         bl: val(bl, 'metrics') || {},
@@ -559,20 +614,26 @@ const App = {
         competitors: val(comps, 'competitors') || [],
       };
       if (!cached) this.rankData[pid] = this.detail.rankings;
-      const f = [rankings,dr,metrics,bl,hist,pages,refs,comps].filter(r => r.status==='rejected');
-      if (f.length === 8) throw new Error(f[0].reason?.message || 'All API calls failed');
-      if (f.length > 0) this.showErr(`${f.length}/8 data sources failed.`);
+      if (!cachedOrg) this.orgData[pid] = orgKeywords;
+      const f = [rankings,orgKws,dr,metrics,bl,hist,pages,refs,comps].filter(r => r.status==='rejected');
+      if (f.length === 9) throw new Error(f[0].reason?.message || 'All API calls failed');
+      if (f.length > 0) this.showErr(`${f.length}/9 data sources failed.`);
       this.renderDetail();
     } catch (e) { this.showErr(e.message); }
     finally { $('loading').classList.remove('show'); }
   },
 
   renderDetail() {
-    this.renderHealthBanner(); this.renderKPIs(); this.renderTrafficChart(); this.renderPosChart(); this.renderIntents(); this.renderTagBar(); this.renderRankings(); this.renderPages(); this.renderRefDomains(); this.renderCompetitors();
+    this.renderHealthBanner(); this.renderKPIs(); this.renderTrafficChart(); this.renderPosChart(); this.renderIntents(); this.renderTagBar(); this.renderOrganic(); this.renderRankings(); this.renderPages(); this.renderRefDomains(); this.renderCompetitors();
   },
 
   renderHealthBanner() {
-    const kws = this.detail.rankings;
+    // Use rank tracker data if it has rankings, otherwise use organic keywords
+    let kws = this.detail.rankings;
+    const hasRTRankings = kws && kws.some(k => k.position != null);
+    if (!hasRTRankings && this.detail.organic && this.detail.organic.length) {
+      kws = this.detail.organic.map(k => ({ position: k.best_position, position_diff: null, keyword: k.keyword, volume: k.volume, traffic: k.sum_traffic }));
+    }
     if (!kws || !kws.length) { $('health-banner').style.display = 'none'; return; }
     $('health-banner').style.display = '';
     const s = this.calcStats(kws);
@@ -628,14 +689,22 @@ const App = {
 
   renderPosChart() {
     if (this.charts.pos) this.charts.pos.destroy();
-    const kws = this.detail.rankings; if (!kws.length) return;
+    let kws = this.detail.rankings;
+    const hasRTRankings = kws && kws.some(k => k.position != null);
+    if (!hasRTRankings && this.detail.organic && this.detail.organic.length) {
+      kws = this.detail.organic.map(k => ({ position: k.best_position }));
+    }
+    if (!kws || !kws.length) return;
     const bk = { '#1-3': 0, '#4-10': 0, '#11-20': 0, '#21-50': 0, '51+': 0, 'N/R': 0 };
     kws.forEach(k => { const p = k.position; if (!p) bk['N/R']++; else if (p<=3) bk['#1-3']++; else if (p<=10) bk['#4-10']++; else if (p<=20) bk['#11-20']++; else if (p<=50) bk['#21-50']++; else bk['51+']++; });
     this.charts.pos = new Chart($('pos-chart').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(bk), datasets: [{ data: Object.values(bk), backgroundColor: ['#10b981','#34d399','#3b82f6','#f59e0b','#6b7585','#1e2231'], borderColor: '#151922', borderWidth: 3 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: '#6b7585', font: { size: 10 }, padding: 8, usePointStyle: true, pointStyleWidth: 7 } } } } });
   },
 
   renderIntents() {
-    const kws = this.detail.rankings; if (!kws.length) return;
+    let kws = this.detail.rankings;
+    const hasRTRankings = kws && kws.some(k => k.position != null);
+    if (!hasRTRankings && this.detail.organic && this.detail.organic.length) kws = this.detail.organic;
+    if (!kws || !kws.length) return;
     const t = kws.length;
     const ints = { Info: { n: kws.filter(k=>k.is_informational).length, c: '#3b82f6' }, Transact: { n: kws.filter(k=>k.is_transactional).length, c: '#10b981' }, Commercial: { n: kws.filter(k=>k.is_commercial).length, c: '#f59e0b' }, Local: { n: kws.filter(k=>k.is_local).length, c: '#8b5cf6' } };
     const g = $('intent-grid'); const h = g.querySelector('h3'); g.innerHTML = ''; g.appendChild(h);
@@ -668,6 +737,28 @@ const App = {
     }).join('');
   },
 
+  filterOrg(q) { this.orgFilter = q; this.renderOrganic(); },
+
+  getFilteredOrganic() {
+    let kws = this.detail.organic || [];
+    if (this.orgFilter) { const q = this.orgFilter.toLowerCase(); kws = kws.filter(k => (k.keyword||'').toLowerCase().includes(q)); }
+    return kws;
+  },
+
+  renderOrganic() {
+    const kws = this.getFilteredOrganic();
+    $('org-count').textContent = kws.length + ' organic keywords';
+    $('body-organic').innerHTML = kws.map(k => {
+      const typeLabel = k.is_local ? '<span class="tag-pill" style="background:rgba(139,92,246,.12);color:#8b5cf6">Local</span>' : '';
+      const intentLabels = [
+        k.is_commercial ? '<span class="tag-pill" style="background:rgba(245,158,11,.1);color:#f59e0b">Commercial</span>' : '',
+        k.is_transactional ? '<span class="tag-pill" style="background:rgba(16,185,129,.1);color:#10b981">Transact</span>' : '',
+        k.is_informational ? '<span class="tag-pill" style="background:rgba(59,130,246,.1);color:#3b82f6">Info</span>' : '',
+      ].filter(Boolean).join('');
+      return `<tr><td class="kw-cell">${esc(k.keyword)}</td><td>${posBadgeD(k.best_position)}</td><td class="mono">${fmtN(k.sum_traffic)}</td><td class="mono">${fmtN(k.volume)}</td><td><span class="kd ${kdCls(k.keyword_difficulty)}">${k.keyword_difficulty??'—'}</span></td><td>${typeLabel}${intentLabels}</td><td class="url-cell" title="${esc(k.best_position_url||'')}">${esc(tryPath(k.best_position_url))}</td></tr>`;
+    }).join('');
+  },
+
   renderPages() {
     $('body-pages').innerHTML = this.detail.pages.map(p => `<tr><td class="url-cell"><a href="${esc(p.url||'#')}" target="_blank">${esc(tryPath(p.url))}</a></td><td class="mono">${fmtN(p.sum_traffic)}</td><td class="mono">${p.value?'$'+fmtN(Math.round(p.value/100)):'—'}</td><td class="mono">${fmtN(p.keywords)}</td><td class="kw-cell">${esc(p.top_keyword||'—')}</td><td>${posBadgeD(p.top_keyword_best_position)}</td></tr>`).join('');
   },
@@ -692,9 +783,9 @@ const App = {
       this.sortState[tbl] = { col, dir };
       th.closest('thead').querySelectorAll('th').forEach(h=>h.classList.remove('sorted-asc','sorted-desc'));
       th.classList.add('sorted-'+dir);
-      const map = { rankings:'rankings', pages:'pages', refdomains:'refdomains', competitors:'competitors' };
+      const map = { organic:'organic', rankings:'rankings', pages:'pages', refdomains:'refdomains', competitors:'competitors' };
       this.detail[map[tbl]]?.sort((a,b) => { let va=a[col],vb=b[col]; if(va==null) va=dir==='desc'?-Infinity:Infinity; if(vb==null) vb=dir==='desc'?-Infinity:Infinity; if(typeof va==='string') return dir==='desc'?vb.localeCompare(va):va.localeCompare(vb); return dir==='desc'?vb-va:va-vb; });
-      ({ rankings:'renderRankings', pages:'renderPages', refdomains:'renderRefDomains', competitors:'renderCompetitors' })[tbl] && this[({ rankings:'renderRankings', pages:'renderPages', refdomains:'renderRefDomains', competitors:'renderCompetitors' })[tbl]]();
+      ({ organic:'renderOrganic', rankings:'renderRankings', pages:'renderPages', refdomains:'renderRefDomains', competitors:'renderCompetitors' })[tbl] && this[({ organic:'renderOrganic', rankings:'renderRankings', pages:'renderPages', refdomains:'renderRefDomains', competitors:'renderCompetitors' })[tbl]]();
     }));
   },
 };
