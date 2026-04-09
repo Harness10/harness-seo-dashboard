@@ -10,303 +10,337 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#090a0f;--sf:#111318;--card:#171a24;--card2:#1c2030;
-  --bd:#252936;--bd2:#2f3549;--tx:#e4e7ed;--tx2:#c0c5d0;--mt:#6b7585;
-  --ac:#3b82f6;--ac2:#8b5cf6;--gn:#10b981;--gn2:#34d399;--rd:#ef4444;
+  --bg:#06070b;--sf:#0e1018;--card:#151922;--card2:#1c2030;
+  --bd:#222938;--bd2:#2f3549;--tx:#e4e7ed;--tx2:#c0c5d0;--mt:#7d8698;
+  --ac:#3b82f6;--ac2:#8b5cf6;--gn:#10b981;--gn2:#6ee7b7;--rd:#ef4444;
   --am:#f59e0b;--cy:#06b6d4;--pk:#ec4899;--or:#f97316;
-  --radius:12px;--font:'Inter',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace;
+  --radius:11px;--font:'Inter',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace;
 }
 body{background:var(--bg);color:var(--tx);font-family:var(--font);line-height:1.5;min-height:100vh}
 a{color:var(--cy);text-decoration:none}a:hover{text-decoration:underline}
 
-/* Header */
-header{background:linear-gradient(180deg,#0d0e15,var(--sf));border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
-.header-inner{max-width:1480px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.brand{font-weight:800;font-size:1.1rem;letter-spacing:-.5px;white-space:nowrap;cursor:pointer}
-.brand b{background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.brand span{color:var(--mt);font-weight:400;font-size:.8rem;margin-left:6px}
-.header-tools{display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap}
-.header-tools input,.header-tools select{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;color:var(--tx);font-size:.8rem;font-family:var(--font);outline:none;transition:border-color .15s}
-.header-tools input:focus{border-color:var(--ac)}
-.header-tools input{width:240px}
-.btn{background:var(--ac);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap}
+/* ===== HEADER ===== */
+header{background:linear-gradient(180deg,#0b0d14,#0e1018);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
+.hd{max-width:1520px;margin:0 auto;padding:10px 24px}
+.hd-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{font-size:1.1rem;font-weight:800;letter-spacing:-.5px;cursor:pointer;white-space:nowrap}
+.logo b{background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo span{color:var(--mt);font-weight:400;font-size:.8rem;margin-left:6px}
+.hd-ctrls{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.hd-ctrls input{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 11px;color:var(--tx);font-size:.78rem;font-family:var(--font);outline:none;width:220px;transition:border .15s}
+.hd-ctrls input:focus{border-color:var(--ac)}
+.btn{background:var(--ac);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
 .btn:hover{background:#2563eb;transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-gn{background:var(--gn)}.btn-gn:hover{background:#059669}
 .btn-ghost{background:transparent;border:1px solid var(--bd);color:var(--tx2)}.btn-ghost:hover{border-color:var(--ac);background:rgba(59,130,246,.06)}
-.breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--mt);padding:10px 24px 0;max-width:1480px;margin:0 auto}
-.breadcrumb a{color:var(--ac);cursor:pointer;text-decoration:none}.breadcrumb a:hover{text-decoration:underline}
+/* Sort bar */
+.sort-bar{display:flex;gap:5px;margin-top:8px;align-items:center;font-size:.7rem;color:var(--mt);flex-wrap:wrap}
+.sort-bar label{font-weight:600;margin-right:2px}
+.sb{background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:3px 8px;font-size:.65rem;color:var(--mt);cursor:pointer;font-weight:600;transition:all .12s;font-family:var(--font)}
+.sb:hover,.sb.on{background:var(--ac2);color:#fff;border-color:var(--ac2)}
 
-/* Main */
-main{max-width:1480px;margin:0 auto;padding:16px 24px 60px}
+/* ===== PROGRESS BAR ===== */
+.progress-wrap{display:none;margin-top:8px}
+.progress-wrap.show{display:block}
+.progress-bar{height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--gn));border-radius:2px;transition:width .3s ease;width:0}
+.progress-text{font-size:.62rem;color:var(--mt);margin-top:3px;font-family:var(--mono)}
 
-/* Loading */
-.loading{display:none;position:fixed;inset:0;background:rgba(9,10,15,.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(4px)}
-.loading.show{display:flex}
-.spinner{width:40px;height:40px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{color:var(--mt);font-size:.85rem}
-.error-banner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;color:var(--rd);font-size:.82rem;display:none}
+/* ===== AGGREGATE STATS ===== */
+.agg-bar{display:none;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.agg-bar.show{display:grid}
+.agg{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center}
+.agg .av{font-family:var(--mono);font-weight:700;font-size:1.1rem}.agg .al{font-size:.55rem;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+
+/* ===== MAIN ===== */
+main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
+.view{display:none}.view.active{display:block}
+.error-banner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;color:var(--rd);font-size:.8rem;display:none}
 .error-banner.show{display:block}
 
-/* ===== PROJECTS GRID VIEW ===== */
-.view{display:none}.view.active{display:block}
-.projects-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-.projects-header h2{font-size:1.15rem;font-weight:800;letter-spacing:-.3px}
-.projects-header .count{color:var(--mt);font-size:.78rem}
-.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
-.project-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
-.project-card:hover{border-color:var(--ac);transform:translateY(-2px);box-shadow:0 6px 24px rgba(59,130,246,.08)}
-.project-card .pc-name{font-weight:700;font-size:.9rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.project-card .pc-url{color:var(--cy);font-size:.65rem;font-family:var(--mono);opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.project-card .pc-meta{display:flex;gap:12px;margin-top:10px}
-.project-card .pc-stat{text-align:center;flex:1}
-.project-card .pc-stat .v{font-family:var(--mono);font-weight:700;font-size:.95rem}
-.project-card .pc-stat .l{font-size:.55rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:1px}
-.project-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+/* ===== CARD GRID ===== */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:10px}
 
-/* ===== PROJECT DETAIL VIEW ===== */
-.detail-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
-.detail-header h2{font-size:1.3rem;font-weight:800;letter-spacing:-.4px}
-.detail-header .dh-url{color:var(--cy);font-size:.72rem;font-family:var(--mono)}
-.detail-header .dh-meta{color:var(--mt);font-size:.72rem;margin-top:2px}
+/* ===== PROJECT CARD ===== */
+.c{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:13px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.c:hover{border-color:var(--ac);transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,.06)}
+.c-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px}
+.c-nm{font-weight:700;font-size:.86rem;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.c-url{color:var(--cy);font-size:.6rem;font-family:var(--mono);opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.c-badge{font-size:.54rem;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;background:rgba(125,134,152,.12);color:var(--mt)}
+
+/* Health Ring */
+.hs-ring{width:48px;height:48px;position:relative;margin:6px auto 3px}
+.hs-ring svg{transform:rotate(-90deg)}
+.hs-ring .score{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:.8rem}
+
+/* Metrics Row */
+.mr{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin:6px 0}
+.mm{text-align:center;padding:3px 2px;background:rgba(255,255,255,.012);border-radius:5px;border:1px solid rgba(255,255,255,.025)}
+.mm .v{font-family:var(--mono);font-weight:600;font-size:.76rem}
+.mm .l{font-size:.5rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:1px}
+
+/* Position Distribution Bar */
+.pbar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:5px 0 3px;background:var(--bd)}
+.pbar .seg{height:100%;transition:width .5s ease}
+.seg-t3{background:#10b981}.seg-t10{background:#34d399}.seg-t20{background:#3b82f6}.seg-t50{background:#f59e0b}.seg-100{background:#6b7585}.seg-nr{background:#1a1e2c}
+.pbar-legend{display:flex;gap:6px;font-size:.48rem;color:var(--mt);margin-bottom:4px;flex-wrap:wrap}
+.pbar-legend i{display:inline-block;width:6px;height:6px;border-radius:2px;margin-right:2px;vertical-align:middle}
+
+/* Mini Keyword Table */
+.kt{width:100%;border-collapse:collapse;font-size:.68rem;margin-top:3px}
+.kt td{padding:2px 0;border-top:1px solid rgba(255,255,255,.025)}
+.kt td:first-child{color:var(--mt);max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kt td:last-child{text-align:right;width:38px}
+.kt .rk td:first-child{color:var(--cy);font-weight:500}
+/* Position Badge */
+.po{display:inline-block;padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:.6rem;font-weight:600;min-width:24px;text-align:center}
+.p1{background:rgba(16,185,129,.3);color:#10b981}.p2{background:rgba(110,231,183,.2);color:#6ee7b7}
+.p3{background:rgba(134,239,172,.14);color:#86efac}.p410{background:rgba(59,130,246,.15);color:#93b8ff}
+.p1120{background:rgba(245,158,11,.12);color:#fcd34d}.p2150{background:rgba(125,134,152,.12);color:#a8b2bf}
+.pnr{background:rgba(71,85,105,.2);color:#64748b}
+
+/* Changes summary */
+.chg-sum{display:flex;gap:8px;font-size:.6rem;font-weight:600;margin-top:4px;justify-content:center}
+.chg-up{color:var(--gn)}.chg-dn{color:var(--rd)}.chg-flat{color:var(--mt)}
+
+/* Card skeleton / pre-fetch state */
+.c-skeleton .mr,.c-skeleton .pbar,.c-skeleton .kt,.c-skeleton .pbar-legend,.c-skeleton .chg-sum,.c-skeleton .hs-ring{display:none}
+.c-pre{text-align:center;padding:16px 0;color:var(--mt);font-size:.7rem}
+
+/* ===== BREADCRUMB ===== */
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--mt);margin-bottom:12px}
+.breadcrumb a{color:var(--ac);cursor:pointer;text-decoration:none}.breadcrumb a:hover{text-decoration:underline}
+
+/* ===== DETAIL VIEW ===== */
+.detail-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.detail-hdr h2{font-size:1.25rem;font-weight:800;letter-spacing:-.4px}
+.detail-hdr .dh-url{color:var(--cy);font-size:.7rem;font-family:var(--mono)}
+.detail-hdr .dh-meta{color:var(--mt);font-size:.7rem;margin-top:2px}
+
+/* Health Banner */
+.health-banner{display:flex;align-items:center;gap:20px;background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;flex-wrap:wrap}
+.hb-ring{width:80px;height:80px;position:relative;flex-shrink:0}
+.hb-ring svg{transform:rotate(-90deg)}
+.hb-score{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:1.4rem}
+.hb-details{flex:1;min-width:200px}
+.hb-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);margin-bottom:6px}
+.hb-stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.hb-stat{text-align:center}
+.hb-stat .hbs-v{font-family:var(--mono);font-weight:700;font-size:1rem}
+.hb-stat .hbs-l{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px}
+.hb-bar-wrap{max-width:400px}
+.hb-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--bd)}
+.hb-bar .seg{height:100%;transition:width .5s ease}
+.hb-legend{display:flex;gap:8px;font-size:.5rem;color:var(--mt);margin-top:4px;flex-wrap:wrap}
+.hb-legend i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:2px;vertical-align:middle}
+.hb-changes{display:flex;flex-direction:column;gap:4px;align-items:flex-end;min-width:120px}
+.hb-chg{font-size:.78rem;font-weight:700;font-family:var(--mono)}
+.hb-chg.up{color:var(--gn)}.hb-chg.dn{color:var(--rd)}.hb-chg-label{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px}
 
 /* KPI Grid */
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
-.kpi-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:14px;text-align:center;transition:all .2s;position:relative;overflow:hidden}
-.kpi-card:hover{border-color:var(--ac);transform:translateY(-1px)}
-.kpi-card .label{font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);margin-bottom:4px;font-weight:600}
-.kpi-card .value{font-family:var(--mono);font-weight:700;font-size:1.35rem;line-height:1.2}
-.kpi-card .sub{font-size:.62rem;color:var(--mt);margin-top:2px;font-family:var(--mono)}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.kpi-card:nth-child(1)::before{background:linear-gradient(90deg,var(--ac),var(--ac2))}
-.kpi-card:nth-child(2)::before{background:var(--gn)}.kpi-card:nth-child(3)::before{background:var(--cy)}
-.kpi-card:nth-child(4)::before{background:var(--am)}.kpi-card:nth-child(5)::before{background:var(--pk)}
-.kpi-card:nth-child(6)::before{background:var(--or)}
-
-/* DR Ring */
-.dr-ring{width:64px;height:64px;margin:0 auto 2px;position:relative}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:12px;text-align:center;position:relative;overflow:hidden}
+.kpi .label{font-size:.58rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);margin-bottom:3px;font-weight:600}
+.kpi .value{font-family:var(--mono);font-weight:700;font-size:1.3rem;line-height:1.2}
+.kpi .sub{font-size:.6rem;color:var(--mt);margin-top:2px;font-family:var(--mono)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi:nth-child(1)::before{background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.kpi:nth-child(2)::before{background:var(--gn)}.kpi:nth-child(3)::before{background:var(--cy)}
+.kpi:nth-child(4)::before{background:var(--am)}.kpi:nth-child(5)::before{background:var(--pk)}
+.kpi:nth-child(6)::before{background:var(--or)}
+.dr-ring{width:60px;height:60px;margin:0 auto 2px;position:relative}
 .dr-ring svg{transform:rotate(-90deg)}
-.dr-ring .dr-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:1.1rem}
+.dr-ring .dr-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:1rem}
 
 /* Charts */
-.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:16px}
-.chart-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:16px}
-.chart-card h3{font-size:.75rem;font-weight:700;margin-bottom:10px;color:var(--tx2)}
-.chart-card canvas{width:100%!important}
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:14px}
+.chart-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:14px}
+.chart-card h3{font-size:.72rem;font-weight:700;margin-bottom:8px;color:var(--tx2)}
+.intent-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
+.intent-item{display:flex;align-items:center;gap:5px;font-size:.65rem}
+.intent-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.intent-item .bar-wrap{flex:1;height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
+.intent-item .bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.intent-item .pct{font-family:var(--mono);font-size:.58rem;color:var(--mt);min-width:26px;text-align:right}
 
-/* Tag Filter Bar */
-.tag-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
-.tag-btn{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:.68rem;color:var(--mt);cursor:pointer;font-weight:600;transition:all .12s;font-family:var(--font)}
+/* Tag filter */
+.tag-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.tag-btn{background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:3px 9px;font-size:.65rem;color:var(--mt);cursor:pointer;font-weight:600;transition:all .12s;font-family:var(--font)}
 .tag-btn:hover{color:var(--tx);border-color:var(--bd2)}.tag-btn.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 
 /* Tables */
 .table-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden}
-.tab-bar{display:flex;border-bottom:1px solid var(--bd);padding:0 14px;overflow-x:auto}
-.tab{padding:9px 14px;background:none;border:none;color:var(--mt);font-size:.75rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:var(--font);white-space:nowrap}
+.tab-bar{display:flex;border-bottom:1px solid var(--bd);padding:0 12px;overflow-x:auto}
+.tab{padding:8px 12px;background:none;border:none;color:var(--mt);font-size:.73rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:var(--font);white-space:nowrap}
 .tab:hover{color:var(--tx)}.tab.active{color:var(--ac);border-bottom-color:var(--ac)}
-.tab-tools{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--bd)}
-.tab-tools input{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:5px 10px;color:var(--tx);font-size:.73rem;font-family:var(--font);outline:none;width:200px}
+.tab-tools{display:flex;align-items:center;gap:6px;padding:7px 12px;border-bottom:1px solid var(--bd)}
+.tab-tools input{background:var(--sf);border:1px solid var(--bd);border-radius:5px;padding:4px 9px;color:var(--tx);font-size:.7rem;font-family:var(--font);outline:none;width:200px}
 .tab-tools input:focus{border-color:var(--ac)}
 .tab-content{display:none}.tab-content.active{display:block}
-.table-scroll{max-height:560px;overflow-y:auto}
-.data-table{width:100%;border-collapse:collapse;font-size:.73rem}
-.data-table th{text-align:left;padding:9px 10px;border-bottom:2px solid var(--bd);color:var(--mt);font-weight:600;font-size:.62rem;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;white-space:nowrap;user-select:none;position:sticky;top:0;background:var(--card);z-index:1}
+.table-scroll{max-height:540px;overflow-y:auto}
+.data-table{width:100%;border-collapse:collapse;font-size:.71rem}
+.data-table th{text-align:left;padding:8px 9px;border-bottom:2px solid var(--bd);color:var(--mt);font-weight:600;font-size:.6rem;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;white-space:nowrap;user-select:none;position:sticky;top:0;background:var(--card);z-index:1}
 .data-table th:hover{color:var(--ac)}
 .data-table th.sorted-asc::after{content:' \u25B2';font-size:.5rem}.data-table th.sorted-desc::after{content:' \u25BC';font-size:.5rem}
-.data-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+.data-table td{padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
 .data-table tr:hover{background:rgba(59,130,246,.03)}
-.mono{font-family:var(--mono);font-size:.68rem}
-.kw-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.url-cell{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:.63rem;color:var(--cy);opacity:.8}
-
-/* Position Badge */
-.pos{display:inline-block;padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.63rem;font-weight:600;min-width:26px;text-align:center}
-.pos-1{background:rgba(16,185,129,.3);color:#10b981}.pos-2{background:rgba(110,231,183,.2);color:#6ee7b7}
-.pos-3{background:rgba(134,239,172,.14);color:#86efac}.pos-top10{background:rgba(59,130,246,.15);color:#93b8ff}
-.pos-top20{background:rgba(245,158,11,.12);color:#fcd34d}.pos-top50{background:rgba(125,134,152,.12);color:#a8b2bf}
-.pos-100{background:rgba(239,68,68,.08);color:#fca5a5}
-
-/* Change arrows */
-.chg{font-size:.65rem;font-weight:600;font-family:var(--mono)}
-.chg.up{color:var(--gn)}.chg.down{color:var(--rd)}.chg.flat{color:var(--mt)}
-
-/* KD Badge */
-.kd{display:inline-block;padding:2px 5px;border-radius:4px;font-family:var(--mono);font-size:.6rem;font-weight:600;min-width:22px;text-align:center}
-.kd-easy{background:rgba(16,185,129,.15);color:var(--gn)}.kd-medium{background:rgba(245,158,11,.12);color:var(--am)}
-.kd-hard{background:rgba(249,115,22,.12);color:var(--or)}.kd-super{background:rgba(239,68,68,.12);color:var(--rd)}
-
-/* DR inline */
-.dr-inline{display:inline-flex;align-items:center;gap:4px}
-.dr-bar{width:36px;height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
-.dr-fill{height:100%;border-radius:2px}
-
-/* Tag pills */
-.tag-pill{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.55rem;font-weight:600;background:rgba(139,92,246,.1);color:var(--ac2);margin-right:3px}
-
-/* Quick Win Row */
+.mono{font-family:var(--mono);font-size:.66rem}
+.kw-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.url-cell{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:.6rem;color:var(--cy);opacity:.8}
+.pos{display:inline-block;padding:2px 5px;border-radius:4px;font-family:var(--mono);font-size:.62rem;font-weight:600;min-width:24px;text-align:center}
+.pos-1{background:rgba(16,185,129,.3);color:#10b981}.pos-2{background:rgba(110,231,183,.2);color:#6ee7b7}.pos-3{background:rgba(134,239,172,.14);color:#86efac}
+.pos-t10{background:rgba(59,130,246,.15);color:#93b8ff}.pos-t20{background:rgba(245,158,11,.12);color:#fcd34d}
+.pos-t50{background:rgba(125,134,152,.12);color:#a8b2bf}.pos-100{background:rgba(239,68,68,.08);color:#fca5a5}
+.chg{font-size:.62rem;font-weight:600;font-family:var(--mono)}.chg.up{color:var(--gn)}.chg.down{color:var(--rd)}.chg.flat{color:var(--mt)}
+.kd{display:inline-block;padding:2px 5px;border-radius:4px;font-family:var(--mono);font-size:.58rem;font-weight:600}
+.kd-easy{background:rgba(16,185,129,.15);color:var(--gn)}.kd-med{background:rgba(245,158,11,.12);color:var(--am)}.kd-hard{background:rgba(249,115,22,.12);color:var(--or)}.kd-super{background:rgba(239,68,68,.12);color:var(--rd)}
+.dr-i{display:inline-flex;align-items:center;gap:3px}.dr-b{width:34px;height:4px;background:var(--bd);border-radius:2px;overflow:hidden}.dr-f{height:100%;border-radius:2px}
+.tag-pill{display:inline-block;padding:1px 5px;border-radius:3px;font-size:.52rem;font-weight:600;background:rgba(139,92,246,.1);color:var(--ac2);margin-right:2px}
+.qw-badge{background:rgba(16,185,129,.12);color:var(--gn);font-size:.5rem;padding:1px 4px;border-radius:3px;font-weight:600;margin-left:3px}
 .data-table tr.qw{background:rgba(16,185,129,.04)}
-.qw-badge{background:rgba(16,185,129,.12);color:var(--gn);font-size:.52rem;padding:1px 4px;border-radius:3px;font-weight:600;margin-left:4px}
 
-/* Intent bars */
-.intent-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
-.intent-item{display:flex;align-items:center;gap:6px;font-size:.68rem}
-.intent-item .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.intent-item .bar-wrap{flex:1;height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
-.intent-item .bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
-.intent-item .pct{font-family:var(--mono);font-size:.6rem;color:var(--mt);min-width:28px;text-align:right}
+/* Loading overlay (for detail) */
+.loading{display:none;position:fixed;inset:0;background:rgba(6,7,11,.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(4px)}
+.loading.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--mt);font-size:.82rem}
 
 /* Responsive */
 @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.charts-row{grid-template-columns:1fr}}
-@media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.projects-grid{grid-template-columns:1fr}.header-inner{flex-direction:column;align-items:stretch}.header-tools{margin-left:0}}
+@media(max-width:900px){.grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}}
+@media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.hd-top{flex-direction:column;align-items:stretch}.hd-ctrls{margin-left:0}.agg-bar.show{grid-template-columns:repeat(3,1fr)}.health-banner{flex-direction:column;text-align:center}.hb-changes{align-items:center}}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-inner">
-    <div class="brand" onclick="App.showProjects()"><b>Harness Digital</b><span>SEO Intelligence</span></div>
-    <div class="header-tools">
-      <input type="text" id="global-search" placeholder="Search projects..." oninput="App.filterProjects(this.value)">
+<div class="hd">
+  <div class="hd-top">
+    <div class="logo" onclick="App.showMain()"><b>Harness Digital</b><span>SEO Intelligence</span></div>
+    <div class="hd-ctrls" id="main-ctrls">
+      <input type="text" id="search" placeholder="Search projects..." oninput="App.filterProjects(this.value)">
+      <button class="btn btn-gn" id="fetch-btn" onclick="App.fetchAllRankings()" disabled>Fetch All Rankings</button>
     </div>
   </div>
+  <div class="sort-bar" id="sort-bar">
+    <label>Sort:</label>
+    <button class="sb on" onclick="App.setSort('name')">Name</button>
+    <button class="sb" onclick="App.setSort('health')">Health Score</button>
+    <button class="sb" onclick="App.setSort('top10')">Top 10 KWs</button>
+    <button class="sb" onclick="App.setSort('ranked')">% Ranked</button>
+    <button class="sb" onclick="App.setSort('keywords')">Total KWs</button>
+  </div>
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text"></div>
+  </div>
+</div>
 </header>
 
-<div class="loading" id="loading">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">Loading projects...</div>
-</div>
+<div class="loading" id="loading"><div class="spinner"></div><div class="loading-text" id="loading-text">Loading...</div></div>
 
 <main>
-  <div class="error-banner" id="error-banner"></div>
+<div class="error-banner" id="error-banner"></div>
 
-  <!-- ========= PROJECTS LIST VIEW ========= -->
-  <div class="view active" id="view-projects">
-    <div class="projects-header">
-      <h2>Client Projects</h2>
-      <span class="count" id="project-count"></span>
-    </div>
-    <div class="projects-grid" id="projects-grid"></div>
+<!-- ========== MAIN CARD VIEW ========== -->
+<div class="view active" id="view-main">
+  <div class="agg-bar" id="agg-bar">
+    <div class="agg"><div class="av" id="agg-projects">0</div><div class="al">Projects</div></div>
+    <div class="agg"><div class="av" id="agg-kws">0</div><div class="al">Tracked KWs</div></div>
+    <div class="agg"><div class="av" id="agg-top10">0</div><div class="al">Ranking Top 10</div></div>
+    <div class="agg"><div class="av" id="agg-top3">0</div><div class="al">Ranking Top 3</div></div>
+    <div class="agg"><div class="av" id="agg-health">--</div><div class="al">Avg Health</div></div>
   </div>
+  <div class="grid" id="grid"></div>
+</div>
 
-  <!-- ========= PROJECT DETAIL VIEW ========= -->
-  <div class="view" id="view-detail">
-    <div class="breadcrumb"><a onclick="App.showProjects()">All Projects</a><span>/</span><span id="bc-name"></span></div>
+<!-- ========== DETAIL VIEW ========== -->
+<div class="view" id="view-detail">
+  <div class="breadcrumb"><a onclick="App.showMain()">All Projects</a><span>/</span><span id="bc-name"></span></div>
+  <div class="detail-hdr"><div><h2 id="d-name"></h2><div class="dh-url" id="d-url"></div><div class="dh-meta" id="d-meta"></div></div></div>
 
-    <div class="detail-header">
-      <div>
-        <h2 id="detail-name"></h2>
-        <div class="dh-url" id="detail-url"></div>
-        <div class="dh-meta" id="detail-meta"></div>
+  <!-- Health Summary Banner -->
+  <section class="health-banner" id="health-banner">
+    <div class="hb-ring">
+      <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="var(--bd)" stroke-width="5"/><circle cx="40" cy="40" r="34" fill="none" stroke="var(--gn)" stroke-width="5" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6" id="hb-arc"/></svg>
+      <div class="hb-score" id="hb-score">--</div>
+    </div>
+    <div class="hb-details">
+      <div class="hb-title">Ranking Health Score</div>
+      <div class="hb-stats" id="hb-stats"></div>
+      <div class="hb-bar-wrap">
+        <div class="hb-bar" id="hb-bar"></div>
+        <div class="hb-legend" id="hb-legend"></div>
       </div>
     </div>
+    <div class="hb-changes" id="hb-changes"></div>
+  </section>
 
-    <!-- KPI Cards -->
-    <section class="kpi-grid" id="detail-kpis">
-      <div class="kpi-card"><div class="label">Domain Rating</div>
-        <div class="dr-ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--bd)" stroke-width="4.5"/><circle cx="32" cy="32" r="26" fill="none" stroke="url(#drG)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4" id="dr-arc"/><defs><linearGradient id="drG" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="var(--ac)"/><stop offset="100%" stop-color="var(--ac2)"/></linearGradient></defs></svg><div class="dr-val" id="dr-val">--</div></div>
-        <div class="sub" id="dr-rank"></div>
-      </div>
-      <div class="kpi-card"><div class="label">Organic Traffic</div><div class="value" id="kpi-traffic">--</div><div class="sub">monthly visitors</div></div>
-      <div class="kpi-card"><div class="label">Tracked Keywords</div><div class="value" id="kpi-tracked">--</div><div class="sub" id="kpi-ranked"></div></div>
-      <div class="kpi-card"><div class="label">Traffic Value</div><div class="value" id="kpi-value">--</div><div class="sub">est. monthly</div></div>
-      <div class="kpi-card"><div class="label">Backlinks</div><div class="value" id="kpi-backlinks">--</div><div class="sub" id="kpi-bl-sub"></div></div>
-      <div class="kpi-card"><div class="label">Referring Domains</div><div class="value" id="kpi-refdom">--</div><div class="sub" id="kpi-rd-sub"></div></div>
-    </section>
+  <section class="kpi-grid" id="d-kpis">
+    <div class="kpi"><div class="label">Domain Rating</div>
+      <div class="dr-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="var(--bd)" stroke-width="4"/><circle cx="30" cy="30" r="24" fill="none" stroke="url(#drG)" stroke-width="4" stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="150.8" id="dr-arc"/><defs><linearGradient id="drG" x1="0%" y1="0%" x2="100%"><stop offset="0%" stop-color="var(--ac)"/><stop offset="100%" stop-color="var(--ac2)"/></linearGradient></defs></svg><div class="dr-val" id="dr-val">--</div></div>
+      <div class="sub" id="dr-rank"></div></div>
+    <div class="kpi"><div class="label">Organic Traffic</div><div class="value" id="kpi-traffic">--</div><div class="sub">monthly</div></div>
+    <div class="kpi"><div class="label">Tracked Keywords</div><div class="value" id="kpi-tracked">--</div><div class="sub" id="kpi-ranked"></div></div>
+    <div class="kpi"><div class="label">Traffic Value</div><div class="value" id="kpi-value">--</div><div class="sub">est. monthly</div></div>
+    <div class="kpi"><div class="label">Backlinks</div><div class="value" id="kpi-bl">--</div><div class="sub" id="kpi-bl-sub"></div></div>
+    <div class="kpi"><div class="label">Referring Domains</div><div class="value" id="kpi-rd">--</div><div class="sub" id="kpi-rd-sub"></div></div>
+  </section>
 
-    <!-- Charts -->
-    <section class="charts-row">
-      <div class="chart-card"><h3>Organic Traffic — 12 Month Trend</h3><canvas id="traffic-chart" height="240"></canvas></div>
-      <div class="chart-card"><h3>Rank Distribution (Tracked Keywords)</h3><canvas id="position-chart" height="180"></canvas>
-        <div class="intent-grid" id="intent-grid" style="margin-top:12px"><h3 style="grid-column:1/-1;font-size:.68rem;font-weight:700;color:var(--tx2);margin-bottom:2px">Search Intent</h3></div>
-      </div>
-    </section>
+  <section class="charts-row">
+    <div class="chart-card"><h3>Organic Traffic — 12 Month Trend</h3><canvas id="traffic-chart" height="220"></canvas></div>
+    <div class="chart-card"><h3>Rank Distribution</h3><canvas id="pos-chart" height="170"></canvas>
+      <div class="intent-grid" id="intent-grid" style="margin-top:10px"><h3 style="grid-column:1/-1;font-size:.66rem;font-weight:700;color:var(--tx2);margin-bottom:2px">Search Intent</h3></div>
+    </div>
+  </section>
 
-    <!-- Tag filter + Rankings Table -->
-    <div class="tag-bar" id="tag-bar"><span style="font-size:.7rem;color:var(--mt);font-weight:600">Filter:</span></div>
+  <div class="tag-bar" id="tag-bar"><span style="font-size:.68rem;color:var(--mt);font-weight:600">Filter:</span></div>
 
-    <section class="table-card">
-      <div class="tab-bar">
-        <button class="tab active" data-tab="rankings">Tracked Rankings</button>
-        <button class="tab" data-tab="pages">Top Pages</button>
-        <button class="tab" data-tab="refdomains">Referring Domains</button>
-        <button class="tab" data-tab="competitors">Competitors</button>
-      </div>
-
-      <!-- Rankings Tab -->
-      <div class="tab-content active" id="tab-rankings">
-        <div class="tab-tools">
-          <input type="text" id="kw-search" placeholder="Search keywords..." oninput="App.filterKW(this.value)">
-          <span style="color:var(--mt);font-size:.63rem;margin-left:auto" id="kw-count"></span>
-        </div>
-        <div class="table-scroll"><table class="data-table" id="tbl-rankings"><thead><tr>
-          <th data-sort="keyword" data-table="rankings">Keyword</th>
-          <th data-sort="position" data-table="rankings">Pos</th>
-          <th data-sort="position_diff" data-table="rankings">Change</th>
-          <th data-sort="volume" data-table="rankings">Volume</th>
-          <th data-sort="traffic" data-table="rankings">Traffic</th>
-          <th data-sort="keyword_difficulty" data-table="rankings">KD</th>
-          <th data-sort="location" data-table="rankings">Location</th>
-          <th data-sort="url" data-table="rankings">URL</th>
-        </tr></thead><tbody id="body-rankings"></tbody></table></div>
-      </div>
-
-      <!-- Pages Tab -->
-      <div class="tab-content" id="tab-pages">
-        <div class="table-scroll"><table class="data-table" id="tbl-pages"><thead><tr>
-          <th data-sort="url" data-table="pages">URL</th>
-          <th data-sort="sum_traffic" data-table="pages">Traffic</th>
-          <th data-sort="value" data-table="pages">Value</th>
-          <th data-sort="keywords" data-table="pages">Keywords</th>
-          <th data-sort="top_keyword" data-table="pages">Top Keyword</th>
-          <th data-sort="top_keyword_best_position" data-table="pages">Pos</th>
-        </tr></thead><tbody id="body-pages"></tbody></table></div>
-      </div>
-
-      <!-- Referring Domains Tab -->
-      <div class="tab-content" id="tab-refdomains">
-        <div class="table-scroll"><table class="data-table" id="tbl-refdomains"><thead><tr>
-          <th data-sort="domain" data-table="refdomains">Domain</th>
-          <th data-sort="domain_rating" data-table="refdomains">DR</th>
-          <th data-sort="links_to_target" data-table="refdomains">Links</th>
-          <th data-sort="dofollow_links" data-table="refdomains">Dofollow</th>
-          <th data-sort="traffic_domain" data-table="refdomains">Domain Traffic</th>
-          <th data-sort="first_seen" data-table="refdomains">First Seen</th>
-        </tr></thead><tbody id="body-refdomains"></tbody></table></div>
-      </div>
-
-      <!-- Competitors Tab -->
-      <div class="tab-content" id="tab-competitors">
-        <div class="table-scroll"><table class="data-table" id="tbl-competitors"><thead><tr>
-          <th data-sort="competitor_domain" data-table="competitors">Competitor</th>
-          <th data-sort="keywords_common" data-table="competitors">Common KWs</th>
-          <th data-sort="traffic" data-table="competitors">Traffic</th>
-          <th data-sort="share" data-table="competitors">Overlap</th>
-          <th data-sort="domain_rating" data-table="competitors">DR</th>
-        </tr></thead><tbody id="body-competitors"></tbody></table></div>
-      </div>
-    </section>
-  </div>
+  <section class="table-card">
+    <div class="tab-bar">
+      <button class="tab active" data-tab="rankings">Tracked Rankings</button>
+      <button class="tab" data-tab="pages">Top Pages</button>
+      <button class="tab" data-tab="refdomains">Referring Domains</button>
+      <button class="tab" data-tab="competitors">Competitors</button>
+    </div>
+    <div class="tab-content active" id="tab-rankings">
+      <div class="tab-tools"><input type="text" id="kw-search" placeholder="Search keywords..." oninput="App.filterKW(this.value)"><span style="color:var(--mt);font-size:.6rem;margin-left:auto" id="kw-count"></span></div>
+      <div class="table-scroll"><table class="data-table" id="tbl-rankings"><thead><tr>
+        <th data-sort="keyword" data-tbl="rankings">Keyword</th><th data-sort="position" data-tbl="rankings">Pos</th><th data-sort="position_diff" data-tbl="rankings">Change</th>
+        <th data-sort="volume" data-tbl="rankings">Volume</th><th data-sort="traffic" data-tbl="rankings">Traffic</th><th data-sort="keyword_difficulty" data-tbl="rankings">KD</th>
+        <th data-sort="location" data-tbl="rankings">Location</th><th data-sort="url" data-tbl="rankings">URL</th>
+      </tr></thead><tbody id="body-rankings"></tbody></table></div>
+    </div>
+    <div class="tab-content" id="tab-pages"><div class="table-scroll"><table class="data-table" id="tbl-pages"><thead><tr>
+      <th data-sort="url" data-tbl="pages">URL</th><th data-sort="sum_traffic" data-tbl="pages">Traffic</th><th data-sort="value" data-tbl="pages">Value</th>
+      <th data-sort="keywords" data-tbl="pages">Keywords</th><th data-sort="top_keyword" data-tbl="pages">Top Keyword</th><th data-sort="top_keyword_best_position" data-tbl="pages">Pos</th>
+    </tr></thead><tbody id="body-pages"></tbody></table></div></div>
+    <div class="tab-content" id="tab-refdomains"><div class="table-scroll"><table class="data-table" id="tbl-refdomains"><thead><tr>
+      <th data-sort="domain" data-tbl="refdomains">Domain</th><th data-sort="domain_rating" data-tbl="refdomains">DR</th><th data-sort="links_to_target" data-tbl="refdomains">Links</th>
+      <th data-sort="dofollow_links" data-tbl="refdomains">Dofollow</th><th data-sort="traffic_domain" data-tbl="refdomains">Traffic</th><th data-sort="first_seen" data-tbl="refdomains">First Seen</th>
+    </tr></thead><tbody id="body-refdomains"></tbody></table></div></div>
+    <div class="tab-content" id="tab-competitors"><div class="table-scroll"><table class="data-table" id="tbl-competitors"><thead><tr>
+      <th data-sort="competitor_domain" data-tbl="competitors">Competitor</th><th data-sort="keywords_common" data-tbl="competitors">Common KWs</th>
+      <th data-sort="traffic" data-tbl="competitors">Traffic</th><th data-sort="share" data-tbl="competitors">Overlap</th><th data-sort="domain_rating" data-tbl="competitors">DR</th>
+    </tr></thead><tbody id="body-competitors"></tbody></table></div></div>
+  </section>
+</div>
 </main>
 
 <script>
-/* ======================== APP ======================== */
+const $ = id => document.getElementById(id);
 const App = {
-  projects: [],
-  filtered: [],
-  detail: {},
-  charts: {},
-  sortState: {},
-  activeTag: null,
-  kwFilter: '',
+  projects: [], filtered: [], rankData: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '',
 
   async init() {
-    this.bindTabs();
-    this.bindSortHeaders();
-    const pid = new URLSearchParams(location.search).get('project');
+    this.bindTabs(); this.bindSort();
     await this.loadProjects();
+    const pid = new URLSearchParams(location.search).get('project');
     if (pid) this.openProject(parseInt(pid));
   },
 
-  /* --- API helper --- */
   async api(endpoint, params = {}) {
     const qs = new URLSearchParams({ endpoint, ...params });
     const r = await fetch('/api/ahrefs?' + qs);
@@ -314,82 +348,197 @@ const App = {
     return r.json();
   },
 
-  showLoad(msg) { $('loading').classList.add('show'); $('loading-text').textContent = msg; },
-  hideLoad() { $('loading').classList.remove('show'); },
-  showErr(msg) { const e = $('error-banner'); e.textContent = msg; e.classList.add('show'); },
-  hideErr() { $('error-banner').classList.remove('show'); },
-
-  /* =============== PROJECTS LIST =============== */
+  /* ============ PROJECTS LIST ============ */
   async loadProjects() {
-    this.showLoad('Loading projects from Ahrefs...');
+    $('loading').classList.add('show'); $('loading-text').textContent = 'Loading projects...';
     try {
       const res = await this.api('management/projects');
       this.projects = (res.projects || []).filter(p => p.keyword_count > 0).sort((a, b) => a.project_name.localeCompare(b.project_name));
       this.filtered = this.projects;
-      this.renderProjects();
+      this.renderGrid();
+      $('fetch-btn').disabled = false;
     } catch (e) { this.showErr(e.message); }
-    finally { this.hideLoad(); }
+    finally { $('loading').classList.remove('show'); }
   },
 
-  renderProjects() {
-    $('project-count').textContent = `${this.filtered.length} projects`;
-    $('projects-grid').innerHTML = this.filtered.map(p => `
-      <div class="project-card" onclick="App.openProject(${p.project_id})">
-        <div class="pc-name">${esc(p.project_name)}</div>
-        <div class="pc-url">${esc(p.url)}</div>
-        <div class="pc-meta">
-          <div class="pc-stat"><div class="v">${p.keyword_count}</div><div class="l">Keywords</div></div>
-          <div class="pc-stat"><div class="v">${esc(p.mode)}</div><div class="l">Mode</div></div>
-        </div>
+  renderGrid() {
+    const list = this.getSorted();
+    $('grid').innerHTML = list.map(p => {
+      const rd = this.rankData[p.project_id];
+      if (!rd) return this.skeletonCard(p);
+      return this.fullCard(p, rd);
+    }).join('');
+  },
+
+  skeletonCard(p) {
+    return `<div class="c c-skeleton" onclick="App.openProject(${p.project_id})">
+      <div class="c-top"><div class="c-nm">${esc(p.project_name)}</div><div class="c-badge">${p.keyword_count} KWs</div></div>
+      <div class="c-url">${esc(p.url)}</div>
+      <div class="c-pre">Click "Fetch All Rankings" to load live data</div>
+    </div>`;
+  },
+
+  fullCard(p, kws) {
+    const stats = this.calcStats(kws);
+    const topKws = kws.filter(k => k.position != null).sort((a, b) => a.position - b.position).slice(0, 6);
+    const hsColor = stats.health >= 60 ? '#10b981' : stats.health >= 30 ? '#f59e0b' : '#ef4444';
+    const circ = 2 * Math.PI * 18;
+    const offset = circ - (circ * stats.health / 100);
+    const pTotal = kws.length || 1;
+
+    return `<div class="c" onclick="App.openProject(${p.project_id})">
+      <div class="c-top"><div class="c-nm">${esc(p.project_name)}</div><div class="c-badge">${p.keyword_count} KWs</div></div>
+      <div class="c-url">${esc(p.url)}</div>
+      <div class="hs-ring"><svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="none" stroke="var(--bd)" stroke-width="3.5"/><circle cx="24" cy="24" r="18" fill="none" stroke="${hsColor}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/></svg><div class="score" style="color:${hsColor}">${stats.health}</div></div>
+      <div class="mr">
+        <div class="mm"><div class="v">${stats.top3}</div><div class="l">Top 3</div></div>
+        <div class="mm"><div class="v">${stats.top10}</div><div class="l">Top 10</div></div>
+        <div class="mm"><div class="v">${stats.ranked}</div><div class="l">Ranked</div></div>
+        <div class="mm"><div class="v">${stats.notRanked}</div><div class="l">Not Rnk</div></div>
       </div>
-    `).join('');
+      <div class="pbar">
+        <div class="seg seg-t3" style="width:${(stats.top3/pTotal*100).toFixed(1)}%"></div>
+        <div class="seg seg-t10" style="width:${((stats.top10-stats.top3)/pTotal*100).toFixed(1)}%"></div>
+        <div class="seg seg-t20" style="width:${(stats.t1120/pTotal*100).toFixed(1)}%"></div>
+        <div class="seg seg-t50" style="width:${(stats.t2150/pTotal*100).toFixed(1)}%"></div>
+        <div class="seg seg-100" style="width:${(stats.t51100/pTotal*100).toFixed(1)}%"></div>
+        <div class="seg seg-nr" style="width:${(stats.notRanked/pTotal*100).toFixed(1)}%"></div>
+      </div>
+      <div class="chg-sum">
+        ${stats.improved > 0 ? `<span class="chg-up">\u25B2${stats.improved} improved</span>` : ''}
+        ${stats.declined > 0 ? `<span class="chg-dn">\u25BC${stats.declined} declined</span>` : ''}
+        ${stats.improved === 0 && stats.declined === 0 ? '<span class="chg-flat">No changes</span>' : ''}
+      </div>
+      <table class="kt">${topKws.map(k => `<tr class="rk"><td>${esc(k.keyword)}</td><td>${posBadge(k.position)}</td></tr>`).join('')}${topKws.length === 0 ? '<tr><td colspan="2" style="color:var(--mt);text-align:center;padding:8px 0;font-size:.65rem">No rankings found</td></tr>' : ''}</table>
+    </div>`;
+  },
+
+  calcStats(kws) {
+    let top3=0, top10=0, t1120=0, t2150=0, t51100=0, notRanked=0, improved=0, declined=0;
+    kws.forEach(k => {
+      const p = k.position;
+      if (p == null) { notRanked++; return; }
+      if (p <= 3) { top3++; top10++; }
+      else if (p <= 10) top10++;
+      else if (p <= 20) t1120++;
+      else if (p <= 50) t2150++;
+      else t51100++;
+      if (k.position_diff != null) { if (k.position_diff < 0) improved++; if (k.position_diff > 0) declined++; }
+    });
+    const ranked = top10 + t1120 + t2150 + t51100;
+    const total = kws.length || 1;
+    const health = Math.round((top3 * 3 + (top10 - top3) * 2 + t1120 * 1) / (total * 3) * 100);
+    return { top3, top10, t1120, t2150, t51100, notRanked, ranked, improved, declined, health };
+  },
+
+  getSorted() {
+    let list = [...this.filtered];
+    const m = this.sortMode;
+    if (m === 'name') return list.sort((a, b) => a.project_name.localeCompare(b.project_name));
+    list.sort((a, b) => {
+      const ra = this.rankData[a.project_id], rb = this.rankData[b.project_id];
+      if (!ra && !rb) return 0; if (!ra) return 1; if (!rb) return -1;
+      const sa = this.calcStats(ra), sb = this.calcStats(rb);
+      if (m === 'health') return sb.health - sa.health;
+      if (m === 'top10') return sb.top10 - sa.top10;
+      if (m === 'ranked') return (sb.ranked / (rb.length||1)) - (sa.ranked / (ra.length||1));
+      if (m === 'keywords') return b.keyword_count - a.keyword_count;
+      return 0;
+    });
+    return list;
+  },
+
+  setSort(mode) {
+    this.sortMode = mode;
+    document.querySelectorAll('.sb').forEach(b => b.classList.toggle('on', b.textContent.toLowerCase().includes(mode === 'top10' ? 'top 10' : mode === 'ranked' ? '% ranked' : mode === 'keywords' ? 'total' : mode)));
+    this.renderGrid();
   },
 
   filterProjects(q) {
     const s = q.toLowerCase();
     this.filtered = s ? this.projects.filter(p => p.project_name.toLowerCase().includes(s) || p.url.toLowerCase().includes(s)) : this.projects;
-    this.renderProjects();
+    this.renderGrid();
   },
 
-  showProjects() {
-    $('view-projects').classList.add('active');
-    $('view-detail').classList.remove('active');
-    $('global-search').style.display = '';
-    history.replaceState({}, '', location.pathname);
-  },
-
-  /* =============== PROJECT DETAIL =============== */
-  async openProject(pid) {
-    const proj = this.projects.find(p => p.project_id == pid);
-    if (!proj) return;
-
-    $('view-projects').classList.remove('active');
-    $('view-detail').classList.add('active');
-    $('global-search').style.display = 'none';
-    history.replaceState({}, '', '?project=' + pid);
-
-    $('bc-name').textContent = proj.project_name;
-    $('detail-name').textContent = proj.project_name;
-    $('detail-url').textContent = proj.url;
-    $('detail-meta').textContent = `Mode: ${proj.mode} · ${proj.keyword_count} tracked keywords`;
-
-    this.hideErr();
-    this.showLoad(`Loading data for ${proj.project_name}...`);
-    this.activeTag = null;
-    this.kwFilter = '';
-
+  /* ============ FETCH ALL RANKINGS ============ */
+  async fetchAllRankings() {
+    const btn = $('fetch-btn'); btn.disabled = true; btn.textContent = 'Fetching...';
+    const pw = $('progress-wrap'); pw.classList.add('show');
     const today = new Date();
     const date = fmtDate(daysAgo(today, 2));
     const dateCmp = fmtDate(daysAgo(today, 32));
-    const dateFrom = fmtDate(daysAgo(today, 365));
+    const BATCH = 8;
+    const list = this.projects;
+    let done = 0, fails = 0;
+
+    for (let i = 0; i < list.length; i += BATCH) {
+      const batch = list.slice(i, i + BATCH);
+      const results = await Promise.allSettled(batch.map(p =>
+        this.api('rank-tracker/overview', {
+          project_id: p.project_id, date, date_compared: dateCmp, device: 'mobile', limit: 100,
+          select: 'keyword,position,position_prev,position_diff,volume,traffic,keyword_difficulty,url,tags,location,is_informational,is_transactional,is_commercial,is_local'
+        })
+      ));
+      results.forEach((r, j) => {
+        if (r.status === 'fulfilled') {
+          this.rankData[batch[j].project_id] = r.value.overviews || [];
+        } else { fails++; }
+        done++;
+      });
+      $('progress-fill').style.width = (done / list.length * 100) + '%';
+      $('progress-text').textContent = `${done}/${list.length} projects loaded` + (fails ? ` (${fails} failed)` : '');
+      this.renderGrid();
+      this.updateAggregates();
+    }
+    btn.textContent = 'Refresh Rankings'; btn.disabled = false;
+    setTimeout(() => pw.classList.remove('show'), 2000);
+  },
+
+  updateAggregates() {
+    const ab = $('agg-bar'); ab.classList.add('show');
+    let totalKws = 0, totalTop10 = 0, totalTop3 = 0, healthSum = 0, healthCount = 0;
+    this.projects.forEach(p => {
+      const rd = this.rankData[p.project_id];
+      if (!rd) return;
+      const s = this.calcStats(rd);
+      totalKws += rd.length; totalTop10 += s.top10; totalTop3 += s.top3;
+      healthSum += s.health; healthCount++;
+    });
+    $('agg-projects').textContent = this.projects.length;
+    $('agg-kws').textContent = fmtN(totalKws);
+    $('agg-top10').textContent = fmtN(totalTop10);
+    $('agg-top3').textContent = fmtN(totalTop3);
+    $('agg-health').textContent = healthCount > 0 ? Math.round(healthSum / healthCount) : '--';
+  },
+
+  showMain() {
+    $('view-main').classList.add('active'); $('view-detail').classList.remove('active');
+    $('main-ctrls').style.display = ''; $('sort-bar').style.display = '';
+    history.replaceState({}, '', location.pathname);
+  },
+
+  /* ============ DETAIL VIEW ============ */
+  async openProject(pid) {
+    const proj = this.projects.find(p => p.project_id == pid);
+    if (!proj) return;
+    $('view-main').classList.remove('active'); $('view-detail').classList.add('active');
+    $('main-ctrls').style.display = 'none'; $('sort-bar').style.display = 'none';
+    history.replaceState({}, '', '?project=' + pid);
+    $('bc-name').textContent = proj.project_name;
+    $('d-name').textContent = proj.project_name;
+    $('d-url').textContent = proj.url;
+    $('d-meta').textContent = `Mode: ${proj.mode} · ${proj.keyword_count} tracked keywords`;
+    this.hideErr();
+    $('loading').classList.add('show'); $('loading-text').textContent = `Loading ${proj.project_name}...`;
+    this.activeTag = null; this.kwFilter = '';
+
+    const today = new Date(), date = fmtDate(daysAgo(today, 2)), dateCmp = fmtDate(daysAgo(today, 32)), dateFrom = fmtDate(daysAgo(today, 365));
     const domain = proj.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 
     try {
-      const [rankings, dr, metrics, backlinks, histRes, pagesRes, refRes, compRes] = await Promise.allSettled([
-        this.api('rank-tracker/overview', {
-          project_id: pid, date, date_compared: dateCmp, device: 'mobile',
-          select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,is_informational,is_transactional,is_commercial,is_navigational,is_local',
-        }),
+      const cached = this.rankData[pid];
+      const [rankings, dr, metrics, bl, hist, pages, refs, comps] = await Promise.allSettled([
+        cached ? Promise.resolve({ overviews: cached }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,is_informational,is_transactional,is_commercial,is_local' }),
         this.api('site-explorer/domain-rating', { target: domain, date }),
         this.api('site-explorer/metrics', { target: domain, date, country: 'US' }),
         this.api('site-explorer/backlinks-stats', { target: domain, date }),
@@ -398,260 +547,170 @@ const App = {
         this.api('site-explorer/referring-domains', { target: domain, limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }),
         this.api('site-explorer/organic-competitors', { target: domain, date, country: 'US', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
       ]);
-
       this.detail = {
         project: proj,
         rankings: val(rankings, 'overviews') || [],
         dr: val(dr, 'domain_rating') || {},
         metrics: val(metrics, 'metrics') || {},
-        backlinks: val(backlinks, 'metrics') || {},
-        history: val(histRes, 'metrics') || [],
-        pages: val(pagesRes, 'pages') || [],
-        refdomains: val(refRes, 'refdomains') || [],
-        competitors: val(compRes, 'competitors') || [],
+        bl: val(bl, 'metrics') || {},
+        history: val(hist, 'metrics') || [],
+        pages: val(pages, 'pages') || [],
+        refdomains: val(refs, 'refdomains') || [],
+        competitors: val(comps, 'competitors') || [],
       };
-
-      const fails = [rankings, dr, metrics, backlinks, histRes, pagesRes, refRes, compRes].filter(r => r.status === 'rejected');
-      if (fails.length > 0 && fails.length < 8) this.showErr(`${fails.length}/8 data sources failed. Some sections may be incomplete.`);
-      if (fails.length === 8) throw new Error(fails[0].reason?.message || 'All API calls failed');
-
+      if (!cached) this.rankData[pid] = this.detail.rankings;
+      const f = [rankings,dr,metrics,bl,hist,pages,refs,comps].filter(r => r.status==='rejected');
+      if (f.length === 8) throw new Error(f[0].reason?.message || 'All API calls failed');
+      if (f.length > 0) this.showErr(`${f.length}/8 data sources failed.`);
       this.renderDetail();
     } catch (e) { this.showErr(e.message); }
-    finally { this.hideLoad(); }
+    finally { $('loading').classList.remove('show'); }
   },
 
   renderDetail() {
-    this.renderKPIs();
-    this.renderTrafficChart();
-    this.renderPositionChart();
-    this.renderIntentBars();
-    this.renderTagBar();
-    this.renderRankings();
-    this.renderPages();
-    this.renderRefDomains();
-    this.renderCompetitors();
+    this.renderHealthBanner(); this.renderKPIs(); this.renderTrafficChart(); this.renderPosChart(); this.renderIntents(); this.renderTagBar(); this.renderRankings(); this.renderPages(); this.renderRefDomains(); this.renderCompetitors();
   },
 
-  /* --- KPIs --- */
+  renderHealthBanner() {
+    const kws = this.detail.rankings;
+    if (!kws || !kws.length) { $('health-banner').style.display = 'none'; return; }
+    $('health-banner').style.display = '';
+    const s = this.calcStats(kws);
+    const hsColor = s.health >= 60 ? '#10b981' : s.health >= 30 ? '#f59e0b' : '#ef4444';
+    const circ = 2 * Math.PI * 34;
+    const offset = circ - (circ * s.health / 100);
+    $('hb-arc').setAttribute('stroke', hsColor);
+    $('hb-arc').setAttribute('stroke-dashoffset', offset.toFixed(1));
+    $('hb-score').style.color = hsColor;
+    $('hb-score').textContent = s.health;
+    const pTotal = kws.length || 1;
+    $('hb-stats').innerHTML = [
+      { v: s.top3, l: 'Top 3' }, { v: s.top10, l: 'Top 10' }, { v: s.t1120, l: '#11-20' },
+      { v: s.t2150, l: '#21-50' }, { v: s.ranked, l: 'Ranked' }, { v: s.notRanked, l: 'Not Ranked' }
+    ].map(x => `<div class="hb-stat"><div class="hbs-v">${x.v}</div><div class="hbs-l">${x.l}</div></div>`).join('');
+    $('hb-bar').innerHTML =
+      `<div class="seg seg-t3" style="width:${(s.top3/pTotal*100).toFixed(1)}%"></div>` +
+      `<div class="seg seg-t10" style="width:${((s.top10-s.top3)/pTotal*100).toFixed(1)}%"></div>` +
+      `<div class="seg seg-t20" style="width:${(s.t1120/pTotal*100).toFixed(1)}%"></div>` +
+      `<div class="seg seg-t50" style="width:${(s.t2150/pTotal*100).toFixed(1)}%"></div>` +
+      `<div class="seg seg-100" style="width:${(s.t51100/pTotal*100).toFixed(1)}%"></div>` +
+      `<div class="seg seg-nr" style="width:${(s.notRanked/pTotal*100).toFixed(1)}%"></div>`;
+    $('hb-legend').innerHTML = '<i style="background:#10b981"></i>Top 3 <i style="background:#34d399"></i>4-10 <i style="background:#3b82f6"></i>11-20 <i style="background:#f59e0b"></i>21-50 <i style="background:#6b7585"></i>51+ <i style="background:#1a1e2c"></i>N/R';
+    let chgHtml = '';
+    if (s.improved > 0) chgHtml += `<div><span class="hb-chg up">\u25B2 ${s.improved}</span> <span class="hb-chg-label">improved</span></div>`;
+    if (s.declined > 0) chgHtml += `<div><span class="hb-chg dn">\u25BC ${s.declined}</span> <span class="hb-chg-label">declined</span></div>`;
+    if (s.improved === 0 && s.declined === 0) chgHtml = '<div><span class="hb-chg" style="color:var(--mt)">No changes</span></div>';
+    $('hb-changes').innerHTML = chgHtml;
+  },
+
   renderKPIs() {
-    const { dr, metrics: m, backlinks: b, rankings } = this.detail;
-    if (dr.domain_rating != null) {
-      const v = Math.round(dr.domain_rating);
-      $('dr-val').textContent = v;
-      $('dr-arc').setAttribute('stroke-dashoffset', 163.4 - (163.4 * v / 100));
-      $('dr-rank').textContent = dr.ahrefs_rank ? `#${fmtN(dr.ahrefs_rank)}` : '';
-    }
+    const { dr, metrics: m, bl, rankings } = this.detail;
+    if (dr.domain_rating != null) { const v = Math.round(dr.domain_rating); $('dr-val').textContent = v; $('dr-arc').setAttribute('stroke-dashoffset', 150.8 - (150.8 * v / 100)); }
+    $('dr-rank').textContent = dr.ahrefs_rank ? '#' + fmtN(dr.ahrefs_rank) : '';
     $('kpi-traffic').textContent = fmtN(m.org_traffic || 0);
     $('kpi-tracked').textContent = rankings.length;
-    const ranked = rankings.filter(k => k.position != null && k.position <= 100).length;
-    $('kpi-ranked').textContent = `${ranked} ranking in top 100`;
+    const rk = rankings.filter(k => k.position != null && k.position <= 100).length;
+    $('kpi-ranked').textContent = `${rk} ranking`;
     $('kpi-value').textContent = '$' + fmtN(Math.round((m.org_cost || 0) / 100));
-    $('kpi-backlinks').textContent = fmtN(b.live || 0);
-    $('kpi-bl-sub').textContent = b.all_time ? `${fmtN(b.all_time)} all time` : '';
-    $('kpi-refdom').textContent = fmtN(b.live_refdomains || 0);
-    $('kpi-rd-sub').textContent = b.all_time_refdomains ? `${fmtN(b.all_time_refdomains)} all time` : '';
+    $('kpi-bl').textContent = fmtN(bl.live || 0);
+    $('kpi-bl-sub').textContent = bl.all_time ? fmtN(bl.all_time) + ' all time' : '';
+    $('kpi-rd').textContent = fmtN(bl.live_refdomains || 0);
+    $('kpi-rd-sub').textContent = bl.all_time_refdomains ? fmtN(bl.all_time_refdomains) + ' all time' : '';
   },
 
-  /* --- Traffic Chart --- */
   renderTrafficChart() {
     if (this.charts.traffic) this.charts.traffic.destroy();
-    const data = this.detail.history;
-    if (!data.length) return;
+    const d = this.detail.history; if (!d.length) return;
     const ctx = $('traffic-chart').getContext('2d');
-    const grad = ctx.createLinearGradient(0, 0, 0, 240);
-    grad.addColorStop(0, 'rgba(59,130,246,.18)');
-    grad.addColorStop(1, 'rgba(59,130,246,0)');
-    this.charts.traffic = new Chart(ctx, {
-      type: 'line',
-      data: { labels: data.map(d => new Date(d.date).toLocaleDateString('en-US',{month:'short',year:'2-digit'})),
-        datasets: [{ label: 'Organic Traffic', data: data.map(d => d.org_traffic), borderColor: '#3b82f6', backgroundColor: grad, borderWidth: 2, fill: true, tension: .4, pointRadius: 3, pointBackgroundColor: '#3b82f6', pointBorderColor: '#171a24', pointBorderWidth: 2 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' },
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c2030', borderColor: '#252936', borderWidth: 1, titleColor: '#e4e7ed', bodyColor: '#c0c5d0', bodyFont: { family: "'JetBrains Mono',monospace", size: 12 }, callbacks: { label: c => 'Traffic: ' + fmtN(c.parsed.y) } } },
-        scales: { x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#6b7585', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#6b7585', font: { size: 10, family: "'JetBrains Mono',monospace" }, callback: v => fmtN(v) } } }
-      }
-    });
+    const g = ctx.createLinearGradient(0, 0, 0, 220); g.addColorStop(0, 'rgba(59,130,246,.18)'); g.addColorStop(1, 'rgba(59,130,246,0)');
+    this.charts.traffic = new Chart(ctx, { type: 'line', data: { labels: d.map(x => new Date(x.date).toLocaleDateString('en-US',{month:'short',year:'2-digit'})), datasets: [{ data: d.map(x => x.org_traffic), borderColor: '#3b82f6', backgroundColor: g, borderWidth: 2, fill: true, tension: .4, pointRadius: 2, pointBackgroundColor: '#3b82f6' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c2030', borderColor: '#252936', borderWidth: 1, bodyFont: { family: "'JetBrains Mono',monospace", size: 11 }, callbacks: { label: c => fmtN(c.parsed.y) } } }, scales: { x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#6b7585', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#6b7585', font: { size: 10, family: "'JetBrains Mono',monospace" }, callback: v => fmtN(v) } } } } });
   },
 
-  /* --- Position Distribution --- */
-  renderPositionChart() {
+  renderPosChart() {
     if (this.charts.pos) this.charts.pos.destroy();
-    const kws = this.detail.rankings;
-    if (!kws.length) return;
-    const bk = { '#1-3': 0, '#4-10': 0, '#11-20': 0, '#21-50': 0, '#51-100': 0, 'Not Ranked': 0 };
-    kws.forEach(k => { const p = k.position; if (!p) bk['Not Ranked']++; else if (p <= 3) bk['#1-3']++; else if (p <= 10) bk['#4-10']++; else if (p <= 20) bk['#11-20']++; else if (p <= 50) bk['#21-50']++; else bk['#51-100']++; });
-    this.charts.pos = new Chart($('position-chart').getContext('2d'), {
-      type: 'doughnut',
-      data: { labels: Object.keys(bk), datasets: [{ data: Object.values(bk), backgroundColor: ['#10b981','#34d399','#3b82f6','#f59e0b','#6b7585','#2a2f3e'], borderColor: '#171a24', borderWidth: 3 }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { color: '#6b7585', font: { size: 10 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 } } } }
-    });
+    const kws = this.detail.rankings; if (!kws.length) return;
+    const bk = { '#1-3': 0, '#4-10': 0, '#11-20': 0, '#21-50': 0, '51+': 0, 'N/R': 0 };
+    kws.forEach(k => { const p = k.position; if (!p) bk['N/R']++; else if (p<=3) bk['#1-3']++; else if (p<=10) bk['#4-10']++; else if (p<=20) bk['#11-20']++; else if (p<=50) bk['#21-50']++; else bk['51+']++; });
+    this.charts.pos = new Chart($('pos-chart').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(bk), datasets: [{ data: Object.values(bk), backgroundColor: ['#10b981','#34d399','#3b82f6','#f59e0b','#6b7585','#1e2231'], borderColor: '#151922', borderWidth: 3 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: '#6b7585', font: { size: 10 }, padding: 8, usePointStyle: true, pointStyleWidth: 7 } } } } });
   },
 
-  /* --- Intent Bars --- */
-  renderIntentBars() {
-    const kws = this.detail.rankings;
-    if (!kws.length) return;
+  renderIntents() {
+    const kws = this.detail.rankings; if (!kws.length) return;
     const t = kws.length;
-    const ints = { Informational: { n: kws.filter(k => k.is_informational).length, c: '#3b82f6' }, Transactional: { n: kws.filter(k => k.is_transactional).length, c: '#10b981' }, Commercial: { n: kws.filter(k => k.is_commercial).length, c: '#f59e0b' }, Local: { n: kws.filter(k => k.is_local).length, c: '#8b5cf6' } };
-    const g = $('intent-grid');
-    const h3 = g.querySelector('h3');
-    g.innerHTML = ''; g.appendChild(h3);
-    Object.entries(ints).forEach(([name, { n, c }]) => {
-      const pct = Math.round(n / t * 100);
-      g.innerHTML += `<div class="intent-item"><div class="dot" style="background:${c}"></div><span>${name}</span><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${c}"></div></div><span class="pct">${pct}%</span></div>`;
-    });
+    const ints = { Info: { n: kws.filter(k=>k.is_informational).length, c: '#3b82f6' }, Transact: { n: kws.filter(k=>k.is_transactional).length, c: '#10b981' }, Commercial: { n: kws.filter(k=>k.is_commercial).length, c: '#f59e0b' }, Local: { n: kws.filter(k=>k.is_local).length, c: '#8b5cf6' } };
+    const g = $('intent-grid'); const h = g.querySelector('h3'); g.innerHTML = ''; g.appendChild(h);
+    Object.entries(ints).forEach(([nm, { n, c }]) => { const pct = Math.round(n/t*100); g.innerHTML += `<div class="intent-item"><div class="dot" style="background:${c}"></div><span>${nm}</span><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${c}"></div></div><span class="pct">${pct}%</span></div>`; });
   },
 
-  /* --- Tag Bar --- */
   renderTagBar() {
-    const tags = new Set();
-    this.detail.rankings.forEach(k => (k.tags || []).forEach(t => tags.add(t)));
-    const bar = $('tag-bar');
-    bar.innerHTML = '<span style="font-size:.7rem;color:var(--mt);font-weight:600">Filter:</span>';
-    bar.innerHTML += '<button class="tag-btn on" onclick="App.setTag(null)">All</button>';
-    [...tags].sort().forEach(t => {
-      bar.innerHTML += `<button class="tag-btn" onclick="App.setTag('${esc(t)}')">${esc(t)}</button>`;
-    });
+    const tags = new Set(); this.detail.rankings.forEach(k => (k.tags||[]).forEach(t => tags.add(t)));
+    const bar = $('tag-bar'); bar.innerHTML = '<span style="font-size:.68rem;color:var(--mt);font-weight:600">Filter:</span><button class="tag-btn on" onclick="App.setTag(null)">All</button>';
+    [...tags].sort().forEach(t => bar.innerHTML += `<button class="tag-btn" onclick="App.setTag('${esc(t)}')">${esc(t)}</button>`);
   },
 
-  setTag(tag) {
-    this.activeTag = tag;
-    document.querySelectorAll('.tag-btn').forEach(b => {
-      b.classList.toggle('on', tag === null ? b.textContent === 'All' : b.textContent === tag);
-    });
-    this.renderRankings();
-  },
+  setTag(t) { this.activeTag = t; document.querySelectorAll('.tag-btn').forEach(b => b.classList.toggle('on', t===null ? b.textContent==='All' : b.textContent===t)); this.renderRankings(); },
+  filterKW(q) { this.kwFilter = q; this.renderRankings(); },
 
   getFilteredRankings() {
     let kws = this.detail.rankings;
-    if (this.activeTag) kws = kws.filter(k => (k.tags || []).includes(this.activeTag));
-    if (this.kwFilter) { const q = this.kwFilter.toLowerCase(); kws = kws.filter(k => (k.keyword || '').toLowerCase().includes(q)); }
+    if (this.activeTag) kws = kws.filter(k => (k.tags||[]).includes(this.activeTag));
+    if (this.kwFilter) { const q = this.kwFilter.toLowerCase(); kws = kws.filter(k => (k.keyword||'').toLowerCase().includes(q)); }
     return kws;
   },
 
-  filterKW(q) { this.kwFilter = q; this.renderRankings(); },
-
-  /* --- Rankings Table --- */
   renderRankings() {
     const kws = this.getFilteredRankings();
-    $('kw-count').textContent = `${kws.length} keywords`;
+    $('kw-count').textContent = kws.length + ' keywords';
     $('body-rankings').innerHTML = kws.map(k => {
-      const isQW = k.position && k.position >= 4 && k.position <= 20 && (k.volume || 0) >= 100;
-      const urlPath = k.url ? tryPath(k.url) : '';
-      const tags = (k.tags || []).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
-      return `<tr class="${isQW ? 'qw' : ''}">
-        <td class="kw-cell">${esc(k.keyword)}${isQW ? '<span class="qw-badge">Quick Win</span>' : ''}<br>${tags}</td>
-        <td><span class="pos ${posClass(k.position)}">${k.position ?? '—'}</span></td>
-        <td>${chgHtml(k.position_diff)}</td>
-        <td class="mono">${fmtN(k.volume)}</td>
-        <td class="mono">${fmtN(k.traffic)}</td>
-        <td><span class="kd ${kdClass(k.keyword_difficulty)}">${k.keyword_difficulty ?? '—'}</span></td>
-        <td style="font-size:.65rem;color:var(--mt)">${esc(k.location || '')}</td>
-        <td class="url-cell" title="${esc(k.url || '')}">${esc(urlPath)}</td>
-      </tr>`;
+      const isQW = k.position && k.position >= 4 && k.position <= 20 && (k.volume||0) >= 100;
+      const tags = (k.tags||[]).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
+      return `<tr class="${isQW?'qw':''}"><td class="kw-cell">${esc(k.keyword)}${isQW?'<span class="qw-badge">Quick Win</span>':''}<br>${tags}</td><td>${posBadgeD(k.position)}</td><td>${chgHtml(k.position_diff)}</td><td class="mono">${fmtN(k.volume)}</td><td class="mono">${fmtN(k.traffic)}</td><td><span class="kd ${kdCls(k.keyword_difficulty)}">${k.keyword_difficulty??'—'}</span></td><td style="font-size:.63rem;color:var(--mt)">${esc(k.location||'')}</td><td class="url-cell" title="${esc(k.url||'')}">${esc(tryPath(k.url))}</td></tr>`;
     }).join('');
   },
 
-  /* --- Pages Table --- */
   renderPages() {
-    $('body-pages').innerHTML = this.detail.pages.map(p => {
-      const path = p.url ? tryPath(p.url) : '';
-      return `<tr>
-        <td class="url-cell"><a href="${esc(p.url||'#')}" target="_blank">${esc(path)}</a></td>
-        <td class="mono">${fmtN(p.sum_traffic)}</td>
-        <td class="mono">${p.value ? '$'+fmtN(Math.round(p.value/100)) : '—'}</td>
-        <td class="mono">${fmtN(p.keywords)}</td>
-        <td class="kw-cell">${esc(p.top_keyword||'—')}</td>
-        <td><span class="pos ${posClass(p.top_keyword_best_position)}">${p.top_keyword_best_position??'—'}</span></td>
-      </tr>`;
-    }).join('');
+    $('body-pages').innerHTML = this.detail.pages.map(p => `<tr><td class="url-cell"><a href="${esc(p.url||'#')}" target="_blank">${esc(tryPath(p.url))}</a></td><td class="mono">${fmtN(p.sum_traffic)}</td><td class="mono">${p.value?'$'+fmtN(Math.round(p.value/100)):'—'}</td><td class="mono">${fmtN(p.keywords)}</td><td class="kw-cell">${esc(p.top_keyword||'—')}</td><td>${posBadgeD(p.top_keyword_best_position)}</td></tr>`).join('');
   },
 
-  /* --- RefDomains Table --- */
   renderRefDomains() {
-    $('body-refdomains').innerHTML = this.detail.refdomains.map(r => `<tr>
-      <td><strong>${esc(r.domain)}</strong></td>
-      <td><div class="dr-inline"><span class="mono">${r.domain_rating!=null?r.domain_rating.toFixed(0):'—'}</span><div class="dr-bar"><div class="dr-fill" style="width:${r.domain_rating||0}%;background:${drColor(r.domain_rating)}"></div></div></div></td>
-      <td class="mono">${fmtN(r.links_to_target)}</td>
-      <td class="mono">${fmtN(r.dofollow_links)}</td>
-      <td class="mono">${fmtN(r.traffic_domain)}</td>
-      <td class="mono">${r.first_seen ? new Date(r.first_seen).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '—'}</td>
-    </tr>`).join('');
+    $('body-refdomains').innerHTML = this.detail.refdomains.map(r => `<tr><td><strong>${esc(r.domain)}</strong></td><td><div class="dr-i"><span class="mono">${r.domain_rating!=null?r.domain_rating.toFixed(0):'—'}</span><div class="dr-b"><div class="dr-f" style="width:${r.domain_rating||0}%;background:${drCol(r.domain_rating)}"></div></div></div></td><td class="mono">${fmtN(r.links_to_target)}</td><td class="mono">${fmtN(r.dofollow_links)}</td><td class="mono">${fmtN(r.traffic_domain)}</td><td class="mono">${r.first_seen?new Date(r.first_seen).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—'}</td></tr>`).join('');
   },
 
-  /* --- Competitors Table --- */
   renderCompetitors() {
-    $('body-competitors').innerHTML = this.detail.competitors.map(c => `<tr>
-      <td><strong>${esc(c.competitor_domain||'')}</strong></td>
-      <td class="mono">${fmtN(c.keywords_common)}</td>
-      <td class="mono">${fmtN(c.traffic)}</td>
-      <td class="mono">${c.share!=null?(c.share*100).toFixed(1)+'%':'—'}</td>
-      <td><div class="dr-inline"><span class="mono">${c.domain_rating!=null?c.domain_rating.toFixed(0):'—'}</span><div class="dr-bar"><div class="dr-fill" style="width:${c.domain_rating||0}%;background:${drColor(c.domain_rating)}"></div></div></div></td>
-    </tr>`).join('');
+    $('body-competitors').innerHTML = this.detail.competitors.map(c => `<tr><td><strong>${esc(c.competitor_domain||'')}</strong></td><td class="mono">${fmtN(c.keywords_common)}</td><td class="mono">${fmtN(c.traffic)}</td><td class="mono">${c.share!=null?(c.share*100).toFixed(1)+'%':'—'}</td><td><div class="dr-i"><span class="mono">${c.domain_rating!=null?c.domain_rating.toFixed(0):'—'}</span><div class="dr-b"><div class="dr-f" style="width:${c.domain_rating||0}%;background:${drCol(c.domain_rating)}"></div></div></div></td></tr>`).join('');
   },
 
-  /* --- Tabs --- */
-  bindTabs() {
-    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-      const bar = t.closest('.tab-bar');
-      const section = bar.parentElement;
-      bar.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      section.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      section.querySelector('#tab-' + t.dataset.tab).classList.add('active');
+  showErr(msg) { const e=$('error-banner'); e.textContent=msg; e.classList.add('show'); },
+  hideErr() { $('error-banner').classList.remove('show'); },
+
+  bindTabs() { document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { t.closest('.tab-bar').querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.closest('.tab-bar').parentElement.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active')); t.classList.add('active'); t.closest('.tab-bar').parentElement.querySelector('#tab-'+t.dataset.tab).classList.add('active'); })); },
+
+  bindSort() {
+    document.querySelectorAll('.data-table th[data-sort]').forEach(th => th.addEventListener('click', () => {
+      const tbl = th.dataset.tbl, col = th.dataset.sort;
+      const prev = this.sortState[tbl]; const dir = (prev?.col===col && prev?.dir==='desc') ? 'asc' : 'desc';
+      this.sortState[tbl] = { col, dir };
+      th.closest('thead').querySelectorAll('th').forEach(h=>h.classList.remove('sorted-asc','sorted-desc'));
+      th.classList.add('sorted-'+dir);
+      const map = { rankings:'rankings', pages:'pages', refdomains:'refdomains', competitors:'competitors' };
+      this.detail[map[tbl]]?.sort((a,b) => { let va=a[col],vb=b[col]; if(va==null) va=dir==='desc'?-Infinity:Infinity; if(vb==null) vb=dir==='desc'?-Infinity:Infinity; if(typeof va==='string') return dir==='desc'?vb.localeCompare(va):va.localeCompare(vb); return dir==='desc'?vb-va:va-vb; });
+      ({ rankings:'renderRankings', pages:'renderPages', refdomains:'renderRefDomains', competitors:'renderCompetitors' })[tbl] && this[({ rankings:'renderRankings', pages:'renderPages', refdomains:'renderRefDomains', competitors:'renderCompetitors' })[tbl]]();
     }));
-  },
-
-  /* --- Sorting --- */
-  bindSortHeaders() {
-    document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
-      th.addEventListener('click', () => this.sortCol(th));
-    });
-  },
-
-  sortCol(th) {
-    const tbl = th.dataset.table;
-    const col = th.dataset.sort;
-    const prev = this.sortState[tbl];
-    const dir = (prev?.col === col && prev?.dir === 'desc') ? 'asc' : 'desc';
-    this.sortState[tbl] = { col, dir };
-    th.closest('thead').querySelectorAll('th').forEach(h => h.classList.remove('sorted-asc','sorted-desc'));
-    th.classList.add('sorted-' + dir);
-    const map = { rankings: 'rankings', pages: 'pages', refdomains: 'refdomains', competitors: 'competitors' };
-    const dataKey = map[tbl];
-    if (!dataKey) return;
-    this.detail[dataKey].sort((a, b) => {
-      let va = a[col], vb = b[col];
-      if (va == null) va = dir === 'desc' ? -Infinity : Infinity;
-      if (vb == null) vb = dir === 'desc' ? -Infinity : Infinity;
-      if (typeof va === 'string') return dir === 'desc' ? vb.localeCompare(va) : va.localeCompare(vb);
-      return dir === 'desc' ? vb - va : va - vb;
-    });
-    const renders = { rankings: 'renderRankings', pages: 'renderPages', refdomains: 'renderRefDomains', competitors: 'renderCompetitors' };
-    this[renders[tbl]]();
   },
 };
 
 /* ========== UTILITIES ========== */
-const $ = id => document.getElementById(id);
-function fmtN(n) { if (n == null) return '—'; if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1)+'M'; if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1)+'K'; return n.toLocaleString(); }
-function posClass(p) { if (!p) return ''; if (p===1) return 'pos-1'; if (p<=3) return 'pos-2'; if (p<=5) return 'pos-3'; if (p<=10) return 'pos-top10'; if (p<=20) return 'pos-top20'; if (p<=50) return 'pos-top50'; return 'pos-100'; }
-function kdClass(kd) { if (kd==null) return ''; if (kd<=20) return 'kd-easy'; if (kd<=40) return 'kd-medium'; if (kd<=60) return 'kd-hard'; return 'kd-super'; }
-function drColor(dr) { if (dr==null) return '#6b7585'; if (dr>=70) return '#10b981'; if (dr>=40) return '#f59e0b'; if (dr>=20) return '#f97316'; return '#ef4444'; }
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function daysAgo(d, n) { const x = new Date(d); x.setDate(x.getDate()-n); return x; }
-function fmtDate(d) { return d.toISOString().split('T')[0]; }
-function tryPath(u) { try { return new URL(u).pathname; } catch { return u; } }
-function chgHtml(diff) {
-  if (diff == null) return '<span class="chg flat">—</span>';
-  if (diff < 0) return `<span class="chg up">\u25B2${Math.abs(diff)}</span>`;
-  if (diff > 0) return `<span class="chg down">\u25BC${diff}</span>`;
-  return '<span class="chg flat">—</span>';
-}
-function val(result, key) {
-  if (result.status !== 'fulfilled') return null;
-  return result.value[key] ?? result.value;
-}
+function fmtN(n){if(n==null)return'—';if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M';if(Math.abs(n)>=1e3)return(n/1e3).toFixed(1)+'K';return n.toLocaleString();}
+function posBadge(p){if(!p)return'<span class="po pnr">—</span>';const c=p===1?'p1':p<=3?'p2':p<=5?'p3':p<=10?'p410':p<=20?'p1120':'p2150';return`<span class="po ${c}">${p}</span>`;}
+function posBadgeD(p){if(!p)return'<span class="pos pos-100">—</span>';const c=p===1?'pos-1':p<=3?'pos-2':p<=5?'pos-3':p<=10?'pos-t10':p<=20?'pos-t20':p<=50?'pos-t50':'pos-100';return`<span class="pos ${c}">${p}</span>`;}
+function chgHtml(d){if(d==null)return'<span class="chg flat">—</span>';if(d<0)return`<span class="chg up">\u25B2${Math.abs(d)}</span>`;if(d>0)return`<span class="chg down">\u25BC${d}</span>`;return'<span class="chg flat">—</span>';}
+function kdCls(kd){if(kd==null)return'';if(kd<=20)return'kd-easy';if(kd<=40)return'kd-med';if(kd<=60)return'kd-hard';return'kd-super';}
+function drCol(dr){if(dr==null)return'#6b7585';if(dr>=70)return'#10b981';if(dr>=40)return'#f59e0b';if(dr>=20)return'#f97316';return'#ef4444';}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function daysAgo(d,n){const x=new Date(d);x.setDate(x.getDate()-n);return x;}
+function fmtDate(d){return d.toISOString().split('T')[0];}
+function tryPath(u){if(!u)return'';try{return new URL(u).pathname;}catch{return u;}}
+function val(r,k){if(r.status!=='fulfilled')return null;return r.value[k]??r.value;}
 
 App.init();
 </script>
