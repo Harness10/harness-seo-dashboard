@@ -424,6 +424,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <button class="tab" data-tab="aiov">AI Overviews</button>
       <button class="tab" data-tab="avgrank">Average Rank</button>
       <button class="tab" data-tab="rankings">Tracked Rankings</button>
+      <button class="tab" data-tab="gsc">Search Console</button>
       <button class="tab" data-tab="content">Content Suggestions</button>
       <button class="tab" data-tab="sitehealth">Site Health</button>
       <button class="tab" data-tab="pages">Top Pages</button>
@@ -443,6 +444,9 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
     </div>
     <div class="tab-content" id="tab-avgrank">
       <div id="avgrank-content"></div>
+    </div>
+    <div class="tab-content" id="tab-gsc">
+      <div id="gsc-content"></div>
     </div>
     <div class="tab-content" id="tab-content">
       <div id="content-suggestions"></div>
@@ -854,13 +858,16 @@ const App = {
         this.api('site-explorer/organic-competitors', { target: domain, date, country: 'us', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
       ]);
       const orgKeywords = val(orgKws, 'keywords') || [];
-      // Find matching site audit project
+      // Fetch audit issues + GSC data in parallel (both free, fast)
       const auditDomain = proj.url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '');
       const auditProj = this.auditMap[auditDomain] || this.auditMap[auditDomain.split('/')[0]] || null;
-      let auditIssues = [];
-      if (auditProj) {
-        try { const ai = await this.api('site-audit/issues', { project_id: auditProj.project_id }); auditIssues = ai.issues || []; } catch(e) { /* no audit data */ }
-      }
+      const gscFrom = fmtDate(daysAgo(today, 90)), gscTo = fmtDate(today);
+      const [auditRes, gscKwRes, gscHistRes, gscPagesRes] = await Promise.allSettled([
+        auditProj ? this.api('site-audit/issues', { project_id: auditProj.project_id }) : Promise.resolve(null),
+        this.api('gsc/keywords', { project_id: pid, date_from: gscFrom, date_to: gscTo, limit: 100 }),
+        this.api('gsc/performance-history', { project_id: pid, date_from: fmtDate(daysAgo(today, 180)), date_to: gscTo, history_grouping: 'weekly' }),
+        this.api('gsc/pages', { project_id: pid, date_from: gscFrom, date_to: gscTo, limit: 50 }),
+      ]);
       this.detail = {
         project: proj,
         rankings: val(rankings, 'overviews') || [],
@@ -873,7 +880,10 @@ const App = {
         refdomains: val(refs, 'refdomains') || [],
         competitors: val(comps, 'competitors') || [],
         audit: auditProj,
-        auditIssues: auditIssues,
+        auditIssues: (auditRes.status === 'fulfilled' && auditRes.value) ? (auditRes.value.issues || []) : [],
+        gscKeywords: (gscKwRes.status === 'fulfilled') ? (gscKwRes.value.keywords || []) : [],
+        gscHistory: (gscHistRes.status === 'fulfilled') ? (gscHistRes.value.metrics || []) : [],
+        gscPages: (gscPagesRes.status === 'fulfilled') ? (gscPagesRes.value.pages || []) : [],
       };
       if (!cachedRT) { this.rtRaw[pid] = this.detail.rankings; }
       if (!cachedOrg) this.orgData[pid] = orgKeywords;
@@ -889,12 +899,90 @@ const App = {
 
   renderDetail() {
     const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
-    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderContentSuggestions, this.renderSiteHealth, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderGSC, this.renderContentSuggestions, this.renderSiteHealth, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+  },
+
+  renderGSC() {
+    const kws = this.detail.gscKeywords || [];
+    const hist = this.detail.gscHistory || [];
+    const pages = this.detail.gscPages || [];
+
+    if (!kws.length && !hist.length) {
+      $('gsc-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mt);font-size:.8rem">No Google Search Console data available. Connect GSC to this project in Ahrefs to see real Google data.</div>';
+      return;
+    }
+
+    // Summary stats
+    const totalClicks = kws.reduce((s,k) => s + (k.clicks||0), 0);
+    const totalImpressions = kws.reduce((s,k) => s + (k.impressions||0), 0);
+    const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions * 100) : 0;
+    const avgPos = kws.length > 0 ? kws.reduce((s,k) => s + (k.position||0), 0) / kws.length : 0;
+
+    // Performance trend chart
+    let chartHtml = '';
+    if (hist.length > 1) {
+      const chartId = 'gsc-chart-' + Date.now();
+      chartHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px">
+        <div class="chart-card"><h3>GSC Clicks — 6 Month Trend</h3><div class="chart-wrap" style="height:180px"><canvas id="${chartId}-clicks"></canvas></div></div>
+        <div class="chart-card"><h3>GSC Impressions & Avg Position</h3><div class="chart-wrap" style="height:180px"><canvas id="${chartId}-imp"></canvas></div></div>
+      </div>`;
+      // Render charts after innerHTML is set
+      setTimeout(() => {
+        try {
+          const labels = hist.map(h => new Date(h.date).toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+          if (this.charts.gscClicks) this.charts.gscClicks.destroy();
+          const ctx1 = document.getElementById(chartId+'-clicks');
+          if (ctx1) {
+            const g = ctx1.getContext('2d').createLinearGradient(0,0,0,180); g.addColorStop(0,'rgba(16,185,129,.18)'); g.addColorStop(1,'rgba(16,185,129,0)');
+            this.charts.gscClicks = new Chart(ctx1, { type:'line', data:{ labels, datasets:[{ data:hist.map(h=>h.clicks), borderColor:'#10b981', backgroundColor:g, borderWidth:2, fill:true, tension:.4, pointRadius:1 }]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6b7585',font:{size:9}}},y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6b7585',font:{size:9,family:"'JetBrains Mono',monospace"}}}}} });
+          }
+          if (this.charts.gscImp) this.charts.gscImp.destroy();
+          const ctx2 = document.getElementById(chartId+'-imp');
+          if (ctx2) {
+            this.charts.gscImp = new Chart(ctx2, { type:'line', data:{ labels, datasets:[{ label:'Impressions', data:hist.map(h=>h.impressions), borderColor:'#3b82f6', borderWidth:2, tension:.4, pointRadius:1, yAxisID:'y' },{ label:'Avg Pos', data:hist.map(h=>h.position), borderColor:'#f59e0b', borderWidth:2, tension:.4, pointRadius:1, yAxisID:'y1', borderDash:[4,2] }]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#6b7585',font:{size:9}}}}, scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6b7585',font:{size:9}}},y:{type:'linear',position:'left',grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#3b82f6',font:{size:9}}},y1:{type:'linear',position:'right',reverse:true,grid:{display:false},ticks:{color:'#f59e0b',font:{size:9}}}}} });
+          }
+        } catch(e) { console.error('GSC chart error', e); }
+      }, 50);
+    }
+
+    $('gsc-content').innerHTML =
+      // KPI row
+      `<div class="aio-stats">
+        <div class="aio-stat"><div class="aio-v" style="color:var(--gn)">${fmtN(totalClicks)}</div><div class="aio-l">Total Clicks (90d)</div></div>
+        <div class="aio-stat"><div class="aio-v" style="color:var(--ac)">${fmtN(totalImpressions)}</div><div class="aio-l">Total Impressions (90d)</div></div>
+        <div class="aio-stat"><div class="aio-v" style="color:var(--am)">${avgCTR.toFixed(1)}%</div><div class="aio-l">Average CTR</div></div>
+        <div class="aio-stat"><div class="aio-v" style="color:var(--cy)">${avgPos.toFixed(1)}</div><div class="aio-l">Average Position</div></div>
+      </div>` +
+      chartHtml +
+      // Keywords + Pages side by side
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px">
+        <div class="aio-card" style="border-top:3px solid var(--gn)">
+          <h4><span style="font-size:.9rem">🔍</span> Top GSC Keywords (90d)</h4>
+          <ul class="aio-list">${kws.slice(0,20).map(k =>
+            `<li style="gap:4px"><span class="aio-kw">${esc(k.keyword)}</span><span style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+              <span style="font-family:var(--mono);font-size:.54rem;color:var(--gn)" title="Clicks">${fmtN(k.clicks)}<span style="color:var(--mt)">c</span></span>
+              <span style="font-family:var(--mono);font-size:.54rem;color:var(--ac)" title="Impressions">${fmtN(k.impressions)}<span style="color:var(--mt)">i</span></span>
+              <span style="font-family:var(--mono);font-size:.54rem;color:var(--am)" title="CTR">${(k.ctr||0).toFixed(1)}%</span>
+              ${posBadgeD(Math.round(k.position||0))}
+            </span></li>`
+          ).join('')}</ul>
+        </div>
+        <div class="aio-card" style="border-top:3px solid var(--ac)">
+          <h4><span style="font-size:.9rem">📄</span> Top GSC Pages (90d)</h4>
+          <ul class="aio-list">${pages.slice(0,15).map(p =>
+            `<li style="gap:4px"><span class="aio-kw" style="font-family:var(--mono);font-size:.58rem">${esc(tryPath(p.url))}</span><span style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+              <span style="font-family:var(--mono);font-size:.54rem;color:var(--gn)">${fmtN(p.clicks||0)}<span style="color:var(--mt)">c</span></span>
+              <span style="font-family:var(--mono);font-size:.54rem;color:var(--ac)">${fmtN(p.impressions||0)}<span style="color:var(--mt)">i</span></span>
+            </span></li>`
+          ).join('')}${pages.length === 0 ? '<li style="color:var(--mt);font-size:.66rem;text-align:center;padding:10px 0">No page data</li>' : ''}</ul>
+        </div>
+      </div>`;
   },
 
   renderContentSuggestions() {
     const rt = this.detail.rankings || [];
     const org = this.detail.organic || [];
+    const gsc = this.detail.gscKeywords || [];
     const m = this.detail.metrics || {};
     const dr = this.detail.dr || {};
     const actions = [];
@@ -940,12 +1028,33 @@ const App = {
       actions.push({ pri: 'high', title: 'Build Domain Authority', desc: `Domain Rating is ${Math.round(dr.domain_rating||0)}. Focus on earning backlinks from local directories, industry associations, and partner businesses to improve authority.`, kws: [] });
     }
 
+    // GSC-powered insights
+    if (gsc.length > 0) {
+      // High impressions, low CTR → title/meta optimization
+      const lowCTR = gsc.filter(k => (k.impressions||0) >= 100 && (k.ctr||0) < 3).sort((a,b) => (b.impressions||0) - (a.impressions||0));
+      if (lowCTR.length > 0) {
+        actions.push({ pri: 'critical', title: 'Fix Low CTR Keywords (GSC)', desc: 'These keywords get 100+ impressions but under 3% CTR. Google shows you but users aren\'t clicking. Rewrite title tags and meta descriptions to be more compelling.', kws: lowCTR.slice(0,6).map(k => ({ kw: k.keyword, meta: `${fmtN(k.impressions)} imp · ${(k.ctr||0).toFixed(1)}% CTR · Pos ${(k.position||0).toFixed(0)}` })) });
+      }
+
+      // High impressions, position 8-20 → almost page 1 in GSC
+      const gscStrike = gsc.filter(k => (k.impressions||0) >= 50 && (k.position||0) >= 8 && (k.position||0) <= 20).sort((a,b) => (b.impressions||0) - (a.impressions||0));
+      if (gscStrike.length > 0) {
+        actions.push({ pri: 'high', title: 'GSC Page 2 Opportunities', desc: 'Google Search Console shows real impressions for these keywords at positions 8-20. Small ranking improvements here could drive significant traffic.', kws: gscStrike.slice(0,6).map(k => ({ kw: k.keyword, meta: `${fmtN(k.impressions)} imp · Pos ${(k.position||0).toFixed(1)} · ${fmtN(k.clicks||0)} clicks` })) });
+      }
+
+      // GSC keywords with clicks not in RT → track these
+      const gscNotTracked = gsc.filter(k => (k.clicks||0) >= 5 && !rt.some(r => r.keyword === k.keyword)).sort((a,b) => (b.clicks||0) - (a.clicks||0));
+      if (gscNotTracked.length > 3) {
+        actions.push({ pri: 'medium', title: 'Track GSC Winners in Rank Tracker', desc: 'Keywords driving real clicks in Google Search Console that aren\'t being tracked in Ahrefs RT. Add these for position monitoring.', kws: gscNotTracked.slice(0,6).map(k => ({ kw: k.keyword, meta: `${fmtN(k.clicks)} clicks · ${fmtN(k.impressions)} imp · Pos ${(k.position||0).toFixed(1)}` })) });
+      }
+    }
+
     if (actions.length === 0) {
       actions.push({ pri: 'low', title: 'Looking Good!', desc: 'No critical content gaps detected. Continue monitoring rankings and creating fresh content regularly.', kws: [] });
     }
 
     $('content-suggestions').innerHTML = `<div class="act-section">
-      <h4>📝 Content Action Items <span style="font-size:.58rem;color:var(--mt);font-weight:400">${actions.length} recommendations based on live Ahrefs data</span></h4>
+      <h4>📝 Content Action Items <span style="font-size:.58rem;color:var(--mt);font-weight:400">${actions.length} recommendations based on Ahrefs + Google Search Console data</span></h4>
       <div class="act-grid">${actions.map(a => `<div class="act-card p-${a.pri}">
         <div class="act-hdr"><span class="act-title">${esc(a.title)}</span><span class="act-pri ${a.pri}">${a.pri}</span></div>
         <div class="act-desc">${a.desc}</div>
@@ -1020,8 +1129,23 @@ const App = {
 
     if ((m.org_traffic||0) < 500) recs.push({ pri: 'medium', text: `Organic traffic is ${fmtN(m.org_traffic||0)}/mo — below threshold. Content creation and technical SEO needed.` });
 
+    // GSC-based health insights
+    const gsc = this.detail.gscKeywords || [];
+    if (gsc.length > 0) {
+      const totalClicks = gsc.reduce((s,k) => s + (k.clicks||0), 0);
+      const totalImp = gsc.reduce((s,k) => s + (k.impressions||0), 0);
+      const avgCTR = totalImp > 0 ? totalClicks / totalImp * 100 : 0;
+      if (avgCTR < 2) recs.push({ pri: 'critical', text: `GSC average CTR is ${avgCTR.toFixed(1)}% — extremely low. Title tags and meta descriptions need immediate rewriting.` });
+      else if (avgCTR < 5) recs.push({ pri: 'high', text: `GSC average CTR is ${avgCTR.toFixed(1)}% — below industry average (~5%). Review and optimize title tags and meta descriptions.` });
+      if (totalClicks < 100) recs.push({ pri: 'medium', text: `Only ${fmtN(totalClicks)} clicks from Google in 90 days. Content strategy and keyword targeting need attention.` });
+      const brandedPct = gsc.filter(k => (k.keyword||'').toLowerCase().includes(this.detail.project?.project_name?.toLowerCase().split(' ')[0] || '###')).reduce((s,k) => s + (k.clicks||0), 0) / (totalClicks||1) * 100;
+      if (brandedPct > 70) recs.push({ pri: 'medium', text: `${brandedPct.toFixed(0)}% of GSC clicks are branded searches. Non-branded organic visibility needs improvement.` });
+    } else {
+      recs.push({ pri: 'medium', text: 'Google Search Console not connected. Connect GSC in Ahrefs to see real click/impression data from Google.' });
+    }
+
     const recsHtml = recs.length > 0 ? `<div class="act-section" style="border-top:1px solid var(--bd)">
-      <h4>💡 General SEO Recommendations</h4>
+      <h4>💡 SEO Recommendations (Ahrefs + GSC)</h4>
       <div style="display:flex;flex-direction:column;gap:6px">${recs.map(r => `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px">
         <span class="act-pri ${r.pri}" style="flex-shrink:0">${r.pri}</span>
         <span style="font-size:.68rem;color:var(--tx2)">${r.text}</span>

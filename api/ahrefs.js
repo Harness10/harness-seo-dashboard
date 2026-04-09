@@ -31,6 +31,9 @@ export default async function handler(req, res) {
     'management/project-competitors',
     'site-audit/issues',
     'site-audit/projects',
+    'gsc/keywords',
+    'gsc/pages',
+    'gsc/performance-history',
   ];
 
   if (!allowed.includes(endpoint)) {
