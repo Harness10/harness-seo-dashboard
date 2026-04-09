@@ -1,357 +1,659 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Harness Digital — Brand SEO Intelligence</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harness Digital — SEO Intelligence Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#06070b;--sf:#0e1018;--cd:#151922;--bd:#222938;--tx:#e4e7ed;--mt:#7d8698;--ac:#3b82f6;--ac2:#8b5cf6;--gn:#10b981;--gn2:#6ee7b7;--am:#f59e0b;--rd:#ef4444;--cy:#06b6d4;--pk:#ec4899;--or:#f97316}
-body{background:var(--bg);color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif}
-.hd{background:linear-gradient(180deg,#0b0d14 0%,#0e1018 100%);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
-.hw{max-width:1520px;margin:0 auto;padding:12px 24px}
-.logo{font-size:1.15rem;font-weight:800;letter-spacing:-.5px}
-.logo b{background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.logo span{color:var(--mt);font-weight:400;font-size:.85rem}
-.mt{font-size:.68rem;color:var(--mt);font-family:'JetBrains Mono',monospace;margin-top:2px}
-.sr{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
-.pl{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:2px 9px;font-size:.65rem;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:3px}
-.pl .n{font-weight:600;font-size:.75rem}
-.ct{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;align-items:center}
-.ip{background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:5px 10px;color:var(--tx);font-size:.78rem;outline:none;font-family:'Plus Jakarta Sans',sans-serif}
-.ip:focus{border-color:var(--ac)}
-.ip.s{width:220px}
-select.ip{cursor:pointer;color:var(--mt);-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%237d8698'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:22px}
-select.ip option{background:var(--cd);color:var(--tx)}
-.fb{background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:4px 9px;color:var(--mt);font-size:.68rem;cursor:pointer;transition:all .12s;font-family:'Plus Jakarta Sans',sans-serif}
-.fb:hover,.fb.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.cn{margin-left:auto;color:var(--mt);font-size:.7rem;font-family:'JetBrains Mono',monospace}
-.tb{display:flex;gap:1px;margin-top:5px}
-.t{padding:5px 13px;background:transparent;border:none;color:var(--mt);font-size:.74rem;cursor:pointer;font-weight:500;border-bottom:2px solid transparent;transition:all .12s;font-family:'Plus Jakarta Sans',sans-serif}
-.t:hover{color:var(--tx)}
-.t.on{color:var(--ac);border-bottom-color:var(--ac)}
-.mn{max-width:1520px;margin:0 auto;padding:12px 24px 50px}
-/* Sort controls */
-.sort-bar{display:flex;gap:6px;margin-bottom:10px;align-items:center;font-size:.72rem;color:var(--mt)}
-.sort-bar label{font-weight:600}
-.sort-btn{background:var(--cd);border:1px solid var(--bd);border-radius:5px;padding:3px 8px;color:var(--mt);font-size:.68rem;cursor:pointer;transition:all .12s;font-family:'Plus Jakarta Sans',sans-serif}
-.sort-btn:hover,.sort-btn.on{background:var(--ac2);color:#fff;border-color:var(--ac2)}
-/* Grid */
-.gd{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px}
-.c{background:var(--cd);border:1px solid var(--bd);border-radius:11px;padding:14px;cursor:pointer;transition:all .18s;position:relative}
-.c:hover{border-color:var(--ac);transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,.06)}
-.c-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px}
-.c-nm{font-weight:700;font-size:.88rem;letter-spacing:-.2px}
-.c-loc{color:var(--mt);font-size:.67rem;margin-top:1px}
-.c-loc .rg{color:var(--ac2);font-weight:500}
-.c-url{color:var(--cy);font-size:.62rem;font-family:'JetBrains Mono',monospace;opacity:.6}
-.bg{font-size:.56rem;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}
-.be{background:rgba(245,158,11,.12);color:var(--am)}.b3{background:rgba(16,185,129,.12);color:var(--gn)}.b5{background:rgba(59,130,246,.12);color:var(--ac)}.bv{background:rgba(125,134,152,.12);color:var(--mt)}.bst{background:rgba(236,72,153,.12);color:var(--pk)}.bg0{background:rgba(239,68,68,.08);color:var(--rd)}
-/* Health Score Ring */
-.hs-ring{width:48px;height:48px;position:relative;margin:6px auto 4px}
-.hs-ring svg{transform:rotate(-90deg)}
-.hs-ring .score{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.82rem}
-/* Metrics row */
-.mr{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin:6px 0}
-.mm{text-align:center;padding:4px 2px;background:rgba(255,255,255,.012);border-radius:5px;border:1px solid rgba(255,255,255,.025)}
-.mm .v{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.78rem}
-.mm .l{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:1px}
-/* DR bar */
-.drr{display:flex;align-items:center;gap:5px;font-size:.65rem;margin:4px 0}
-.drb{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
-.drf{height:100%;border-radius:2px}
-/* KW table */
-.kt{width:100%;border-collapse:collapse;font-size:.7rem;margin-top:3px}
-.kt td{padding:2px 0;border-top:1px solid rgba(255,255,255,.025)}
-.kt td:first-child{color:var(--mt);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.kt td:nth-child(2){text-align:right;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--mt);padding-right:5px}
-.kt td:last-child{text-align:right;width:40px}
-.kt .pin td:first-child{color:var(--cy);font-weight:500}
-.po{display:inline-block;padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:600;min-width:26px;text-align:center}
-.p1{background:rgba(16,185,129,.25);color:#10b981}.p2{background:rgba(110,231,183,.18);color:#6ee7b7}.p3{background:rgba(134,239,172,.12);color:#86efac}.p45{background:rgba(59,130,246,.18);color:#93b8ff}.p610{background:rgba(125,134,152,.15);color:#a8b2bf}.p1120{background:rgba(245,158,11,.12);color:#fcd34d}.p21{background:rgba(239,68,68,.12);color:#fca5a5}.pnr{background:rgba(71,85,105,.2);color:#64748b}
-.gm{color:var(--rd);font-size:.72rem;text-align:center;padding:10px 0;opacity:.7}
-/* Overlay */
-.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;overflow-y:auto;backdrop-filter:blur(4px)}
-.ov.sh{display:block}
-.dt{max-width:960px;margin:28px auto;background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:24px;position:relative}
-.xb{position:absolute;top:12px;right:12px;background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;color:var(--mt);cursor:pointer;font-size:.75rem}
-.xb:hover{color:var(--tx);border-color:var(--ac)}
-.dt h2{font-size:1.3rem;font-weight:800;letter-spacing:-.5px}
-.dt .su{color:var(--mt);font-size:.78rem;margin-bottom:14px}
-.dt .su a{color:var(--cy);text-decoration:none}
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.sc{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center}
-.sc .sv{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.15rem}
-.sc .sl{font-size:.6rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
-.fk{width:100%;border-collapse:collapse;font-size:.76rem}
-.fk th{text-align:left;padding:7px 5px;border-bottom:2px solid var(--bd);color:var(--mt);font-weight:600;font-size:.64rem;text-transform:uppercase;letter-spacing:.3px}
-.fk td{padding:6px 5px;border-bottom:1px solid rgba(255,255,255,.03)}
-.fk tr.pin{background:rgba(6,182,212,.04)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#090a0f;--sf:#111318;--card:#171a24;--card2:#1c2030;
+  --bd:#252936;--bd2:#2f3549;--tx:#e4e7ed;--tx2:#c0c5d0;--mt:#6b7585;
+  --ac:#3b82f6;--ac2:#8b5cf6;--gn:#10b981;--gn2:#34d399;--rd:#ef4444;
+  --am:#f59e0b;--cy:#06b6d4;--pk:#ec4899;--or:#f97316;
+  --radius:12px;--font:'Inter',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--tx);font-family:var(--font);line-height:1.5;min-height:100vh}
+a{color:var(--cy);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Header */
+header{background:linear-gradient(180deg,#0d0e15,var(--sf));border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.header-inner{max-width:1480px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:1.1rem;letter-spacing:-.5px;white-space:nowrap;cursor:pointer}
+.brand b{background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.brand span{color:var(--mt);font-weight:400;font-size:.8rem;margin-left:6px}
+.header-tools{display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.header-tools input,.header-tools select{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;color:var(--tx);font-size:.8rem;font-family:var(--font);outline:none;transition:border-color .15s}
+.header-tools input:focus{border-color:var(--ac)}
+.header-tools input{width:240px}
+.btn{background:var(--ac);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn:hover{background:#2563eb;transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;border:1px solid var(--bd);color:var(--tx2)}.btn-ghost:hover{border-color:var(--ac);background:rgba(59,130,246,.06)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--mt);padding:10px 24px 0;max-width:1480px;margin:0 auto}
+.breadcrumb a{color:var(--ac);cursor:pointer;text-decoration:none}.breadcrumb a:hover{text-decoration:underline}
+
+/* Main */
+main{max-width:1480px;margin:0 auto;padding:16px 24px 60px}
+
+/* Loading */
+.loading{display:none;position:fixed;inset:0;background:rgba(9,10,15,.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(4px)}
+.loading.show{display:flex}
+.spinner{width:40px;height:40px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--mt);font-size:.85rem}
+.error-banner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;color:var(--rd);font-size:.82rem;display:none}
+.error-banner.show{display:block}
+
+/* ===== PROJECTS GRID VIEW ===== */
+.view{display:none}.view.active{display:block}
+.projects-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.projects-header h2{font-size:1.15rem;font-weight:800;letter-spacing:-.3px}
+.projects-header .count{color:var(--mt);font-size:.78rem}
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.project-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.project-card:hover{border-color:var(--ac);transform:translateY(-2px);box-shadow:0 6px 24px rgba(59,130,246,.08)}
+.project-card .pc-name{font-weight:700;font-size:.9rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project-card .pc-url{color:var(--cy);font-size:.65rem;font-family:var(--mono);opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project-card .pc-meta{display:flex;gap:12px;margin-top:10px}
+.project-card .pc-stat{text-align:center;flex:1}
+.project-card .pc-stat .v{font-family:var(--mono);font-weight:700;font-size:.95rem}
+.project-card .pc-stat .l{font-size:.55rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:1px}
+.project-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+
+/* ===== PROJECT DETAIL VIEW ===== */
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.detail-header h2{font-size:1.3rem;font-weight:800;letter-spacing:-.4px}
+.detail-header .dh-url{color:var(--cy);font-size:.72rem;font-family:var(--mono)}
+.detail-header .dh-meta{color:var(--mt);font-size:.72rem;margin-top:2px}
+
+/* KPI Grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.kpi-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:14px;text-align:center;transition:all .2s;position:relative;overflow:hidden}
+.kpi-card:hover{border-color:var(--ac);transform:translateY(-1px)}
+.kpi-card .label{font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);margin-bottom:4px;font-weight:600}
+.kpi-card .value{font-family:var(--mono);font-weight:700;font-size:1.35rem;line-height:1.2}
+.kpi-card .sub{font-size:.62rem;color:var(--mt);margin-top:2px;font-family:var(--mono)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-card:nth-child(1)::before{background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.kpi-card:nth-child(2)::before{background:var(--gn)}.kpi-card:nth-child(3)::before{background:var(--cy)}
+.kpi-card:nth-child(4)::before{background:var(--am)}.kpi-card:nth-child(5)::before{background:var(--pk)}
+.kpi-card:nth-child(6)::before{background:var(--or)}
+
+/* DR Ring */
+.dr-ring{width:64px;height:64px;margin:0 auto 2px;position:relative}
+.dr-ring svg{transform:rotate(-90deg)}
+.dr-ring .dr-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:1.1rem}
+
+/* Charts */
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:16px}
+.chart-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:16px}
+.chart-card h3{font-size:.75rem;font-weight:700;margin-bottom:10px;color:var(--tx2)}
+.chart-card canvas{width:100%!important}
+
+/* Tag Filter Bar */
+.tag-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.tag-btn{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:.68rem;color:var(--mt);cursor:pointer;font-weight:600;transition:all .12s;font-family:var(--font)}
+.tag-btn:hover{color:var(--tx);border-color:var(--bd2)}.tag-btn.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+
 /* Tables */
-.lt{width:100%;border-collapse:collapse;font-size:.74rem}
-.lt th{text-align:left;padding:7px 5px;border-bottom:2px solid var(--bd);color:var(--mt);font-weight:600;font-size:.62rem;text-transform:uppercase;letter-spacing:.3px;cursor:pointer}
-.lt td{padding:6px 5px;border-bottom:1px solid rgba(255,255,255,.03)}
-.lt tr.gl{background:rgba(245,158,11,.025)}
-.ti{font-size:.55rem;padding:2px 6px;border-radius:6px;font-weight:600}
-.te{background:rgba(245,158,11,.12);color:var(--am)}.tp{background:rgba(16,185,129,.1);color:var(--gn)}.tv{background:rgba(59,130,246,.1);color:var(--ac)}.ts{background:rgba(236,72,153,.1);color:var(--pk)}.tg{background:rgba(239,68,68,.08);color:var(--rd)}
-.rgt{font-size:.55rem;padding:2px 6px;border-radius:6px;font-weight:500;background:rgba(139,92,246,.1);color:var(--ac2)}
-.hd-score{font-family:'JetBrains Mono',monospace;font-weight:700}
-.hs-bar{display:inline-block;width:40px;height:6px;background:var(--bd);border-radius:3px;vertical-align:middle;margin-left:4px;overflow:hidden}
-.hs-fill{height:100%;border-radius:3px}
-.hdn{display:none!important}
-@media(max-width:768px){.gd{grid-template-columns:1fr}.ct{flex-direction:column;align-items:stretch}.ip.s{width:100%}.cn{margin-left:0}.sg{grid-template-columns:repeat(2,1fr)}.dt{margin:10px;padding:16px}}
-</style></head><body>
-<div class="hd"><div class="hw">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-<div><div class="logo"><b>⚡ Harness Digital</b> <span>Brand SEO Intelligence</span></div><div class="mt">April 9, 2026 · Mobile Rankings · Ahrefs Rank Tracker + Site Explorer + Site Audit</div></div>
-</div>
-<div class="sr" id="st"></div>
-<div class="ct">
-<input class="ip s" id="q" placeholder="Search brand, city, state…">
-<select class="ip" id="rF"><option value="">All Regions</option></select>
-<select class="ip" id="sF"><option value="">All States</option></select>
-<button class="fb on" data-f="all">All</button>
-<button class="fb" data-f="elite">🏆 Elite</button>
-<button class="fb" data-f="top5">✅ Top 5</button>
-<button class="fb" data-f="vis">📊 Visible</button>
-<button class="fb" data-f="ghost">👻 Ghost</button>
-<span class="cn" id="cn">85 of 85</span>
-</div>
-<div class="tb">
-<button class="t on" data-t="cards">All Brands</button>
-<button class="t" data-t="lb">Leaderboard</button>
-<button class="t" data-t="qw">Quick Wins</button>
-<button class="t" data-t="gaps">Gaps & Ghosts</button>
-</div>
-</div></div>
-<div class="mn" id="mn"></div>
-<div class="ov" id="ov"><div class="dt" id="dt"></div></div>
-<script>
-const D=[{"id": "7634979", "name": "Anumber1air", "url": "anumber1air.com", "city": "Lewisville", "state": "TX", "kw": [{"k": "ac tune up", "v": 18000, "p": 5}, {"k": "drain cleaning", "v": 50000, "p": 15}, {"k": "plumbing service", "v": 11000, "p": 24}, {"k": "ac repair lewisville", "v": 350, "p": 29}, {"k": "electrician", "v": 172000, "p": 33}, {"k": "ac repair", "v": 98000, "p": null}, {"k": "plumber", "v": 270000, "p": null}, {"k": "air conditioning repair", "v": 115000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "hvac service", "v": 136000, "p": null}], "se": {"dr": 34.0, "traffic": 4070, "kw_total": 548, "kw_1_3": 154, "kw_4_10": 268, "kw_11_20": 66, "refdomains": 607, "backlinks": 998, "org_cost": 7970259}, "region": "Gulf", "brand_name": "A#1 Air", "status": "Active", "market": "Lewisville, TX", "st_tenant": "A#1 Air", "audit": {"hs": 88, "err": 99, "warn": 464, "total": 793}, "device": "mobile"}, {"id": "8378516", "name": "Channellandsonsac", "url": "channellandsonsac.com", "city": "Hazlehurst", "state": "MS", "kw": [{"k": "ac repair", "v": 98000, "p": 1}, {"k": "ac repair hazlehurst", "v": 70, "p": 1}, {"k": "ac tune up", "v": 18000, "p": 1}, {"k": "air conditioning repair", "v": 115000, "p": 1}, {"k": "air conditioning service", "v": 32000, "p": 1}, {"k": "furnace repair", "v": 184000, "p": 1}, {"k": "ac service", "v": 22000, "p": 2}, {"k": "furnace service", "v": 15000, "p": 2}, {"k": "heat pump repair", "v": 50000, "p": 2}, {"k": "hvac repair", "v": 115000, "p": 2}, {"k": "hvac service", "v": 136000, "p": 2}, {"k": "ac maintenance", "v": 36000, "p": 3}, {"k": "furnace maintenance", "v": 33000, "p": 3}, {"k": "hvac maintenance", "v": 45000, "p": 4}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 0.1, "traffic": 1, "kw_total": 4, "kw_1_3": 0, "kw_4_10": 1, "kw_11_20": 2, "refdomains": 57, "backlinks": 84, "org_cost": 589}, "region": "Gulf", "brand_name": "Channell Heating & Cooling", "status": "Active", "market": "Hazlehurst, MS", "st_tenant": "Channell Heating & Cooling", "audit": {"hs": 100, "err": 0, "warn": 113, "total": 330}, "device": "mobile"}, {"id": "8378519", "name": "Championacaustin", "url": "championacaustin.com", "city": "Austin", "state": "TX", "kw": [{"k": "furnace repair", "v": 184000, "p": 22}, {"k": "hvac repair", "v": 115000, "p": 25}, {"k": "air conditioning repair", "v": 115000, "p": 26}, {"k": "ac repair", "v": 98000, "p": 27}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 25.0, "traffic": 38, "kw_total": 128, "kw_1_3": 13, "kw_4_10": 12, "kw_11_20": 3, "refdomains": 160, "backlinks": 281, "org_cost": 15115}, "region": "Gulf", "brand_name": "Champion AC & Plumbing (Austin)", "status": "Active", "market": "Austin, TX", "st_tenant": "Champion AC & Plumbing of Austin", "audit": {"hs": 100, "err": 0, "warn": 245, "total": 968}, "device": "mobile"}, {"id": "8378522", "name": "Callballthatsall", "url": "callballthatsall.com", "city": "Biloxi", "state": "MS", "kw": [{"k": "ac repair biloxi", "v": 80, "p": 1}, {"k": "air conditioning repair", "v": 115000, "p": 1}, {"k": "ac repair", "v": 98000, "p": 2}, {"k": "furnace repair", "v": 184000, "p": 2}, {"k": "heat pump repair", "v": 50000, "p": 2}, {"k": "ac service", "v": 22000, "p": 3}, {"k": "ac tune up", "v": 18000, "p": 3}, {"k": "hvac repair", "v": 115000, "p": 4}, {"k": "hvac service", "v": 136000, "p": 4}, {"k": "water heater repair", "v": 146000, "p": 5}, {"k": "plumber", "v": 270000, "p": 11}, {"k": "electrician", "v": 172000, "p": 19}], "se": {"dr": 2.5, "traffic": 531, "kw_total": 124, "kw_1_3": 25, "kw_4_10": 57, "kw_11_20": 5, "refdomains": 95, "backlinks": 323, "org_cost": 300524}, "region": "Gulf", "brand_name": "Ball Heating and Air Conditioning", "status": "Active", "market": "Biloxi, MS", "st_tenant": "Ball Heating, Cooling, Plumbing & Electrical", "audit": {"hs": 89, "err": 36, "warn": 193, "total": 332}, "device": "mobile"}, {"id": "8378524", "name": "Blancoheatingandcooling", "url": "blancoheatingandcooling.com", "city": "Blanco", "state": "TX", "kw": [{"k": "ac repair blanco", "v": 40, "p": 1}, {"k": "ac tune up", "v": 18000, "p": 1}, {"k": "ac service", "v": 22000, "p": 2}, {"k": "air conditioning repair", "v": 115000, "p": 2}, {"k": "emergency electrician", "v": 13000, "p": 2}, {"k": "sewer line repair", "v": 93000, "p": 2}, {"k": "ac repair", "v": 98000, "p": 3}, {"k": "drain cleaning", "v": 50000, "p": 3}, {"k": "electrician", "v": 172000, "p": 3}, {"k": "furnace repair", "v": 184000, "p": 3}, {"k": "heat pump repair", "v": 50000, "p": 3}, {"k": "hvac repair", "v": 115000, "p": 3}, {"k": "hvac service", "v": 136000, "p": 3}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 8.0, "traffic": 134, "kw_total": 60, "kw_1_3": 5, "kw_4_10": 30, "kw_11_20": 8, "refdomains": 84, "backlinks": 120, "org_cost": 12660}, "region": "Gulf", "brand_name": "Blanco AC and Electrical", "status": "Active", "market": "Blanco, TX", "st_tenant": "Blanco A/C Electrical & Plumbing", "audit": {"hs": 96, "err": 19, "warn": 222, "total": 513}, "device": "mobile"}, {"id": "8378525", "name": "Airtechofkaty", "url": "airtechofkaty.com", "city": "Katy", "state": "TX", "kw": [{"k": "air conditioning repair", "v": 115000, "p": 6}, {"k": "drain cleaning", "v": 50000, "p": 4}, {"k": "furnace repair", "v": 184000, "p": 9}, {"k": "heat pump repair", "v": 50000, "p": 8}, {"k": "hvac service", "v": 136000, "p": 14}, {"k": "ac repair", "v": 98000, "p": 13}, {"k": "hvac maintenance", "v": 45000, "p": 17}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 18.0, "traffic": 883, "kw_total": 122, "kw_1_3": 12, "kw_4_10": 82, "kw_11_20": 9, "refdomains": 85, "backlinks": 225, "org_cost": 989627}, "region": "Gulf", "brand_name": "Air Tech Katy", "status": "Active", "market": "Katy, TX", "st_tenant": "Air Tech of Katy", "audit": {"hs": 99, "err": 2, "warn": 99, "total": 377}, "device": "mobile"}, {"id": "8378527", "name": "Airtechofhouston", "url": "airtechofhouston.com", "city": "Houston", "state": "TX", "kw": [{"k": "furnace repair", "v": 184000, "p": 7}, {"k": "air conditioning repair", "v": 115000, "p": 14}, {"k": "hvac service", "v": 136000, "p": 17}, {"k": "hvac repair", "v": 115000, "p": 19}, {"k": "ac repair", "v": 98000, "p": 23}, {"k": "hvac maintenance", "v": 45000, "p": 16}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 24.0, "traffic": 537, "kw_total": 208, "kw_1_3": 34, "kw_4_10": 30, "kw_11_20": 19, "refdomains": 143, "backlinks": 341, "org_cost": 363273}, "region": "Gulf", "brand_name": "Air Tech Houston", "status": "Active", "market": "Houston, TX", "st_tenant": "Air Tech of Houston", "audit": {"hs": 77, "err": 345, "warn": 646, "total": 1504}, "device": "mobile"}, {"id": "8378528", "name": "Airtechofpasadena", "url": "airtechofpasadena.com", "city": "Pasadena", "state": "TX", "kw": [{"k": "water heater replacement", "v": 94000, "p": 2}, {"k": "heat pump repair", "v": 50000, "p": 6}, {"k": "furnace repair", "v": 184000, "p": 8}, {"k": "hvac maintenance", "v": 45000, "p": 8}, {"k": "air conditioning repair", "v": 115000, "p": 9}, {"k": "ac repair", "v": 98000, "p": 9}, {"k": "water heater repair", "v": 146000, "p": 10}, {"k": "hvac service", "v": 136000, "p": 12}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 12.0, "traffic": 226, "kw_total": 45, "kw_1_3": 10, "kw_4_10": 14, "kw_11_20": 4, "refdomains": 74, "backlinks": 231, "org_cost": 98384}, "region": "Gulf", "brand_name": "Air Tech Pasadena", "status": "Active", "market": "Pasadena, TX", "st_tenant": "Air Tech of Pasadena", "audit": {"hs": 100, "err": 0, "warn": 203, "total": 449}, "device": "mobile"}, {"id": "8378529", "name": "Atchleyair", "url": "atchleyair.com", "city": "Fort Smith", "state": "AR", "kw": [{"k": "ac repair", "v": 98000, "p": 4}, {"k": "air conditioning repair", "v": 115000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 6}, {"k": "furnace repair", "v": 184000, "p": 8}, {"k": "water heater repair", "v": 146000, "p": 9}, {"k": "hvac repair", "v": 115000, "p": 10}, {"k": "water heater replacement", "v": 94000, "p": 10}, {"k": "heat pump repair", "v": 50000, "p": 14}, {"k": "hvac maintenance", "v": 45000, "p": 16}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 9.0, "traffic": 434, "kw_total": 40, "kw_1_3": 8, "kw_4_10": 26, "kw_11_20": 3, "refdomains": 118, "backlinks": 360, "org_cost": 109599}, "region": "Gulf", "brand_name": "Atchley Air", "status": "Active", "market": "Fort Smith, AR", "st_tenant": "Atchley Air", "audit": {"hs": 79, "err": 384, "warn": 555, "total": 1819}, "device": "mobile"}, {"id": "8378530", "name": "Axsomair", "url": "axsomair.com", "city": "Natchitoches", "state": "LA", "kw": [{"k": "ac repair", "v": 98000, "p": 1}, {"k": "ac repair natchitoches", "v": 90, "p": 1}, {"k": "ac tune up", "v": 18000, "p": 1}, {"k": "air conditioning repair", "v": 115000, "p": 1}, {"k": "air conditioning service", "v": 32000, "p": 1}, {"k": "electrical repair", "v": 18000, "p": 1}, {"k": "ac service", "v": 22000, "p": 2}, {"k": "heat pump repair", "v": 50000, "p": 2}, {"k": "hvac service", "v": 136000, "p": 2}, {"k": "plumbing service", "v": 11000, "p": 2}, {"k": "drain cleaning", "v": 50000, "p": 3}, {"k": "electrician", "v": 172000, "p": 3}, {"k": "hvac repair", "v": 115000, "p": 3}, {"k": "plumbing repair", "v": 62000, "p": 3}, {"k": "water heater repair", "v": 146000, "p": 3}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 3.0, "traffic": 66, "kw_total": 14, "kw_1_3": 2, "kw_4_10": 7, "kw_11_20": 2, "refdomains": 76, "backlinks": 111, "org_cost": 51277}, "region": "Gulf", "brand_name": "Axsom Air", "status": "Active", "market": "Natchitoches, LA", "st_tenant": "Axsom Air Heating and Cooling", "audit": {"hs": 97, "err": 15, "warn": 159, "total": 493}, "device": "mobile"}, {"id": "8378532", "name": "Baldwinhvac", "url": "baldwinhvac.com", "city": "Daphne", "state": "AL", "kw": [{"k": "hvac maintenance", "v": 45000, "p": 2}, {"k": "hvac service", "v": 136000, "p": 3}, {"k": "heat pump repair", "v": 50000, "p": 3}, {"k": "water heater repair", "v": 146000, "p": 4}, {"k": "hvac repair", "v": 115000, "p": 4}, {"k": "ac repair", "v": 98000, "p": 4}, {"k": "furnace repair", "v": 184000, "p": 5}, {"k": "air conditioning repair", "v": 115000, "p": 5}, {"k": "drain cleaning", "v": 50000, "p": 8}, {"k": "water heater replacement", "v": 94000, "p": 8}, {"k": "plumber", "v": 270000, "p": 13}], "se": {"dr": 3.7, "traffic": 439, "kw_total": 116, "kw_1_3": 42, "kw_4_10": 20, "kw_11_20": 8, "refdomains": 108, "backlinks": 365, "org_cost": 230934}, "region": "Gulf", "brand_name": "Baldwin Heating & Cooling", "status": "Active", "market": "Daphne, AL", "st_tenant": "Baldwin Cooling, Heating, Plumbing & Electrical", "audit": {"hs": 99, "err": 6, "warn": 131, "total": 420}, "device": "mobile"}, {"id": "8378533", "name": "Barkerservices", "url": "barkerservices.com", "city": "College Station", "state": "TX", "kw": [{"k": "furnace repair", "v": 184000, "p": 5}, {"k": "hvac repair", "v": 115000, "p": 5}, {"k": "water heater repair", "v": 146000, "p": 6}, {"k": "hvac service", "v": 136000, "p": 6}, {"k": "air conditioning repair", "v": 115000, "p": 7}, {"k": "water heater replacement", "v": 94000, "p": 8}, {"k": "ac repair", "v": 98000, "p": 9}, {"k": "drain cleaning", "v": 50000, "p": 10}, {"k": "plumber", "v": 270000, "p": 18}], "se": {"dr": 28.0, "traffic": 400, "kw_total": 219, "kw_1_3": 88, "kw_4_10": 78, "kw_11_20": 14, "refdomains": 125, "backlinks": 373, "org_cost": 121301}, "region": "Gulf", "brand_name": "Barker's heating and Air Conditioning", "status": "Active", "market": "College Station, TX", "st_tenant": "Barkers Cooling, Heating & Plumbing", "audit": {"hs": 100, "err": 0, "warn": 182, "total": 433}, "device": "mobile"}, {"id": "8378534", "name": "Brownheatingandcooling", "url": "brownheatingandcooling.com", "city": "Hueytown", "state": "AL", "kw": [{"k": "sewer line repair", "v": 93000, "p": 9}, {"k": "ac repair", "v": 98000, "p": 15}, {"k": "air conditioning repair", "v": 115000, "p": 16}, {"k": "furnace repair", "v": 184000, "p": 20}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 15.0, "traffic": 769, "kw_total": 244, "kw_1_3": 32, "kw_4_10": 142, "kw_11_20": 20, "refdomains": 109, "backlinks": 479, "org_cost": 463071}, "region": "Gulf", "brand_name": "Brown Heating and Cooling", "status": "Active", "market": "Hueytown, AL", "st_tenant": "Brown Heating, Cooling, & Plumbing", "audit": {"hs": 99, "err": 7, "warn": 160, "total": 629}, "device": "mobile"}, {"id": "8378535", "name": "Dereksawyers", "url": "dereksawyers.com", "city": "Modesto", "state": "CA", "kw": [{"k": "hvac maintenance", "v": 45000, "p": 5}, {"k": "furnace repair", "v": 184000, "p": 12}, {"k": "ac repair", "v": 98000, "p": 11}, {"k": "hvac repair", "v": 115000, "p": 14}, {"k": "hvac service", "v": 136000, "p": 17}, {"k": "air conditioning repair", "v": 115000, "p": 17}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 30.0, "traffic": 317, "kw_total": 106, "kw_1_3": 13, "kw_4_10": 53, "kw_11_20": 10, "refdomains": 340, "backlinks": 833, "org_cost": 171198}, "region": "Pacific", "brand_name": "Derek Sawyer", "status": "Legacy", "market": "Modesto, CA", "st_tenant": "Derek Sawyer Heating, Cooling, Plumbing & Electrical LLC", "audit": {"hs": 42, "err": 190, "warn": 195, "total": 327}, "device": "mobile"}, {"id": "8378536", "name": "Efficient-systems", "url": "efficient-systems.com", "city": "Beaumont", "state": "TX", "kw": [{"k": "heat pump repair", "v": 50000, "p": 3}, {"k": "air conditioning repair", "v": 115000, "p": 4}, {"k": "furnace repair", "v": 184000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 5}, {"k": "hvac repair", "v": 115000, "p": 5}, {"k": "ac repair", "v": 98000, "p": 5}, {"k": "water heater replacement", "v": 94000, "p": 6}, {"k": "sewer line repair", "v": 93000, "p": 6}, {"k": "drain cleaning", "v": 50000, "p": 10}, {"k": "plumber", "v": 270000, "p": 28}], "se": {"dr": 10.0, "traffic": 816, "kw_total": 105, "kw_1_3": 31, "kw_4_10": 56, "kw_11_20": 4, "refdomains": 110, "backlinks": 224, "org_cost": 295602}, "region": "Gulf", "brand_name": "Efficient Systems", "status": "Active", "market": "Beaumont, TX", "st_tenant": "Efficient Systems AC & Plumbing", "audit": {"hs": 55, "err": 199, "warn": 222, "total": 439}, "device": "mobile"}, {"id": "8378537", "name": "Dupontac", "url": "dupontac.com", "city": "Covington", "state": "LA", "kw": [{"k": "emergency plumber", "v": 95000, "p": 3}, {"k": "sewer line repair", "v": 93000, "p": 4}, {"k": "drain cleaning", "v": 50000, "p": 5}, {"k": "plumber", "v": 270000, "p": 18}, {"k": "furnace repair", "v": 184000, "p": 21}], "se": {"dr": 0.0, "traffic": 164, "kw_total": 32, "kw_1_3": 2, "kw_4_10": 20, "kw_11_20": 4, "refdomains": 41, "backlinks": 55, "org_cost": 185109}, "region": "Gulf", "brand_name": "Dupont AC", "status": "Active", "market": "Covington, LA", "st_tenant": "", "audit": {"hs": 70, "err": 341, "warn": 443, "total": 1144}, "device": "mobile"}, {"id": "8378538", "name": "Foulksheatingandcooling", "url": "foulksheatingandcooling.com", "city": "Covington", "state": "LA", "kw": [{"k": "furnace repair", "v": 184000, "p": 22}, {"k": "plumber", "v": 270000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 10.0, "traffic": 30, "kw_total": 9, "kw_1_3": 0, "kw_4_10": 3, "kw_11_20": 0, "refdomains": 73, "backlinks": 359, "org_cost": 6055}, "region": "Gulf", "brand_name": "Foulks Southern Air", "status": "Active", "market": "Covington, LA", "st_tenant": "Foulks Southern Air", "audit": {"hs": 100, "err": 2, "warn": 153, "total": 545}, "device": "mobile"}, {"id": "8378539", "name": "Heblonheatingandcooling", "url": "heblonheatingandcooling.com", "city": "Meridian", "state": "MS", "kw": [{"k": "air conditioning repair", "v": 115000, "p": 4}, {"k": "hvac repair", "v": 115000, "p": 5}, {"k": "ac repair", "v": 98000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 7}, {"k": "hvac maintenance", "v": 45000, "p": 9}, {"k": "furnace repair", "v": 184000, "p": 11}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 0.2, "traffic": 17, "kw_total": 4, "kw_1_3": 0, "kw_4_10": 3, "kw_11_20": 0, "refdomains": 47, "backlinks": 63, "org_cost": 22901}, "region": "Gulf", "brand_name": "Heblon Heating & Air Conditioning", "status": "Active", "market": "Meridian, MS", "st_tenant": "Heblon Heating & A/C", "audit": {"hs": 95, "err": 18, "warn": 118, "total": 330}, "device": "mobile"}, {"id": "8378540", "name": "Islandairco", "url": "islandairco.com", "city": "Eureka Springs", "state": "AR", "kw": [{"k": "ac repair", "v": 98000, "p": 2}, {"k": "hvac repair", "v": 115000, "p": 3}, {"k": "heat pump repair", "v": 50000, "p": 3}, {"k": "air conditioning repair", "v": 115000, "p": 4}, {"k": "hvac maintenance", "v": 45000, "p": 4}, {"k": "hvac service", "v": 136000, "p": 5}, {"k": "drain cleaning", "v": 50000, "p": 6}, {"k": "furnace repair", "v": 184000, "p": 7}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 9.0, "traffic": 106, "kw_total": 8, "kw_1_3": 5, "kw_4_10": 2, "kw_11_20": 0, "refdomains": 59, "backlinks": 113, "org_cost": 15592}, "region": "Gulf", "brand_name": "Island Air", "status": "Active", "market": "Eureka Springs, AR", "st_tenant": "Island Airco", "audit": {"hs": 99, "err": 2, "warn": 118, "total": 358}, "device": "mobile"}, {"id": "8378541", "name": "Hillcountryrefrigeration", "url": "hillcountryrefrigeration.com", "city": "Austin", "state": "TX", "kw": [{"k": "hvac service", "v": 136000, "p": 2}, {"k": "air conditioning repair", "v": 115000, "p": 3}, {"k": "sewer line repair", "v": 93000, "p": 3}, {"k": "water heater repair", "v": 146000, "p": 4}, {"k": "hvac repair", "v": 115000, "p": 4}, {"k": "ac repair", "v": 98000, "p": 4}, {"k": "drain cleaning", "v": 50000, "p": 5}, {"k": "heat pump repair", "v": 50000, "p": 6}, {"k": "furnace repair", "v": 184000, "p": 8}, {"k": "plumber", "v": 270000, "p": 13}], "se": {"dr": 2.3, "traffic": 32, "kw_total": 10, "kw_1_3": 1, "kw_4_10": 1, "kw_11_20": 2, "refdomains": 69, "backlinks": 161, "org_cost": 12205}, "region": "Gulf", "brand_name": "Hill Country", "status": "Active", "market": "Austin, TX", "st_tenant": "Hill Country Refrigeration and Plumbing", "audit": {"hs": 74, "err": 146, "warn": 392, "total": 568}, "device": "mobile"}, {"id": "8378542", "name": "Lochridgepriesthome", "url": "lochridgepriesthome.com", "city": "Waco", "state": "TX", "kw": [{"k": "heat pump repair", "v": 50000, "p": 5}, {"k": "ac repair", "v": 98000, "p": 9}, {"k": "water heater replacement", "v": 94000, "p": 9}, {"k": "air conditioning repair", "v": 115000, "p": 10}, {"k": "water heater repair", "v": 146000, "p": 10}, {"k": "drain cleaning", "v": 50000, "p": 10}, {"k": "electrician", "v": 172000, "p": 11}, {"k": "hvac service", "v": 136000, "p": 11}, {"k": "hvac repair", "v": 115000, "p": 12}, {"k": "furnace repair", "v": 184000, "p": 12}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 15.0, "traffic": 292, "kw_total": 69, "kw_1_3": 4, "kw_4_10": 49, "kw_11_20": 10, "refdomains": 337, "backlinks": 646, "org_cost": 133372}, "region": "Gulf", "brand_name": "Lochridge Priest", "status": "Active", "market": "Waco, TX", "st_tenant": "Lochridge Priest Home Services", "audit": {"hs": 79, "err": 225, "warn": 376, "total": 1056}, "device": "mobile"}, {"id": "8378544", "name": "Natchezheatingandcooling", "url": "natchezheatingandcooling.com", "city": "Natchez", "state": "TX", "kw": [{"k": "ac repair natchez", "v": 90, "p": 1}, {"k": "furnace maintenance", "v": 33000, "p": 1}, {"k": "heat pump repair", "v": 50000, "p": 1}, {"k": "ac repair", "v": 98000, "p": 2}, {"k": "air conditioning repair", "v": 115000, "p": 2}, {"k": "leak detection", "v": 34000, "p": 2}, {"k": "plumbers natchez", "v": 20, "p": 2}, {"k": "water heater repair", "v": 146000, "p": 2}, {"k": "water heater replacement", "v": 94000, "p": 2}, {"k": "drain cleaning", "v": 50000, "p": 3}, {"k": "electrician", "v": 172000, "p": 3}, {"k": "furnace repair", "v": 184000, "p": 3}, {"k": "hvac repair", "v": 115000, "p": 3}, {"k": "hvac service", "v": 136000, "p": 3}, {"k": "plumber", "v": 270000, "p": 3}], "se": {"dr": 2.2, "traffic": 61, "kw_total": 4, "kw_1_3": 2, "kw_4_10": 0, "kw_11_20": 0, "refdomains": 62, "backlinks": 115, "org_cost": 64108}, "region": "Gulf", "brand_name": "Natchez Heating & Cooling", "status": "Active", "market": "Natchez, TX", "st_tenant": "Natchez Heating & Cooling", "audit": {"hs": 99, "err": 2, "warn": 123, "total": 381}, "device": "mobile"}, {"id": "8378545", "name": "Southernairbr", "url": "southernairbr.com", "city": "Baton Rouge", "state": "LA", "kw": [{"k": "water heater repair", "v": 146000, "p": 4}, {"k": "furnace repair", "v": 184000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 7}, {"k": "air conditioning repair", "v": 115000, "p": 8}, {"k": "ac repair", "v": 98000, "p": 9}, {"k": "water heater replacement", "v": 94000, "p": 10}, {"k": "heat pump repair", "v": 50000, "p": 17}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 14.0, "traffic": 283, "kw_total": 83, "kw_1_3": 5, "kw_4_10": 35, "kw_11_20": 12, "refdomains": 90, "backlinks": 402, "org_cost": 187346}, "region": "Gulf", "brand_name": "Southern Air (Baton Rouge) (Buddy's Air)", "status": "Active", "market": "Baton Rouge, LA", "st_tenant": "", "audit": {"hs": 76, "err": 176, "warn": 398, "total": 722}, "device": "mobile"}, {"id": "8378546", "name": "Shockwavegenerators", "url": "shockwavegenerators.com", "city": "Houma", "state": "LA", "kw": [{"k": "generator maintenance", "v": 7600, "p": 2}, {"k": "generator repair", "v": 9200, "p": 5}, {"k": "emergency electrician", "v": 13000, "p": 6}, {"k": "generators near me", "v": 3200, "p": 21}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 1.6, "traffic": 141, "kw_total": 71, "kw_1_3": 16, "kw_4_10": 24, "kw_11_20": 13, "refdomains": 66, "backlinks": 132, "org_cost": 40634}, "region": "Gulf", "brand_name": "Shockwave Generators", "status": "Active", "market": "Houma, LA", "st_tenant": "Shockwave Generators & Electric", "audit": {"hs": 82, "err": 197, "warn": 315, "total": 1073}, "device": "mobile"}, {"id": "8378547", "name": "Skeltonsair", "url": "skeltonsair.com", "city": "Birmingham", "state": "AL", "kw": [{"k": "ac repair", "v": 98000, "p": 7}, {"k": "air conditioning repair", "v": 115000, "p": 10}, {"k": "hvac maintenance", "v": 45000, "p": 10}, {"k": "furnace repair", "v": 184000, "p": 28}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 4.8, "traffic": 645, "kw_total": 199, "kw_1_3": 38, "kw_4_10": 78, "kw_11_20": 9, "refdomains": 212, "backlinks": 477, "org_cost": 366244}, "region": "Gulf", "brand_name": "Skelton's Heating & Cooling", "status": "Active", "market": "Birmingham, AL", "st_tenant": "", "audit": {"hs": 97, "err": 18, "warn": 210, "total": 699}, "device": "mobile"}, {"id": "8378548", "name": "Southernairms", "url": "southernairms.com", "city": "McComb", "state": "MS", "kw": [{"k": "ac maintenance", "v": 36000, "p": 1}, {"k": "ac tune up", "v": 18000, "p": 1}, {"k": "heat pump repair", "v": 50000, "p": 1}, {"k": "ac repair", "v": 98000, "p": 2}, {"k": "furnace repair", "v": 184000, "p": 2}, {"k": "water heater repair", "v": 146000, "p": 2}, {"k": "water heater replacement", "v": 94000, "p": 2}, {"k": "drain cleaning", "v": 50000, "p": 3}, {"k": "hvac maintenance", "v": 45000, "p": 3}, {"k": "hvac service", "v": 136000, "p": 3}, {"k": "air conditioning repair", "v": 115000, "p": 4}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 0.8, "traffic": 28, "kw_total": 24, "kw_1_3": 0, "kw_4_10": 9, "kw_11_20": 3, "refdomains": 75, "backlinks": 224, "org_cost": 82441}, "region": "Gulf", "brand_name": "Southern Air MS Heating and Cooling (McComb)", "status": "Active", "market": "McComb, MS", "st_tenant": "", "audit": {"hs": 65, "err": 304, "warn": 460, "total": 877}, "device": "mobile"}, {"id": "8378551", "name": "Robertsac", "url": "robertsac.com", "city": "Gulf Shores", "state": "LA", "kw": [{"k": "emergency plumber", "v": 95000, "p": 2}, {"k": "air conditioning repair", "v": 115000, "p": 3}, {"k": "drain cleaning", "v": 50000, "p": 3}, {"k": "furnace repair", "v": 184000, "p": 4}, {"k": "water heater repair", "v": 146000, "p": 4}, {"k": "ac repair", "v": 98000, "p": 4}, {"k": "water heater replacement", "v": 94000, "p": 4}, {"k": "hvac maintenance", "v": 45000, "p": 4}, {"k": "hvac repair", "v": 115000, "p": 5}, {"k": "sewer line repair", "v": 93000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 6}, {"k": "plumber", "v": 270000, "p": 12}], "se": {"dr": 1.0, "traffic": 180, "kw_total": 27, "kw_1_3": 2, "kw_4_10": 17, "kw_11_20": 4, "refdomains": 58, "backlinks": 139, "org_cost": 158668}, "region": "Gulf", "brand_name": "Roberts AC", "status": "Active", "market": "Gulf Shores, LA", "st_tenant": "Roberts Cooling, Heating, Plumbing & Electrical", "audit": {"hs": 98, "err": 10, "warn": 154, "total": 446}, "device": "mobile"}, {"id": "8378553", "name": "Southernairnow", "url": "southernairnow.com", "city": "Meridian", "state": "MS", "kw": [{"k": "ac repair", "v": 98000, "p": 1}, {"k": "air conditioning repair", "v": 115000, "p": 1}, {"k": "air conditioning service", "v": 32000, "p": 1}, {"k": "furnace repair", "v": 184000, "p": 1}, {"k": "plumbing service", "v": 11000, "p": 1}, {"k": "ac maintenance", "v": 36000, "p": 2}, {"k": "hvac maintenance", "v": 45000, "p": 2}, {"k": "hvac repair", "v": 115000, "p": 2}, {"k": "water heater repair", "v": 146000, "p": 2}, {"k": "water heater replacement", "v": 94000, "p": 2}, {"k": "drain cleaning", "v": 50000, "p": 3}, {"k": "hvac service", "v": 136000, "p": 3}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 29.0, "traffic": 2645, "kw_total": 383, "kw_1_3": 95, "kw_4_10": 117, "kw_11_20": 38, "refdomains": 339, "backlinks": 2564, "org_cost": 1390067}, "region": "Gulf", "brand_name": "Southern Air (Central LA)", "status": "Active", "market": "Meridian, MS", "st_tenant": "", "audit": {"hs": 89, "err": 179, "warn": 555, "total": 1668}, "device": "mobile"}, {"id": "8378554", "name": "Surgisac", "url": "surgisac.com", "city": "New Orleans", "state": "LA", "kw": [{"k": "furnace repair", "v": 184000, "p": 4}, {"k": "water heater repair", "v": 146000, "p": 11}, {"k": "water heater replacement", "v": 94000, "p": 11}, {"k": "air conditioning repair", "v": 115000, "p": 19}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 18.0, "traffic": 1682, "kw_total": 202, "kw_1_3": 67, "kw_4_10": 87, "kw_11_20": 17, "refdomains": 115, "backlinks": 432, "org_cost": 900236}, "region": "Gulf", "brand_name": "Surgi's", "status": "Active", "market": "New Orleans, LA", "st_tenant": "Surgi's Heating, Cooling, Electrical & Plumbing", "audit": {"hs": 100, "err": 2, "warn": 183, "total": 676}, "device": "mobile"}, {"id": "8378555", "name": "Tims-ac", "url": "tims-ac.com", "city": "Broussard", "state": "LA", "kw": [{"k": "air conditioning repair", "v": 115000, "p": 6}, {"k": "ac repair", "v": 98000, "p": 7}, {"k": "heat pump repair", "v": 50000, "p": 7}, {"k": "drain cleaning", "v": 50000, "p": 8}, {"k": "hvac service", "v": 136000, "p": 9}, {"k": "water heater replacement", "v": 94000, "p": 9}, {"k": "hvac maintenance", "v": 45000, "p": 11}, {"k": "furnace repair", "v": 184000, "p": 15}, {"k": "plumber", "v": 270000, "p": 22}], "se": {"dr": 11.0, "traffic": 1185, "kw_total": 206, "kw_1_3": 19, "kw_4_10": 82, "kw_11_20": 28, "refdomains": 101, "backlinks": 370, "org_cost": 518479}, "region": "Gulf", "brand_name": "Tim's Southern Air", "status": "Active", "market": "Broussard, LA", "st_tenant": "Tim's Southern Air Heating, Cooling & Plumbing", "audit": {"hs": 69, "err": 166, "warn": 198, "total": 543}, "device": "mobile"}, {"id": "8378556", "name": "Trahansnow", "url": "trahansnow.com", "city": "Houma", "state": "LA", "kw": [{"k": "hvac service", "v": 136000, "p": 4}, {"k": "heat pump repair", "v": 50000, "p": 4}, {"k": "drain cleaning", "v": 50000, "p": 5}, {"k": "water heater replacement", "v": 94000, "p": 5}, {"k": "furnace repair", "v": 184000, "p": 6}, {"k": "water heater repair", "v": 146000, "p": 6}, {"k": "ac repair", "v": 98000, "p": 6}, {"k": "hvac repair", "v": 115000, "p": 6}, {"k": "electrician", "v": 172000, "p": 7}, {"k": "air conditioning repair", "v": 115000, "p": 7}, {"k": "plumber", "v": 270000, "p": 12}], "se": {"dr": 9.0, "traffic": 318, "kw_total": 100, "kw_1_3": 7, "kw_4_10": 29, "kw_11_20": 20, "refdomains": 83, "backlinks": 203, "org_cost": 149811}, "region": "Gulf", "brand_name": "Trahan's Heating & Air Conditioning", "status": "Active", "market": "Houma, LA", "st_tenant": "Trahan's Cooling, Heating & Plumbing", "audit": {"hs": 99, "err": 5, "warn": 173, "total": 498}, "device": "mobile"}, {"id": "8378558", "name": "Evansair", "url": "evansair.net", "city": "Tyler", "state": "TX", "kw": [{"k": "air conditioning repair", "v": 115000, "p": 3}, {"k": "ac repair", "v": 98000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 7}, {"k": "heat pump repair", "v": 50000, "p": 13}, {"k": "furnace repair", "v": 184000, "p": 14}, {"k": "hvac repair", "v": 115000, "p": 16}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 0.6, "traffic": 333, "kw_total": 74, "kw_1_3": 9, "kw_4_10": 47, "kw_11_20": 15, "refdomains": 69, "backlinks": 170, "org_cost": 220240}, "region": "Gulf", "brand_name": "Evan's", "status": "Active", "market": "Tyler, TX", "st_tenant": "Evans Air Conditioning & Heating", "audit": {"hs": 79, "err": 200, "warn": 310, "total": 941}, "device": "mobile"}, {"id": "8378560", "name": "Slableak", "url": "slableak.us", "city": "Edmond", "state": "OK", "kw": [{"k": "drain cleaning", "v": 50000, "p": 4}, {"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 4.1, "traffic": 166, "kw_total": 54, "kw_1_3": 11, "kw_4_10": 16, "kw_11_20": 7, "refdomains": 98, "backlinks": 168, "org_cost": 84875}, "region": "Gulf", "brand_name": "Hi Tech Plumbing & Leak Detect", "status": "Active", "market": "Edmond, OK", "st_tenant": "Air Comfort Solutions OKC", "audit": {"hs": 99, "err": 3, "warn": 116, "total": 350}, "device": "mobile"}, {"id": "8378660", "name": "Kcaservices", "url": "kcaservices.net", "city": "Boerne", "state": "TX", "kw": [{"k": "water heater repair", "v": 146000, "p": 8}, {"k": "heat pump repair", "v": 50000, "p": 10}, {"k": "plumber", "v": 270000, "p": 13}, {"k": "furnace repair", "v": 184000, "p": 13}, {"k": "ac repair", "v": 98000, "p": 13}, {"k": "air conditioning repair", "v": 115000, "p": 14}, {"k": "drain cleaning", "v": 50000, "p": 14}], "se": {"dr": 11.0, "traffic": 310, "kw_total": 78, "kw_1_3": 16, "kw_4_10": 39, "kw_11_20": 7, "refdomains": 196, "backlinks": 18123, "org_cost": 392420}, "region": "Gulf", "brand_name": "KCA Services", "status": "Active", "market": "Boerne, TX", "st_tenant": "Champion AC LLC", "audit": {"hs": 99, "err": 6, "warn": 110, "total": 445}, "device": "mobile"}, {"id": "8384021", "name": "Aircomfortsolutions OKC", "url": "aircomfortsolutions.net/okc/", "city": "Oklahoma City", "state": "OK", "kw": [{"k": "hvac maintenance", "v": 45000, "p": 2}, {"k": "water heater replacement", "v": 94000, "p": 3}, {"k": "air conditioning repair", "v": 115000, "p": 5}, {"k": "emergency plumber", "v": 95000, "p": 6}, {"k": "water heater repair", "v": 146000, "p": 7}, {"k": "hvac repair", "v": 115000, "p": 7}, {"k": "sewer line repair", "v": 93000, "p": 7}, {"k": "hvac service", "v": 136000, "p": 9}, {"k": "ac repair", "v": 98000, "p": 9}, {"k": "heat pump repair", "v": 50000, "p": 9}, {"k": "furnace repair", "v": 184000, "p": 14}, {"k": "plumber", "v": 270000, "p": 18}], "se": {"dr": 19.0, "traffic": 8881, "kw_total": 1266, "kw_1_3": 136, "kw_4_10": 413, "kw_11_20": 202, "refdomains": 283, "backlinks": 1739, "org_cost": 6991724}, "region": "Gulf", "brand_name": "Air Comfort Solutions OKC", "status": "Active", "market": "Oklahoma City, OK", "st_tenant": "Air Comfort Solutions OKC", "audit": {"hs": 99, "err": 9, "warn": 477, "total": 1740}, "device": "mobile"}, {"id": "8384031", "name": "Aircomfortsolutions Tulsa", "url": "aircomfortsolutions.net/tulsa/", "city": "Oklahoma City", "state": "OK", "kw": [{"k": "water heater repair", "v": 146000, "p": 4}, {"k": "water heater replacement", "v": 94000, "p": 4}, {"k": "drain cleaning", "v": 50000, "p": 5}, {"k": "air conditioning repair", "v": 115000, "p": 7}, {"k": "sewer line repair", "v": 93000, "p": 7}, {"k": "ac repair", "v": 98000, "p": 10}, {"k": "furnace repair", "v": 184000, "p": 12}, {"k": "plumber", "v": 270000, "p": 22}], "se": {"dr": 7.0, "traffic": 3620, "kw_total": 418, "kw_1_3": 43, "kw_4_10": 205, "kw_11_20": 94, "refdomains": 205, "backlinks": 320, "org_cost": 1500306}, "region": "Gulf", "brand_name": "Air Comfort Solutions OKC", "status": "Active", "market": "Oklahoma City, OK", "st_tenant": "Air Comfort Solutions OKC", "audit": {"hs": 99, "err": 9, "warn": 477, "total": 1740}, "device": "mobile"}, {"id": "8384740", "name": "Aceair", "url": "aceair.net", "city": "Lake Charles", "state": "LA", "kw": [{"k": "water heater repair", "v": 146000, "p": 4}, {"k": "water heater replacement", "v": 94000, "p": 4}, {"k": "drain cleaning", "v": 50000, "p": 4}, {"k": "hvac service", "v": 136000, "p": 5}, {"k": "air conditioning repair", "v": 115000, "p": 6}, {"k": "ac repair", "v": 98000, "p": 6}, {"k": "plumber", "v": 270000, "p": 7}, {"k": "emergency plumber", "v": 95000, "p": 8}, {"k": "heat pump repair", "v": 50000, "p": 8}, {"k": "hvac repair", "v": 115000, "p": 9}, {"k": "furnace repair", "v": 184000, "p": 10}, {"k": "electrician", "v": 172000, "p": 11}], "se": {"dr": 16.0, "traffic": 121, "kw_total": 35, "kw_1_3": 2, "kw_4_10": 14, "kw_11_20": 4, "refdomains": 82, "backlinks": 174, "org_cost": 134922}, "region": "Gulf", "brand_name": "Ace Air", "status": "Active", "market": "Lake Charles, LA", "st_tenant": "Ace Air Conditioning & Plumbing", "audit": {"hs": 100, "err": 1, "warn": 189, "total": 579}, "device": "mobile"}, {"id": "8384741", "name": "Airtechofhumble", "url": "airtechofhumble.com", "city": "Humble", "state": "TX", "kw": [{"k": "water heater repair", "v": 146000, "p": 5}, {"k": "water heater replacement", "v": 94000, "p": 5}, {"k": "furnace repair", "v": 184000, "p": 10}, {"k": "hvac service", "v": 136000, "p": 11}, {"k": "hvac repair", "v": 115000, "p": 13}, {"k": "ac repair", "v": 98000, "p": 17}, {"k": "air conditioning repair", "v": 115000, "p": 18}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 7.0, "traffic": 221, "kw_total": 89, "kw_1_3": 35, "kw_4_10": 34, "kw_11_20": 5, "refdomains": 92, "backlinks": 452, "org_cost": 74405}, "region": "Gulf", "brand_name": "Air Tech Humble", "status": "Active", "market": "Humble, TX", "st_tenant": "Air Tech of Houston", "audit": {"hs": 100, "err": 0, "warn": 252, "total": 502}, "device": "mobile"}, {"id": "8384743", "name": "Dentairconditioning", "url": "dentairconditioning.com", "city": "Jackson", "state": "MS", "kw": [{"k": "hvac service", "v": 136000, "p": 1}, {"k": "furnace repair", "v": 184000, "p": 4}, {"k": "drain cleaning", "v": 50000, "p": 5}, {"k": "heat pump repair", "v": 50000, "p": 5}, {"k": "emergency plumber", "v": 95000, "p": 5}, {"k": "plumber", "v": 270000, "p": 6}, {"k": "ac repair", "v": 98000, "p": 8}, {"k": "air conditioning repair", "v": 115000, "p": 13}], "se": {"dr": 12.0, "traffic": 481, "kw_total": 92, "kw_1_3": 16, "kw_4_10": 40, "kw_11_20": 10, "refdomains": 184, "backlinks": 300, "org_cost": 271020}, "region": "Gulf", "brand_name": "Dent Air Conditioning", "status": "Active", "market": "Jackson, MS", "st_tenant": "Dent Air Conditioning, Heating, & Plumbing", "audit": {"hs": 90, "err": 87, "warn": 202, "total": 830}, "device": "mobile"}, {"id": "8384744", "name": "Airtechofconroe", "url": "airtechofconroe.com", "city": "Conroe", "state": "TX", "kw": [{"k": "heat pump repair", "v": 50000, "p": 3}, {"k": "water heater repair", "v": 146000, "p": 7}, {"k": "hvac service", "v": 136000, "p": 7}, {"k": "hvac repair", "v": 115000, "p": 8}, {"k": "hvac maintenance", "v": 45000, "p": 9}, {"k": "ac repair", "v": 98000, "p": 10}, {"k": "drain cleaning", "v": 50000, "p": 11}, {"k": "furnace repair", "v": 184000, "p": 12}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 7.0, "traffic": 2312, "kw_total": 191, "kw_1_3": 72, "kw_4_10": 89, "kw_11_20": 12, "refdomains": 124, "backlinks": 425, "org_cost": 669288}, "region": "Gulf", "brand_name": "Air Tech Conroe", "status": "Active", "market": "Conroe, TX", "st_tenant": "Air Tech of Houston", "audit": {"hs": 98, "err": 6, "warn": 156, "total": 387}, "device": "mobile"}, {"id": "8384745", "name": "Bud Anderson", "url": "ba-hvac.com", "city": "Lowell", "state": "AR", "kw": [{"k": "hvac repair", "v": 115000, "p": 5}, {"k": "sewer line repair", "v": 93000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 6}, {"k": "heat pump repair", "v": 50000, "p": 6}, {"k": "air conditioning repair", "v": 115000, "p": 7}, {"k": "furnace repair", "v": 184000, "p": 8}, {"k": "ac repair", "v": 98000, "p": 8}, {"k": "drain cleaning", "v": 50000, "p": 9}, {"k": "emergency plumber", "v": 95000, "p": 9}, {"k": "water heater repair", "v": 146000, "p": 10}, {"k": "water heater replacement", "v": 94000, "p": 8}, {"k": "electrician", "v": 172000, "p": 12}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 6.0, "traffic": 216, "kw_total": 105, "kw_1_3": 9, "kw_4_10": 32, "kw_11_20": 10, "refdomains": 125, "backlinks": 368, "org_cost": 135764}, "region": "Gulf", "brand_name": "Bud Anderson", "status": "Active", "market": "Lowell, AR", "st_tenant": "Bud Anderson Cooling, Heating, Plumbing & Electrical", "audit": {"hs": 98, "err": 18, "warn": 326, "total": 1177}, "device": "mobile"}, {"id": "8384746", "name": "Bryansunited", "url": "bryansunited.com", "city": "New Orleans", "state": "LA", "kw": [{"k": "heat pump repair", "v": 50000, "p": 5}, {"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 10.0, "traffic": 90, "kw_total": 47, "kw_1_3": 2, "kw_4_10": 2, "kw_11_20": 0, "refdomains": 280, "backlinks": 893, "org_cost": 47641}, "region": "Gulf", "brand_name": "Bryan's United", "status": "Active", "market": "New Orleans, LA", "st_tenant": "Surgi's", "audit": {"hs": 98, "err": 102, "warn": 819, "total": 4371}, "device": "mobile"}, {"id": "8384747", "name": "Publicserviceplumbers", "url": "publicserviceplumbers.com", "city": "Dallas", "state": "TX", "kw": [{"k": "emergency plumber", "v": 95000, "p": 44}, {"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 18.0, "traffic": 1346, "kw_total": 399, "kw_1_3": 71, "kw_4_10": 89, "kw_11_20": 41, "refdomains": 134, "backlinks": 412, "org_cost": 1046562}, "region": "Gulf", "brand_name": "Public Service Plumbers", "status": "Active", "market": "Dallas, TX", "st_tenant": "Public Service Plumbers & AC", "audit": {"hs": 99, "err": 20, "warn": 416, "total": 1528}, "device": "mobile"}, {"id": "8384748", "name": "Ccacac", "url": "ccacac.com", "city": "Corpus Christi", "state": "TX", "kw": [{"k": "hvac repair", "v": 115000, "p": 5}, {"k": "hvac maintenance", "v": 45000, "p": 5}, {"k": "water heater replacement", "v": 94000, "p": 4}, {"k": "electrician", "v": 172000, "p": 8}, {"k": "air conditioning repair", "v": 115000, "p": 9}, {"k": "ac repair", "v": 98000, "p": 8}, {"k": "sewer line repair", "v": 93000, "p": 8}, {"k": "drain cleaning", "v": 50000, "p": 10}, {"k": "emergency plumber", "v": 95000, "p": 10}, {"k": "plumber", "v": 270000, "p": 11}, {"k": "water heater repair", "v": 146000, "p": 11}, {"k": "furnace repair", "v": 184000, "p": 13}], "se": {"dr": 29.0, "traffic": 4473, "kw_total": 729, "kw_1_3": 137, "kw_4_10": 293, "kw_11_20": 79, "refdomains": 276, "backlinks": 1862, "org_cost": 5854983}, "region": "Gulf", "brand_name": "CCAC Air Conditioning (Mathew's)", "status": "Active", "market": "Corpus Christi, TX", "st_tenant": "Mathew's CCAC", "audit": {"hs": 97, "err": 110, "warn": 2334, "total": 3280}, "device": "mobile"}, {"id": "8384749", "name": "Championac", "url": "championac.com", "city": "San Antonio", "state": "TX", "kw": [{"k": "ac repair", "v": 98000, "p": 8}, {"k": "drain cleaning", "v": 50000, "p": 11}, {"k": "furnace repair", "v": 184000, "p": 20}, {"k": "hvac service", "v": 136000, "p": 17}, {"k": "air conditioning repair", "v": 115000, "p": 17}, {"k": "hvac repair", "v": 115000, "p": 18}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 4.0, "traffic": 448, "kw_total": 143, "kw_1_3": 21, "kw_4_10": 35, "kw_11_20": 16, "refdomains": 72, "backlinks": 143, "org_cost": 135591}, "region": "Gulf", "brand_name": "Champion Home Services (San Antonio)", "status": "Active", "market": "San Antonio, TX", "st_tenant": "Champion AC LLC", "audit": {"hs": 96, "err": 109, "warn": 799, "total": 3064}, "device": "mobile"}, {"id": "8384790", "name": "Evergreencomfort", "url": "evergreencomfort.com", "city": "Waco", "state": "TX", "kw": [{"k": "hvac maintenance", "v": 45000, "p": 2}, {"k": "heat pump repair", "v": 50000, "p": 3}, {"k": "furnace repair", "v": 184000, "p": 10}, {"k": "hvac service", "v": 136000, "p": 15}, {"k": "air conditioning repair", "v": 115000, "p": 16}, {"k": "hvac repair", "v": 115000, "p": 14}, {"k": "ac repair", "v": 98000, "p": 17}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 8.0, "traffic": 242, "kw_total": 169, "kw_1_3": 39, "kw_4_10": 15, "kw_11_20": 15, "refdomains": 256, "backlinks": 861, "org_cost": 69133}, "region": "Gulf", "brand_name": "Evergreen Comfort", "status": "Active", "market": "Waco, TX", "st_tenant": "Lochridge Priest Home Services", "audit": {"hs": 99, "err": 14, "warn": 210, "total": 1066}, "device": "mobile"}, {"id": "8428636", "name": "Danley911", "url": "danley911.com", "city": "Monroe", "state": "NJ", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 10.0, "traffic": 1132, "kw_total": 186, "kw_1_3": 42, "kw_4_10": 74, "kw_11_20": 9, "refdomains": 165, "backlinks": 612, "org_cost": 403070}, "region": "Atlantic South", "brand_name": "Danley Home Services", "status": "Active", "market": "Monroe, NJ", "st_tenant": "Atlantic South - New Jersey", "audit": {"hs": 88, "err": 511, "warn": 694, "total": 4278}, "device": "mobile"}, {"id": "8433684", "name": "Westallisheating", "url": "westallisheating.com", "city": "Chicago", "state": "IL", "kw": [{"k": "hvac installation", "v": 95000, "p": 16}, {"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 7.0, "traffic": 259, "kw_total": 138, "kw_1_3": 23, "kw_4_10": 56, "kw_11_20": 11, "refdomains": 71, "backlinks": 254, "org_cost": 89267}, "region": "Midwest", "brand_name": "West Allis", "status": "Active", "market": "Chicago, IL", "st_tenant": "West Allis Heating Cooling Plumbing and Electrical", "audit": {"hs": 91, "err": 74, "warn": 232, "total": 862}, "device": "mobile"}, {"id": "8438416", "name": "Fantesphvac", "url": "fantesphvac.com", "city": "Williingboro", "state": "NJ", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 1.3, "traffic": 46, "kw_total": 5, "kw_1_3": 4, "kw_4_10": 1, "kw_11_20": 0, "refdomains": 63, "backlinks": 139, "org_cost": 44132}, "region": "Atlantic South", "brand_name": "Fante's", "status": "Active", "market": "Williingboro, NJ", "st_tenant": "Atlantic South - New Jersey", "audit": {"hs": 98, "err": 18, "warn": 428, "total": 1146}, "device": "mobile"}, {"id": "8438417", "name": "Haddonheatingcooling", "url": "haddonheatingcooling.com", "city": "Concord", "state": "CA", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 20.0, "traffic": 17, "kw_total": 17, "kw_1_3": 1, "kw_4_10": 8, "kw_11_20": 3, "refdomains": 117, "backlinks": 330, "org_cost": 1169}, "region": "Mountain West", "brand_name": "Haddon Heating & Cooling", "status": "Active", "market": "Concord, CA", "st_tenant": "", "audit": {"hs": 99, "err": 2, "warn": 36, "total": 139}, "device": "mobile"}, {"id": "8438418", "name": "Rolairrepair", "url": "rolairrepair.com", "city": "Zimmerman", "state": "MN", "kw": [{"k": "emergency plumber", "v": 95000, "p": 2}, {"k": "water heater repair", "v": 146000, "p": 3}, {"k": "furnace repair", "v": 184000, "p": 5}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 4.3, "traffic": 233, "kw_total": 29, "kw_1_3": 3, "kw_4_10": 12, "kw_11_20": 7, "refdomains": 119, "backlinks": 337, "org_cost": 295574}, "region": "Midwest", "brand_name": "Rol Air", "status": "Active", "market": "Zimmerman, MN", "st_tenant": "Hero, Metro AIr, Rol Air, & Stafford Home Services", "audit": {"hs": 100, "err": 2, "warn": 395, "total": 1753}, "device": "mobile"}, {"id": "8438420", "name": "Fivestarheating", "url": "fivestarheating.com", "city": "Inverness", "state": "IL", "kw": [{"k": "air conditioning repair", "v": 115000, "p": 5}, {"k": "hvac repair", "v": 115000, "p": 7}, {"k": "hvac service", "v": 136000, "p": 10}, {"k": "ac repair", "v": 98000, "p": 23}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 5.0, "traffic": 298, "kw_total": 73, "kw_1_3": 18, "kw_4_10": 20, "kw_11_20": 7, "refdomains": 294, "backlinks": 2013, "org_cost": 120162}, "region": "Midwest", "brand_name": "Five Star Heating & Cooling", "status": "Active", "market": "Inverness, IL", "st_tenant": "Precision Today", "audit": {"hs": 83, "err": 47, "warn": 157, "total": 270}, "device": "mobile"}, {"id": "8438421", "name": "72degrees", "url": "72degrees.com", "city": "Ankeny", "state": "IA", "kw": [{"k": "hvac maintenance", "v": 45000, "p": 6}, {"k": "air conditioning repair", "v": 115000, "p": 8}, {"k": "heat pump repair", "v": 50000, "p": 11}, {"k": "ac repair", "v": 98000, "p": 11}, {"k": "furnace repair", "v": 184000, "p": 13}, {"k": "hvac service", "v": 136000, "p": 18}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 3.7, "traffic": 293, "kw_total": 40, "kw_1_3": 8, "kw_4_10": 18, "kw_11_20": 12, "refdomains": 241, "backlinks": 595, "org_cost": 173904}, "region": "Midwest", "brand_name": "72 Degrees", "status": "Active", "market": "Ankeny, IA", "st_tenant": "Holt Plumbing, Heating, Cooling and Electrical, LLC.", "audit": {"hs": 2, "err": 669, "warn": 677, "total": 686}, "device": "mobile"}, {"id": "8438422", "name": "Theawefactor", "url": "theawefactor.com", "city": "Carol Stream", "state": "IL", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 2.8, "traffic": 24, "kw_total": 49, "kw_1_3": 19, "kw_4_10": 6, "kw_11_20": 0, "refdomains": 77, "backlinks": 788, "org_cost": 7897}, "region": "Midwest", "brand_name": "AWE (Air Water Energy)", "status": "Active", "market": "Carol Stream, IL", "st_tenant": "", "audit": {"hs": 88, "err": 41, "warn": 181, "total": 347}, "device": "mobile"}, {"id": "8438423", "name": "Edwardsroyalcomfort", "url": "edwardsroyalcomfort.com", "city": "Green Castle", "state": "IN", "kw": [{"k": "hvac service", "v": 136000, "p": 6}, {"k": "water heater repair", "v": 146000, "p": 8}, {"k": "air conditioning repair", "v": 115000, "p": 9}, {"k": "furnace repair", "v": 184000, "p": 9}, {"k": "hvac repair", "v": 115000, "p": 10}, {"k": "plumber", "v": 270000, "p": 16}], "se": {"dr": 6.0, "traffic": 641, "kw_total": 34, "kw_1_3": 14, "kw_4_10": 16, "kw_11_20": 1, "refdomains": 85, "backlinks": 264, "org_cost": 191796}, "region": "Midwest", "brand_name": "Edwards Royal Comfort", "status": "Active", "market": "Green Castle, IN", "st_tenant": "Basset Services", "audit": {"hs": 97, "err": 36, "warn": 194, "total": 1133}, "device": "mobile"}, {"id": "8438424", "name": "Folkeshomeservices", "url": "folkeshomeservices.com", "city": "Fishkill", "state": "NY", "kw": [{"k": "emergency plumber", "v": 95000, "p": 2}, {"k": "water heater repair", "v": 146000, "p": 4}, {"k": "water heater replacement", "v": 94000, "p": 4}, {"k": "air conditioning repair", "v": 115000, "p": 4}, {"k": "furnace repair", "v": 184000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 5}, {"k": "hvac repair", "v": 115000, "p": 5}, {"k": "ac repair", "v": 98000, "p": 5}, {"k": "plumber", "v": 270000, "p": 6}, {"k": "sewer line repair", "v": 93000, "p": 6}, {"k": "hvac maintenance", "v": 45000, "p": 6}, {"k": "drain cleaning", "v": 50000, "p": 18}], "se": {"dr": 25.0, "traffic": 2578, "kw_total": 566, "kw_1_3": 111, "kw_4_10": 275, "kw_11_20": 67, "refdomains": 344, "backlinks": 1130, "org_cost": 1018889}, "region": "Atlantic North", "brand_name": "Folkes Home Services", "status": "Active", "market": "Fishkill, NY", "st_tenant": "New York Metro - NY \ud83c\udf4e\ud83d\udc27\ud83d\udefb", "audit": {"hs": 99, "err": 3, "warn": 139, "total": 450}, "device": "mobile"}, {"id": "8438426", "name": "Haleymechanical", "url": "haleymechanical.com", "city": "Ann Arbor", "state": "MI", "kw": [{"k": "plumbing service", "v": 11000, "p": 1}, {"k": "air conditioning repair", "v": 115000, "p": 2}, {"k": "plumber", "v": 270000, "p": 2}, {"k": "ac maintenance", "v": 36000, "p": 4}, {"k": "heat pump repair", "v": 50000, "p": 4}, {"k": "hvac service", "v": 136000, "p": 5}, {"k": "emergency plumber", "v": 95000, "p": 5}, {"k": "hvac repair", "v": 115000, "p": 6}, {"k": "electrician", "v": 172000, "p": 7}, {"k": "furnace repair", "v": 184000, "p": 7}, {"k": "ac repair", "v": 98000, "p": null}], "se": {"dr": 5.0, "traffic": 29, "kw_total": 5, "kw_1_3": 1, "kw_4_10": 2, "kw_11_20": 0, "refdomains": 161, "backlinks": 2440, "org_cost": 34109}, "region": "Midwest", "brand_name": "Haley Mechanical", "status": "Active", "market": "Ann Arbor, MI", "st_tenant": "Haley Mechanical", "audit": {"hs": 75, "err": 300, "warn": 534, "total": 1179}, "device": "mobile"}, {"id": "8438428", "name": "Abetterplumberco", "url": "abetterplumberco.com", "city": "Denver", "state": "CO", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 6.0, "traffic": 151, "kw_total": 14, "kw_1_3": 4, "kw_4_10": 8, "kw_11_20": 0, "refdomains": 77, "backlinks": 214, "org_cost": 50866}, "region": "Mountain West", "brand_name": "A Better Plumber", "status": "Active", "market": "Denver, CO", "st_tenant": "Absolute Electrical, Heating & Cooling, LLC", "audit": {"hs": 90, "err": 14, "warn": 26, "total": 136}, "device": "mobile"}, {"id": "8438429", "name": "Coteelectric", "url": "coteelectric.com", "city": "Manchester", "state": "NH", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 0.1, "traffic": 18, "kw_total": 5, "kw_1_3": 2, "kw_4_10": 2, "kw_11_20": 0, "refdomains": 57, "backlinks": 80, "org_cost": 3883}, "region": "Atlantic North", "brand_name": "Cote Electric", "status": "Active", "market": "Manchester, NH", "st_tenant": "Heritage Home Service (New Hampshire)", "audit": {"hs": 95, "err": 12, "warn": 67, "total": 240}, "device": "mobile"}, {"id": "8438430", "name": "Expertairac", "url": "expertairac.com", "city": "Covington", "state": "LA", "kw": [{"k": "ac repair", "v": 98000, "p": 14}, {"k": "hvac repair", "v": 115000, "p": 14}, {"k": "furnace repair", "v": 184000, "p": 17}, {"k": "air conditioning repair", "v": 115000, "p": 17}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 14.0, "traffic": 50, "kw_total": 6, "kw_1_3": 1, "kw_4_10": 3, "kw_11_20": 0, "refdomains": 82, "backlinks": 254, "org_cost": 11661}, "region": "Gulf", "brand_name": "Expert Air", "status": "Active", "market": "Covington, LA", "st_tenant": "Foulks Southern Air", "audit": {"hs": 93, "err": 25, "warn": 90, "total": 367}, "device": "mobile"}, {"id": "8438431", "name": "Canfieldph", "url": "canfieldph.com", "city": "Lowell", "state": "MI", "kw": [{"k": "water heater repair", "v": 146000, "p": 20}, {"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 25.0, "traffic": 1005, "kw_total": 330, "kw_1_3": 60, "kw_4_10": 80, "kw_11_20": 41, "refdomains": 349, "backlinks": 1228, "org_cost": 392748}, "region": "Midwest", "brand_name": "Canfield", "status": "Active", "market": "Lowell, MI", "st_tenant": "Canfield Plumbing & Heating", "audit": {"hs": 98, "err": 6, "warn": 62, "total": 327}, "device": "mobile"}, {"id": "8438432", "name": "Homecomfortusa", "url": "homecomfortusa.com", "city": "Anaheim", "state": "CA", "kw": [{"k": "hvac service", "v": 136000, "p": 4}, {"k": "furnace repair", "v": 184000, "p": 6}, {"k": "heat pump repair", "v": 50000, "p": 10}, {"k": "hvac repair", "v": 115000, "p": 11}, {"k": "ac repair", "v": 98000, "p": 14}, {"k": "air conditioning repair", "v": 115000, "p": 16}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 10.0, "traffic": 23, "kw_total": 9, "kw_1_3": 3, "kw_4_10": 3, "kw_11_20": 0, "refdomains": 115, "backlinks": 213, "org_cost": 6526}, "region": "Pacific", "brand_name": "Home Comfort USA", "status": "Active", "market": "Anaheim, CA", "st_tenant": "Home Comfort USA", "audit": {"hs": 81, "err": 507, "warn": 576, "total": 2629}, "device": "mobile"}, {"id": "8438435", "name": "Socalairflowpros", "url": "socalairflowpros.com", "city": "Rancho Santa Margarita", "state": "CA", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 8.0, "traffic": 810, "kw_total": 132, "kw_1_3": 39, "kw_4_10": 82, "kw_11_20": 9, "refdomains": 81, "backlinks": 284, "org_cost": 1333068}, "region": "Pacific", "brand_name": "SoCal AirFlow Pros", "status": "Active", "market": "Rancho Santa Margarita, CA", "st_tenant": "", "audit": {"hs": 99, "err": 3, "warn": 44, "total": 240}, "device": "mobile"}, {"id": "8438436", "name": "Welzig-heating-and-air", "url": "welzig-heating-and-air.com", "city": "Longmont", "state": "CO", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}, {"k": "electrician", "v": 172000, "p": null}], "se": {"dr": 18.0, "traffic": 3, "kw_total": 3, "kw_1_3": 2, "kw_4_10": 1, "kw_11_20": 0, "refdomains": 73, "backlinks": 476, "org_cost": 1535}, "region": "Mountain West", "brand_name": "Welzig", "status": "Active", "market": "Longmont, CO", "st_tenant": "", "audit": {"hs": 97, "err": 7, "warn": 122, "total": 274}, "device": "mobile"}, {"id": "8451778", "name": "Aircomfortsolutions", "url": "aircomfortsolutions.net/okc/", "city": "Oklahoma City", "state": "OK", "kw": [{"k": "emergency plumbing", "v": 43000, "p": 2}, {"k": "emergency ac repair", "v": 16000, "p": 2}, {"k": "ac repair", "v": 98000, "p": 8}, {"k": "furnace repair", "v": 184000, "p": 13}, {"k": "emergency electrician", "v": 13000, "p": 17}], "se": {"dr": 13.0, "traffic": 1008, "kw_total": 399, "kw_1_3": 184, "kw_4_10": 94, "kw_11_20": 26, "refdomains": 193, "backlinks": 504, "org_cost": 383259}, "region": "Gulf", "brand_name": "Air Comfort Solutions OKC", "status": "Active", "market": "Oklahoma City, OK", "st_tenant": "Air Comfort Solutions OKC", "audit": {"hs": 99, "err": 9, "warn": 477, "total": 1740}, "device": "mobile"}, {"id": "8599942", "name": "Schwartz Plumbing", "url": "schwartzplumbing.com", "city": "Raleigh", "state": "NC", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 0.1, "traffic": 57, "kw_total": 14, "kw_1_3": 0, "kw_4_10": 13, "kw_11_20": 1, "refdomains": 37, "backlinks": 44, "org_cost": 36258}, "region": "Southeast", "brand_name": "Schwartz Plumbing Co.", "status": "Active", "market": "Raleigh, NC", "st_tenant": "", "audit": {"hs": 98, "err": 1, "warn": 5, "total": 47}, "device": "mobile"}, {"id": "8606017", "name": "Mister Greenway", "url": "callgreenway.com", "city": "Memphis", "state": "TN", "kw": [{"k": "drain cleaning", "v": 50000, "p": 4}, {"k": "sewer line repair", "v": 93000, "p": 5}, {"k": "water heater repair", "v": 146000, "p": 13}, {"k": "air conditioning repair", "v": 115000, "p": 16}, {"k": "ac repair", "v": 98000, "p": 17}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 1.4, "traffic": 104, "kw_total": 127, "kw_1_3": 3, "kw_4_10": 5, "kw_11_20": 2, "refdomains": 147, "backlinks": 680, "org_cost": 33333}, "region": "Gulf", "brand_name": "Mister Greenway", "status": "Active", "market": "Memphis, TN", "st_tenant": "Mister Greenway", "audit": {"hs": 100, "err": 1, "warn": 244, "total": 826}, "device": "mobile"}, {"id": "8606400", "name": "Homemaxmemphis", "url": "homemaxmemphis.com", "city": "Memphis", "state": "TN", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 11.0, "traffic": 2665, "kw_total": 454, "kw_1_3": 85, "kw_4_10": 165, "kw_11_20": 47, "refdomains": 243, "backlinks": 710, "org_cost": 1005445}, "region": "Southeast", "brand_name": "HomeMax", "status": "Legacy", "market": "Memphis, TN", "st_tenant": "", "audit": {"hs": 99, "err": 1, "warn": 7, "total": 94}, "device": "mobile"}, {"id": "8649704", "name": "Onecallhouston", "url": "onecallhouston.com", "city": "Houston", "state": "TX", "kw": [{"k": "heat pump repair", "v": 50000, "p": 17}, {"k": "emergency plumber", "v": 95000, "p": 24}, {"k": "sewer line repair", "v": 93000, "p": 24}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 36.0, "traffic": 1897, "kw_total": 250, "kw_1_3": 80, "kw_4_10": 94, "kw_11_20": 28, "refdomains": 423, "backlinks": 6960, "org_cost": 769763}, "region": "Gulf", "brand_name": "OneCall Houston", "status": "Active", "market": "Houston, TX", "st_tenant": "Air Tech of Katy", "audit": {"hs": 100, "err": 11, "warn": 312, "total": 2235}, "device": "mobile"}, {"id": "8787145", "name": "Hansensupertechs", "url": "hansensupertechs.com", "city": "Mobile", "state": "AL", "kw": [{"k": "sewer line repair", "v": 93000, "p": 3}, {"k": "heat pump repair", "v": 50000, "p": 3}, {"k": "ac repair", "v": 98000, "p": 4}, {"k": "electrician", "v": 172000, "p": 7}, {"k": "air conditioning repair", "v": 115000, "p": 7}, {"k": "hvac maintenance", "v": 45000, "p": 9}, {"k": "furnace repair", "v": 184000, "p": 10}, {"k": "hvac repair", "v": 115000, "p": 12}, {"k": "hvac service", "v": 136000, "p": 13}, {"k": "plumber", "v": 270000, "p": 16}], "se": {"dr": 0.3, "traffic": 0, "kw_total": 2, "kw_1_3": 0, "kw_4_10": 0, "kw_11_20": 0, "refdomains": 67, "backlinks": 2128, "org_cost": 113}, "region": "Gulf", "brand_name": "Hansen Super Techs", "status": "Active", "market": "Mobile, AL", "st_tenant": "Hansen Super Techs", "audit": {"hs": 90, "err": 167, "warn": 418, "total": 1596}, "device": "mobile"}, {"id": "8882109", "name": "Serviceone", "url": "serviceone.com", "city": "Dubuque", "state": "IA", "kw": [{"k": "water heater installation", "v": 74000, "p": 3}, {"k": "drain cleaning", "v": 50000, "p": 3}, {"k": "ac repair", "v": 98000, "p": 6}, {"k": "furnace repair", "v": 184000, "p": 6}, {"k": "air conditioning repair", "v": 115000, "p": 6}, {"k": "water heater replacement", "v": 94000, "p": 6}, {"k": "hvac maintenance", "v": 45000, "p": 6}, {"k": "water heater repair", "v": 146000, "p": 7}, {"k": "heat pump repair", "v": 50000, "p": 7}, {"k": "hvac service", "v": 136000, "p": 8}, {"k": "hvac repair", "v": 115000, "p": 11}, {"k": "plumber", "v": 270000, "p": 19}], "se": {"dr": 4.2, "traffic": 98, "kw_total": 13, "kw_1_3": 3, "kw_4_10": 6, "kw_11_20": 2, "refdomains": 113, "backlinks": 577, "org_cost": 111176}, "region": "Midwest", "brand_name": "ServiceOne (Dubuque)", "status": "Active", "market": "Dubuque, IA", "st_tenant": "72 Degrees, Holt, & Service One", "audit": {"hs": 82, "err": 682, "warn": 1651, "total": 3796}, "device": "mobile"}, {"id": "9041307", "name": "A-Z Plumbing", "url": "callyourplumber.com", "city": "Cleveland", "state": "OH", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 4.1, "traffic": 190, "kw_total": 9, "kw_1_3": 4, "kw_4_10": 4, "kw_11_20": 0, "refdomains": 60, "backlinks": 306, "org_cost": 174506}, "region": "Atlantic North", "brand_name": "A-Z Plumbing", "status": "Active", "market": "Cleveland, OH", "st_tenant": "Steel Belt Market - \ud83e\udd16\ud83e\udda6\ud83d\udfe6", "audit": {"hs": 99, "err": 3, "warn": 32, "total": 241}, "device": "mobile"}, {"id": "9041311", "name": "Chapmanbros", "url": "chapmanbros.com", "city": "Cranford", "state": "NJ", "kw": [{"k": "water heater repair", "v": 146000, "p": 8}, {"k": "plumber", "v": 270000, "p": 11}, {"k": "emergency plumber", "v": 95000, "p": 24}], "se": {"dr": 19.0, "traffic": 1098, "kw_total": 274, "kw_1_3": 93, "kw_4_10": 111, "kw_11_20": 13, "refdomains": 93, "backlinks": 507, "org_cost": 690541}, "region": "Atlantic North", "brand_name": "Chapman", "status": "Active", "market": "Cranford, NJ", "st_tenant": "New York Metro - NY \ud83c\udf4e\ud83d\udc27\ud83d\udefb", "audit": {"hs": 99, "err": 5, "warn": 104, "total": 504}, "device": "mobile"}, {"id": "9041314", "name": "Oceansidehomeservices", "url": "oceansidehomeservices.com", "city": "Allenhurst", "state": "NJ", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 6.0, "traffic": 92, "kw_total": 20, "kw_1_3": 4, "kw_4_10": 14, "kw_11_20": 0, "refdomains": 74, "backlinks": 438, "org_cost": 80998}, "region": "Atlantic South", "brand_name": "Oceanside", "status": "Active", "market": "Allenhurst, NJ", "st_tenant": "Atlantic South - New Jersey", "audit": {"hs": 97, "err": 8, "warn": 85, "total": 281}, "device": "mobile"}, {"id": "9041320", "name": "Barstow & Sons", "url": "barstowhvac.com", "city": "Annapolis", "state": "MD", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 0.8, "traffic": 352, "kw_total": 31, "kw_1_3": 16, "kw_4_10": 10, "kw_11_20": 4, "refdomains": 77, "backlinks": 250, "org_cost": 465491}, "region": "Atlantic South", "brand_name": "Barstow & Sons", "status": "Active", "market": "Annapolis, MD", "st_tenant": "Atlantic South - New Jersey", "audit": {"hs": 92, "err": 48, "warn": 341, "total": 621}, "device": "mobile"}, {"id": "9041334", "name": "Alert Plumbing", "url": "alertplumbingok.com", "city": "Tulsa", "state": "OK", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 6.0, "traffic": 331, "kw_total": 130, "kw_1_3": 26, "kw_4_10": 35, "kw_11_20": 11, "refdomains": 136, "backlinks": 342, "org_cost": 125008}, "region": "Gulf", "brand_name": "Alert Services", "status": "Active", "market": "Tulsa, OK", "st_tenant": "Air Comfort Solutions Tulsa", "audit": {"hs": 97, "err": 3, "warn": 41, "total": 116}, "device": "mobile"}, {"id": "9041338", "name": "Bobsacandheat", "url": "bobsacandheat.com", "city": "League City", "state": "TX", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 3.5, "traffic": 2834, "kw_total": 342, "kw_1_3": 36, "kw_4_10": 167, "kw_11_20": 58, "refdomains": 123, "backlinks": 1382, "org_cost": 903428}, "region": "Gulf", "brand_name": "Bob's Air Conditioning, Heating & Electrical", "status": "Active", "market": "League City, TX", "st_tenant": "Bob's Air Conditioning, Heating & Electrical", "audit": {"hs": 99, "err": 3, "warn": 45, "total": 258}, "device": "mobile"}, {"id": "9041380", "name": "Calldougs", "url": "calldougs.com", "city": "Houma", "state": "LA", "kw": [{"k": "furnace repair", "v": 184000, "p": 4}, {"k": "ac repair", "v": 98000, "p": 4}, {"k": "hvac repair", "v": 115000, "p": 5}, {"k": "sewer line repair", "v": 93000, "p": 4}, {"k": "air conditioning repair", "v": 115000, "p": 6}, {"k": "hvac service", "v": 136000, "p": 8}, {"k": "plumber", "v": 270000, "p": 20}], "se": {"dr": 11.0, "traffic": 132, "kw_total": 11, "kw_1_3": 0, "kw_4_10": 6, "kw_11_20": 2, "refdomains": 66, "backlinks": 192, "org_cost": 21215}, "region": "Gulf", "brand_name": "Doug's Air Conditioning", "status": "Active", "market": "Houma, LA", "st_tenant": "Southern Air of Thibodaux", "audit": {"hs": 100, "err": 3, "warn": 406, "total": 888}, "device": "mobile"}, {"id": "9041385", "name": "Calldreamteam", "url": "calldreamteam.com", "city": "Baton Rouge", "state": "LA", "kw": [{"k": "hvac service", "v": 136000, "p": 13}, {"k": "hvac repair", "v": 115000, "p": 13}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 3.9, "traffic": 345, "kw_total": 13, "kw_1_3": 7, "kw_4_10": 3, "kw_11_20": 1, "refdomains": 84, "backlinks": 425, "org_cost": 188462}, "region": "Gulf", "brand_name": "Dream Team", "status": "Active", "market": "Baton Rouge, LA", "st_tenant": "Southern Air Baton Rouge", "audit": {"hs": 99, "err": 3, "warn": 165, "total": 380}, "device": "mobile"}, {"id": "9041528", "name": "Jacksonac", "url": "jacksonac.com", "city": "Jackson", "state": "TN", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 1.9, "traffic": 0, "kw_total": 0, "kw_1_3": 0, "kw_4_10": 0, "kw_11_20": 0, "refdomains": 16, "backlinks": 72, "org_cost": 0}, "region": "Gulf", "brand_name": "Jackson Heating & Air", "status": "Active", "market": "Jackson, TN", "st_tenant": "Mister Greenway", "audit": {"hs": 99, "err": 3, "warn": 64, "total": 286}, "device": "mobile"}, {"id": "9041542", "name": "Davisonheating", "url": "davisonheating.com", "city": "Davison", "state": "MI", "kw": [{"k": "drain cleaning", "v": 50000, "p": 1}, {"k": "water heater repair", "v": 146000, "p": 2}, {"k": "water heater replacement", "v": 94000, "p": 2}, {"k": "sewer line repair", "v": 93000, "p": 2}, {"k": "plumber", "v": 270000, "p": 3}, {"k": "air conditioning repair", "v": 115000, "p": 4}, {"k": "heat pump repair", "v": 50000, "p": 4}, {"k": "furnace repair", "v": 184000, "p": 5}, {"k": "hvac service", "v": 136000, "p": 5}, {"k": "ac repair", "v": 98000, "p": 5}, {"k": "emergency plumber", "v": 95000, "p": 6}], "se": {"dr": 4.7, "traffic": 38, "kw_total": 15, "kw_1_3": 3, "kw_4_10": 8, "kw_11_20": 0, "refdomains": 180, "backlinks": 460, "org_cost": 13275}, "region": "Midwest", "brand_name": "Davison", "status": "Active", "market": "Davison, MI", "st_tenant": "", "audit": {"hs": 97, "err": 7, "warn": 58, "total": 278}, "device": "mobile"}, {"id": "9041578", "name": "Wisconsin-air", "url": "wisconsin-air.com", "city": "Regional - Wisconsin", "state": "WI", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 7.0, "traffic": 49, "kw_total": 14, "kw_1_3": 8, "kw_4_10": 3, "kw_11_20": 0, "refdomains": 78, "backlinks": 468, "org_cost": 13279}, "region": "Midwest", "brand_name": "Wisconsin Air ", "status": "Sunset/Tuck-In", "market": "Regional - Wisconsin, WI", "st_tenant": "", "audit": {"hs": 100, "err": 0, "warn": 4, "total": 4}, "device": "mobile"}, {"id": "9041593", "name": "Comfortmasterinc", "url": "comfortmasterinc.com", "city": "Zebulon", "state": "NC", "kw": [{"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 10.0, "traffic": 257, "kw_total": 53, "kw_1_3": 7, "kw_4_10": 38, "kw_11_20": 5, "refdomains": 110, "backlinks": 533, "org_cost": 260160}, "region": "Southeast", "brand_name": "Comfort Master (Blaze Heating, Cooling, Plumbing and Electric)", "status": "Active", "market": "Zebulon, NC", "st_tenant": "", "audit": {"hs": 99, "err": 2, "warn": 98, "total": 313}, "device": "mobile"}, {"id": "9041602", "name": "Frogair", "url": "frogair.com", "city": "Nashville", "state": "TN", "kw": [{"k": "hvac maintenance", "v": 45000, "p": 11}, {"k": "heat pump repair", "v": 50000, "p": 19}, {"k": "furnace repair", "v": 184000, "p": 20}, {"k": "plumber", "v": 270000, "p": null}], "se": {"dr": 0, "traffic": 0, "kw_total": 0, "kw_1_3": 0, "kw_4_10": 0, "kw_11_20": 0, "refdomains": 0, "backlinks": 0, "org_cost": 0}, "region": "Southeast", "brand_name": "Frog", "status": "Active", "market": "Nashville, TN", "st_tenant": "Pioneer Nashville", "audit": {"hs": 68, "err": 261, "warn": 357, "total": 806}, "device": "mobile"}, {"id": "9041609", "name": "Palmairac", "url": "palmairac.com", "city": "Boca Raton", "state": "FL", "kw": [{"k": "ac repair", "v": 98000, "p": 19}, {"k": "plumber", "v": 270000, "p": null}, {"k": "furnace repair", "v": 184000, "p": null}], "se": {"dr": 0, "traffic": 0, "kw_total": 0, "kw_1_3": 0, "kw_4_10": 0, "kw_11_20": 0, "refdomains": 0, "backlinks": 0, "org_cost": 0}, "region": "Southeast", "brand_name": "Palm Air", "status": "Active", "market": "Boca Raton, FL", "st_tenant": "", "audit": {"hs": 51, "err": 2068, "warn": 3930, "total": 4262}, "device": "mobile"}];
-function pc(p){if(p==null)return'pnr';if(p==1)return'p1';if(p==2)return'p2';if(p==3)return'p3';if(p<=5)return'p45';if(p<=10)return'p610';if(p<=20)return'p1120';return'p21'}
-function fv(v){if(v==null)return'—';if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1000)return(v/1000).toFixed(v>=1e4?0:1)+'K';return v+''}
-function fp(p){return p==null?'NR':p+''}
-function fm(c){if(!c)return'$0';c=c/100;if(c>=1000)return'$'+(c/1000).toFixed(1)+'K';return'$'+Math.round(c)}
-function dc(d){if(d>=30)return'var(--gn)';if(d>=15)return'var(--ac)';if(d>=5)return'var(--am)';return'var(--rd)'}
-function hsc(s){if(s>=85)return'var(--gn)';if(s>=65)return'var(--am)';if(s>=40)return'var(--or)';return'var(--rd)'}
+.table-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden}
+.tab-bar{display:flex;border-bottom:1px solid var(--bd);padding:0 14px;overflow-x:auto}
+.tab{padding:9px 14px;background:none;border:none;color:var(--mt);font-size:.75rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:var(--font);white-space:nowrap}
+.tab:hover{color:var(--tx)}.tab.active{color:var(--ac);border-bottom-color:var(--ac)}
+.tab-tools{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--bd)}
+.tab-tools input{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:5px 10px;color:var(--tx);font-size:.73rem;font-family:var(--font);outline:none;width:200px}
+.tab-tools input:focus{border-color:var(--ac)}
+.tab-content{display:none}.tab-content.active{display:block}
+.table-scroll{max-height:560px;overflow-y:auto}
+.data-table{width:100%;border-collapse:collapse;font-size:.73rem}
+.data-table th{text-align:left;padding:9px 10px;border-bottom:2px solid var(--bd);color:var(--mt);font-weight:600;font-size:.62rem;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;white-space:nowrap;user-select:none;position:sticky;top:0;background:var(--card);z-index:1}
+.data-table th:hover{color:var(--ac)}
+.data-table th.sorted-asc::after{content:' \u25B2';font-size:.5rem}.data-table th.sorted-desc::after{content:' \u25BC';font-size:.5rem}
+.data-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+.data-table tr:hover{background:rgba(59,130,246,.03)}
+.mono{font-family:var(--mono);font-size:.68rem}
+.kw-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.url-cell{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:.63rem;color:var(--cy);opacity:.8}
 
-// Process projects + compute health score
-const P=D.map(p=>{
-  const kws=[...p.kw].sort((a,b)=>{if(a.p==null&&b.p==null)return(b.v||0)-(a.v||0);if(a.p==null)return 1;if(b.p==null)return-1;return a.p-b.p});
-  const city=p.city||'';
-  const acM=kws.find(k=>k.k.toLowerCase()==='ac repair');
-  const plM=kws.find(k=>k.k.toLowerCase()==='plumber');
-  const pins=[];
-  pins.push(acM?{...acM,pin:1,lb:'AC Repair'}:{k:'ac repair',v:98000,p:null,pin:1,lb:'AC Repair'});
-  pins.push(plM?{...plM,pin:1,lb:'Plumber'}:{k:'plumber',v:270000,p:null,pin:1,lb:'Plumber'});
-  const pos=kws.filter(k=>k.p!=null).map(k=>k.p);
-  const bp=pos.length?Math.min(...pos):null;
-  const p1=pos.filter(x=>x==1).length;const t3=pos.filter(x=>x<=3).length;const t5=pos.filter(x=>x<=5).length;const t10=pos.filter(x=>x<=10).length;
-  const an=pos.length===0;
-  let ti,tc,bd,bc;
-  if(an){ti='Ghost';tc='tg';bd='👻 Ghost';bc='bg0'}
-  else if(p1>0){ti='Elite';tc='te';bd='🌟 #1';bc='be'}
-  else if(t3>=3){ti='Elite';tc='te';bd='🏆 Elite';bc='be'}
-  else if(t5>=1){ti='Performing';tc='tp';bd='✅ Top 5';bc='b5'}
-  else if(t10>=1){ti='Visible';tc='tv';bd='📊 Visible';bc='bv'}
-  else{ti='Struggling';tc='ts';bd='📉 Struggling';bc='bst'}
-  const se=p.se||{};const au=p.audit||{};
+/* Position Badge */
+.pos{display:inline-block;padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.63rem;font-weight:600;min-width:26px;text-align:center}
+.pos-1{background:rgba(16,185,129,.3);color:#10b981}.pos-2{background:rgba(110,231,183,.2);color:#6ee7b7}
+.pos-3{background:rgba(134,239,172,.14);color:#86efac}.pos-top10{background:rgba(59,130,246,.15);color:#93b8ff}
+.pos-top20{background:rgba(245,158,11,.12);color:#fcd34d}.pos-top50{background:rgba(125,134,152,.12);color:#a8b2bf}
+.pos-100{background:rgba(239,68,68,.08);color:#fca5a5}
 
-  // HEALTH SCORE: Site Health (30%) + Ranking Power (40%) + Authority (30%)
-  const siteH=au.hs!=null?au.hs:50;
-  const rkPow=Math.min(100,(p1*25+t3*15+t5*10+t10*5));
-  const dr=se.dr||0;const rd=se.refdomains||0;const tr=se.traffic||0;
-  const authScore=Math.min(100,dr*1.8+Math.log10(Math.max(rd,1))*12+Math.log10(Math.max(tr,1))*8);
-  const hs=Math.round(siteH*0.3+rkPow*0.4+authScore*0.3);
+/* Change arrows */
+.chg{font-size:.65rem;font-weight:600;font-family:var(--mono)}
+.chg.up{color:var(--gn)}.chg.down{color:var(--rd)}.chg.flat{color:var(--mt)}
 
-  return{...p,kws,pins,pos,bp,p1,t3,t5,t10,an,ti,tc,bd,bc,se,au,hs,siteH,rkPow:Math.round(rkPow),authScore:Math.round(authScore),bn:p.brand_name||p.name,rg:p.region||'',mkt:p.market||''};
-});
+/* KD Badge */
+.kd{display:inline-block;padding:2px 5px;border-radius:4px;font-family:var(--mono);font-size:.6rem;font-weight:600;min-width:22px;text-align:center}
+.kd-easy{background:rgba(16,185,129,.15);color:var(--gn)}.kd-medium{background:rgba(245,158,11,.12);color:var(--am)}
+.kd-hard{background:rgba(249,115,22,.12);color:var(--or)}.kd-super{background:rgba(239,68,68,.12);color:var(--rd)}
 
-// Dropdowns
-const regs=[...new Set(P.map(p=>p.rg).filter(Boolean))].sort();
-const sts=[...new Set(P.map(p=>p.state).filter(Boolean))].sort();
-regs.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;document.getElementById('rF').appendChild(o)});
-sts.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;document.getElementById('sF').appendChild(o)});
+/* DR inline */
+.dr-inline{display:inline-flex;align-items:center;gap:4px}
+.dr-bar{width:36px;height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
+.dr-fill{height:100%;border-radius:2px}
 
-let flt='all',srch='',tab='cards',regV='',stV='',sortBy='health';
+/* Tag pills */
+.tag-pill{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.55rem;font-weight:600;background:rgba(139,92,246,.1);color:var(--ac2);margin-right:3px}
 
-function gF(){
-  let f=P;
-  if(srch){const q=srch.toLowerCase();f=f.filter(p=>p.bn.toLowerCase().includes(q)||p.name.toLowerCase().includes(q)||p.url.toLowerCase().includes(q)||(p.city||'').toLowerCase().includes(q)||(p.state||'').toLowerCase().includes(q)||(p.mkt||'').toLowerCase().includes(q))}
-  if(regV)f=f.filter(p=>p.rg===regV);
-  if(stV)f=f.filter(p=>p.state===stV);
-  if(flt==='elite')f=f.filter(p=>p.ti==='Elite');
-  else if(flt==='top5')f=f.filter(p=>p.t5>0);
-  else if(flt==='vis')f=f.filter(p=>p.t10>0);
-  else if(flt==='ghost')f=f.filter(p=>p.an);
-  // Sort
-  if(sortBy==='health')f=[...f].sort((a,b)=>b.hs-a.hs);
-  else if(sortBy==='dr')f=[...f].sort((a,b)=>(b.se.dr||0)-(a.se.dr||0));
-  else if(sortBy==='traffic')f=[...f].sort((a,b)=>(b.se.traffic||0)-(a.se.traffic||0));
-  else if(sortBy==='rank')f=[...f].sort((a,b)=>b.t5-a.t5||b.t3-a.t3||(a.bp||999)-(b.bp||999));
-  return f;
-}
+/* Quick Win Row */
+.data-table tr.qw{background:rgba(16,185,129,.04)}
+.qw-badge{background:rgba(16,185,129,.12);color:var(--gn);font-size:.52rem;padding:1px 4px;border-radius:3px;font-weight:600;margin-left:4px}
 
-function ring(score,size=48){
-  const r=size/2-4;const c=2*Math.PI*r;const off=c-(score/100)*c;const col=hsc(score);
-  return`<div class="hs-ring" style="width:${size}px;height:${size}px">
-    <svg width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--bd)" stroke-width="3"/>
-    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="3" stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"/></svg>
-    <div class="score" style="color:${col}">${score}</div></div>`;
-}
+/* Intent bars */
+.intent-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.intent-item{display:flex;align-items:center;gap:6px;font-size:.68rem}
+.intent-item .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.intent-item .bar-wrap{flex:1;height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
+.intent-item .bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.intent-item .pct{font-family:var(--mono);font-size:.6rem;color:var(--mt);min-width:28px;text-align:right}
 
-function uSt(f){
-  let s={p1:0,t3:0,t5:0,t10:0,t20:0,t21:0,nr:0,gh:0};
-  f.forEach(p=>{if(p.an){s.gh++;return}p.kws.forEach(k=>{if(k.p==null)s.nr++;else if(k.p==1)s.p1++;else if(k.p<=3)s.t3++;else if(k.p<=5)s.t5++;else if(k.p<=10)s.t10++;else if(k.p<=20)s.t20++;else s.t21++})});
-  document.getElementById('st').innerHTML=
-    `<div class="pl"><span style="color:var(--gn)">#1</span><span class="n">${s.p1}</span></div>`+
-    `<div class="pl"><span style="color:var(--gn2)">#2-3</span><span class="n">${s.t3}</span></div>`+
-    `<div class="pl"><span style="color:var(--ac)">#4-5</span><span class="n">${s.t5}</span></div>`+
-    `<div class="pl"><span style="color:var(--mt)">#6-10</span><span class="n">${s.t10}</span></div>`+
-    `<div class="pl"><span style="color:var(--am)">#11-20</span><span class="n">${s.t20}</span></div>`+
-    `<div class="pl"><span style="color:var(--rd)">#21+</span><span class="n">${s.t21}</span></div>`+
-    `<div class="pl"><span style="color:#64748b">NR</span><span class="n">${s.nr}</span></div>`+
-    `<div class="pl"><span style="color:var(--rd)">👻</span><span class="n">${s.gh}</span></div>`;
-}
+/* Responsive */
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.charts-row{grid-template-columns:1fr}}
+@media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.projects-grid{grid-template-columns:1fr}.header-inner{flex-direction:column;align-items:stretch}.header-tools{margin-left:0}}
+</style>
+</head>
+<body>
 
-function cH(p){
-  const dr=p.se.dr||0;let kr='';
-  p.pins.forEach(k=>{kr+=`<tr class="pin"><td>📌 ${k.lb||k.k}</td><td>${fv(k.v)}</td><td><span class="po ${pc(k.p)}">${fp(k.p)}</span></td></tr>`});
-  const top=p.kws.filter(k=>k.p!=null).slice(0,4);
-  top.forEach(k=>{if(p.pins.some(pk=>pk.k===k.k))return;kr+=`<tr><td>${k.k}</td><td>${fv(k.v)}</td><td><span class="po ${pc(k.p)}">${fp(k.p)}</span></td></tr>`});
-  if(p.an)kr=`<tr><td colspan="3"><div class="gm">👻 No rankings detected</div></td></tr>`;
-  return`<div class="c" onclick="sD(${P.indexOf(p)})"><div class="c-top"><div style="flex:1">
-    <div class="c-nm">${p.bn}</div><div class="c-loc">${p.city}, ${p.state} · <span class="rg">${p.rg}</span></div>
-    <div class="c-url">${p.url}</div></div>
-    <div style="text-align:center">${ring(p.hs,44)}<div style="font-size:.5rem;color:var(--mt);text-align:center">HEALTH</div></div></div>
-    <div class="mr">
-      <div class="mm"><div class="v" style="color:${dc(dr)}">${dr}</div><div class="l">DR</div></div>
-      <div class="mm"><div class="v">${fv(p.se.traffic)}</div><div class="l">Traffic</div></div>
-      <div class="mm"><div class="v">${p.se.refdomains||0}</div><div class="l">Ref Doms</div></div>
-      <div class="mm"><div class="v" style="color:${p.au.hs!=null?(p.au.hs>=90?'var(--gn)':p.au.hs>=70?'var(--am)':'var(--rd)'):'var(--mt)'}">${p.au.hs!=null?p.au.hs+'%':'—'}</div><div class="l">Site Audit</div></div>
+<header>
+  <div class="header-inner">
+    <div class="brand" onclick="App.showProjects()"><b>Harness Digital</b><span>SEO Intelligence</span></div>
+    <div class="header-tools">
+      <input type="text" id="global-search" placeholder="Search projects..." oninput="App.filterProjects(this.value)">
     </div>
-    <table class="kt">${kr}</table></div>`;
-}
+  </div>
+</header>
 
-function rC(f){
-  return`<div class="sort-bar"><label>Sort by:</label>
-    <button class="sort-btn ${sortBy==='health'?'on':''}" onclick="sortBy='health';R()">Health Score</button>
-    <button class="sort-btn ${sortBy==='rank'?'on':''}" onclick="sortBy='rank';R()">Rankings</button>
-    <button class="sort-btn ${sortBy==='traffic'?'on':''}" onclick="sortBy='traffic';R()">Traffic</button>
-    <button class="sort-btn ${sortBy==='dr'?'on':''}" onclick="sortBy='dr';R()">DR</button>
-  </div><div class="gd">${f.map(cH).join('')}</div>`;
-}
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Loading projects...</div>
+</div>
 
-function rL(f){
-  const s=[...f].sort((a,b)=>b.hs-a.hs);
-  return`<table class="lt"><thead><tr><th>#</th><th>Brand</th><th>Market</th><th>Region</th><th>Health</th><th>Site Audit</th><th>DR</th><th>Tier</th><th>Traffic</th><th>#1</th><th>Top3</th><th>Top5</th><th>Best</th><th>Value</th></tr></thead><tbody>`+s.map((p,i)=>`<tr class="${i<10?'gl':''}" style="cursor:pointer" onclick="sD(${P.indexOf(p)})">
-    <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${i<10?'var(--am)':'var(--mt)'}">${i+1}</td>
-    <td style="font-weight:600">${p.bn}</td>
-    <td style="color:var(--mt);font-size:.68rem">${p.city}, ${p.state}</td>
-    <td><span class="rgt">${p.rg}</span></td>
-    <td><span class="hd-score" style="color:${hsc(p.hs)}">${p.hs}</span><span class="hs-bar"><span class="hs-fill" style="width:${p.hs}%;background:${hsc(p.hs)}"></span></span></td>
-    <td style="font-family:'JetBrains Mono',monospace;color:${p.au.hs!=null?(p.au.hs>=90?'var(--gn)':p.au.hs>=70?'var(--am)':'var(--rd)'):'var(--mt)'}">${p.au.hs!=null?p.au.hs+'%':'—'}</td>
-    <td><span style="color:${dc(p.se.dr||0)};font-family:'JetBrains Mono',monospace;font-weight:600">${p.se.dr||0}</span></td>
-    <td><span class="ti ${p.tc}">${p.ti}</span></td>
-    <td style="font-family:'JetBrains Mono',monospace">${fv(p.se.traffic)}</td>
-    <td style="font-family:'JetBrains Mono',monospace;color:var(--gn);font-weight:700">${p.p1}</td>
-    <td style="font-family:'JetBrains Mono',monospace">${p.t3}</td>
-    <td style="font-family:'JetBrains Mono',monospace">${p.t5}</td>
-    <td>${p.bp?`<span class="po ${pc(p.bp)}">${p.bp}</span>`:'—'}</td>
-    <td style="font-family:'JetBrains Mono',monospace;color:var(--gn);font-size:.68rem">${fm(p.se.org_cost)}</td></tr>`).join('')+`</tbody></table>`;
-}
+<main>
+  <div class="error-banner" id="error-banner"></div>
 
-function rQ(f){
-  const w=[];f.forEach(p=>{p.kws.forEach(k=>{if(k.p!=null&&k.p>=6&&k.p<=10){
-    let pr,prc;if(k.p===6){pr='High';prc='color:var(--rd)'}else if(k.p<=8){pr='Med';prc='color:var(--am)'}else{pr='Low';prc='color:var(--mt)'}
-    w.push({bn:p.bn,city:p.city,st:p.state,rg:p.rg,kw:k.k,vol:k.v,pos:k.p,gap:k.p-5,pr,prc})}})});
-  w.sort((a,b)=>(b.vol||0)-(a.vol||0));
-  if(!w.length)return'<div class="gm">No quick wins</div>';
-  return`<table class="lt"><thead><tr><th>Brand</th><th>Market</th><th>Region</th><th>Keyword</th><th>Volume</th><th>Pos</th><th>Gap</th><th>Priority</th></tr></thead><tbody>`+w.slice(0,100).map(w=>`<tr>
-    <td style="font-weight:600">${w.bn}</td><td style="color:var(--mt);font-size:.68rem">${w.city}, ${w.st}</td>
-    <td><span class="rgt">${w.rg}</span></td><td>${w.kw}</td><td style="font-family:'JetBrains Mono',monospace">${fv(w.vol)}</td>
-    <td><span class="po ${pc(w.pos)}">${w.pos}</span></td><td style="font-family:'JetBrains Mono',monospace;color:var(--am)">+${w.gap}</td>
-    <td style="${w.prc};font-weight:600;font-size:.68rem">${w.pr}</td></tr>`).join('')+`</tbody></table>`;
-}
+  <!-- ========= PROJECTS LIST VIEW ========= -->
+  <div class="view active" id="view-projects">
+    <div class="projects-header">
+      <h2>Client Projects</h2>
+      <span class="count" id="project-count"></span>
+    </div>
+    <div class="projects-grid" id="projects-grid"></div>
+  </div>
 
-function rG(f){
-  const gh=f.filter(p=>p.an).sort((a,b)=>b.hs-a.hs);const sg=f.filter(p=>!p.an&&p.t10===0).sort((a,b)=>b.hs-a.hs);
-  let h=`<h3 style="margin:12px 0 8px;color:var(--rd)">👻 Ghost Brands — No Rankings (${gh.length})</h3>`;
-  if(!gh.length)h+='<div class="gm">None</div>';
-  else h+=`<div class="gd">${gh.map(p=>`<div class="c" onclick="sD(${P.indexOf(p)})"><div class="c-top"><div style="flex:1">
-    <div class="c-nm">${p.bn}</div><div class="c-loc">${p.city}, ${p.state} · <span class="rg">${p.rg}</span></div></div>
-    ${ring(p.hs,40)}</div>
-    <div class="mr"><div class="mm"><div class="v" style="color:${dc(p.se.dr||0)}">${p.se.dr||0}</div><div class="l">DR</div></div>
-    <div class="mm"><div class="v">${p.au.hs!=null?p.au.hs+'%':'—'}</div><div class="l">Audit</div></div>
-    <div class="mm"><div class="v">${p.se.refdomains||0}</div><div class="l">Ref Doms</div></div>
-    <div class="mm"><div class="v">${fv(p.se.traffic)}</div><div class="l">Traffic</div></div></div>
-    <div style="color:var(--mt);font-size:.7rem;margin-top:6px">Needs: content + local links for <strong>${p.city}</strong></div></div>`).join('')}</div>`;
-  h+=`<h3 style="margin:18px 0 8px;color:var(--pk)">📉 Struggling — No Top 10 (${sg.length})</h3>`;
-  if(!sg.length)h+='<div class="gm">None</div>';
-  else h+=`<div class="gd">${sg.map(p=>`<div class="c" onclick="sD(${P.indexOf(p)})"><div class="c-top"><div>
-    <div class="c-nm">${p.bn}</div><div class="c-loc">${p.city}, ${p.state} · <span class="rg">${p.rg}</span></div></div>
-    ${ring(p.hs,40)}</div>
-    <div style="font-size:.7rem;color:var(--mt)">Best: <span class="po ${pc(p.bp)}">${fp(p.bp)}</span> · DR: ${p.se.dr||0} · Audit: ${p.au.hs!=null?p.au.hs+'%':'—'}</div></div>`).join('')}</div>`;
-  return h;
-}
+  <!-- ========= PROJECT DETAIL VIEW ========= -->
+  <div class="view" id="view-detail">
+    <div class="breadcrumb"><a onclick="App.showProjects()">All Projects</a><span>/</span><span id="bc-name"></span></div>
 
-// Detail
-window.sD=function(i){
-  const p=P[i];const d=document.getElementById('dt');const dr=p.se.dr||0;
-  let kr='';
-  p.pins.forEach(k=>{kr+=`<tr class="pin"><td>📌 ${k.lb||k.k}</td><td style="font-family:'JetBrains Mono',monospace">${fv(k.v)}</td><td><span class="po ${pc(k.p)}">${fp(k.p)}</span></td></tr>`});
-  p.kws.filter(k=>k.p!=null).forEach(k=>{if(p.pins.some(pk=>pk.k===k.k))return;kr+=`<tr><td>${k.k}</td><td style="font-family:'JetBrains Mono',monospace">${fv(k.v)}</td><td><span class="po ${pc(k.p)}">${fp(k.p)}</span></td></tr>`});
-  p.kws.filter(k=>k.p==null).forEach(k=>{if(p.pins.some(pk=>pk.k===k.k))return;kr+=`<tr style="opacity:.4"><td>${k.k}</td><td style="font-family:'JetBrains Mono',monospace">${fv(k.v)}</td><td><span class="po pnr">NR</span></td></tr>`});
-  d.innerHTML=`<button class="xb" onclick="xD()">✕ Close</button>
-    <h2>${p.bn}</h2>
-    <div class="su">${p.city}, ${p.state} · <span class="rgt">${p.rg}</span> · <a href="https://${p.url}" target="_blank">${p.url}</a> · <span class="bg ${p.bc}">${p.bd}</span></div>
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;padding:12px;background:var(--cd);border-radius:10px;border:1px solid var(--bd)">
-      ${ring(p.hs,64)}
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:.9rem">Brand Health Score: <span style="color:${hsc(p.hs)}">${p.hs}/100</span></div>
-        <div style="font-size:.68rem;color:var(--mt);margin-top:4px">
-          Site Health: <span style="color:${hsc(p.siteH)}">${p.siteH}</span> (30%) ·
-          Rank Power: <span style="color:${hsc(p.rkPow)}">${p.rkPow}</span> (40%) ·
-          Authority: <span style="color:${hsc(p.authScore)}">${p.authScore}</span> (30%)
-        </div>
+    <div class="detail-header">
+      <div>
+        <h2 id="detail-name"></h2>
+        <div class="dh-url" id="detail-url"></div>
+        <div class="dh-meta" id="detail-meta"></div>
       </div>
     </div>
-    <div class="sg">
-      <div class="sc"><div class="sv" style="color:${dc(dr)}">${dr}</div><div class="sl">Domain Rating</div></div>
-      <div class="sc"><div class="sv">${(p.se.traffic||0).toLocaleString()}</div><div class="sl">Organic Traffic</div></div>
-      <div class="sc"><div class="sv">${(p.se.refdomains||0).toLocaleString()}</div><div class="sl">Ref Domains</div></div>
-      <div class="sc"><div class="sv" style="color:var(--gn)">${fm(p.se.org_cost)}</div><div class="sl">Traffic Value</div></div>
-    </div>
-    <div class="sg">
-      <div class="sc"><div class="sv">${(p.se.kw_total||0).toLocaleString()}</div><div class="sl">Organic KWs</div></div>
-      <div class="sc"><div class="sv" style="color:var(--gn)">${p.se.kw_1_3||0}</div><div class="sl">Top 3</div></div>
-      <div class="sc"><div class="sv" style="color:${p.au.hs!=null?(p.au.hs>=90?'var(--gn)':p.au.hs>=70?'var(--am)':'var(--rd)'):'var(--mt)'}">${p.au.hs!=null?p.au.hs+'%':'—'}</div><div class="sl">Site Audit</div></div>
-      <div class="sc"><div class="sv">${(p.se.backlinks||0).toLocaleString()}</div><div class="sl">Backlinks</div></div>
-    </div>
-    ${p.au.hs!=null?`<div style="padding:10px;background:var(--cd);border-radius:8px;border:1px solid var(--bd);margin-bottom:14px;font-size:.72rem">
-      <strong>Site Audit Details:</strong> ${p.au.err||0} errors · ${p.au.warn||0} warnings · ${p.au.total||0} pages crawled
-    </div>`:''}
-    <h3 style="margin:14px 0 6px;font-size:.9rem">Tracked Keyword Rankings <span style="font-weight:400;color:var(--mt);font-size:.68rem">· Mobile · Sorted by position</span></h3>
-    <table class="fk"><thead><tr><th>Keyword</th><th>Volume</th><th>Position</th></tr></thead><tbody>${kr}</tbody></table>`;
-  document.getElementById('ov').classList.add('sh');document.body.style.overflow='hidden';
-};
-window.xD=function(){document.getElementById('ov').classList.remove('sh');document.body.style.overflow=''};
-document.getElementById('ov').addEventListener('click',function(e){if(e.target===this)xD()});
 
-function R(){
-  const f=gF();uSt(f);
-  document.getElementById('cn').textContent=f.length+' of '+P.length+' brands';
-  const m=document.getElementById('mn');
-  if(tab==='cards')m.innerHTML=rC(f);
-  else if(tab==='lb')m.innerHTML=rL(f);
-  else if(tab==='qw')m.innerHTML=rQ(f);
-  else if(tab==='gaps')m.innerHTML=rG(f);
+    <!-- KPI Cards -->
+    <section class="kpi-grid" id="detail-kpis">
+      <div class="kpi-card"><div class="label">Domain Rating</div>
+        <div class="dr-ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--bd)" stroke-width="4.5"/><circle cx="32" cy="32" r="26" fill="none" stroke="url(#drG)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4" id="dr-arc"/><defs><linearGradient id="drG" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="var(--ac)"/><stop offset="100%" stop-color="var(--ac2)"/></linearGradient></defs></svg><div class="dr-val" id="dr-val">--</div></div>
+        <div class="sub" id="dr-rank"></div>
+      </div>
+      <div class="kpi-card"><div class="label">Organic Traffic</div><div class="value" id="kpi-traffic">--</div><div class="sub">monthly visitors</div></div>
+      <div class="kpi-card"><div class="label">Tracked Keywords</div><div class="value" id="kpi-tracked">--</div><div class="sub" id="kpi-ranked"></div></div>
+      <div class="kpi-card"><div class="label">Traffic Value</div><div class="value" id="kpi-value">--</div><div class="sub">est. monthly</div></div>
+      <div class="kpi-card"><div class="label">Backlinks</div><div class="value" id="kpi-backlinks">--</div><div class="sub" id="kpi-bl-sub"></div></div>
+      <div class="kpi-card"><div class="label">Referring Domains</div><div class="value" id="kpi-refdom">--</div><div class="sub" id="kpi-rd-sub"></div></div>
+    </section>
+
+    <!-- Charts -->
+    <section class="charts-row">
+      <div class="chart-card"><h3>Organic Traffic — 12 Month Trend</h3><canvas id="traffic-chart" height="240"></canvas></div>
+      <div class="chart-card"><h3>Rank Distribution (Tracked Keywords)</h3><canvas id="position-chart" height="180"></canvas>
+        <div class="intent-grid" id="intent-grid" style="margin-top:12px"><h3 style="grid-column:1/-1;font-size:.68rem;font-weight:700;color:var(--tx2);margin-bottom:2px">Search Intent</h3></div>
+      </div>
+    </section>
+
+    <!-- Tag filter + Rankings Table -->
+    <div class="tag-bar" id="tag-bar"><span style="font-size:.7rem;color:var(--mt);font-weight:600">Filter:</span></div>
+
+    <section class="table-card">
+      <div class="tab-bar">
+        <button class="tab active" data-tab="rankings">Tracked Rankings</button>
+        <button class="tab" data-tab="pages">Top Pages</button>
+        <button class="tab" data-tab="refdomains">Referring Domains</button>
+        <button class="tab" data-tab="competitors">Competitors</button>
+      </div>
+
+      <!-- Rankings Tab -->
+      <div class="tab-content active" id="tab-rankings">
+        <div class="tab-tools">
+          <input type="text" id="kw-search" placeholder="Search keywords..." oninput="App.filterKW(this.value)">
+          <span style="color:var(--mt);font-size:.63rem;margin-left:auto" id="kw-count"></span>
+        </div>
+        <div class="table-scroll"><table class="data-table" id="tbl-rankings"><thead><tr>
+          <th data-sort="keyword" data-table="rankings">Keyword</th>
+          <th data-sort="position" data-table="rankings">Pos</th>
+          <th data-sort="position_diff" data-table="rankings">Change</th>
+          <th data-sort="volume" data-table="rankings">Volume</th>
+          <th data-sort="traffic" data-table="rankings">Traffic</th>
+          <th data-sort="keyword_difficulty" data-table="rankings">KD</th>
+          <th data-sort="location" data-table="rankings">Location</th>
+          <th data-sort="url" data-table="rankings">URL</th>
+        </tr></thead><tbody id="body-rankings"></tbody></table></div>
+      </div>
+
+      <!-- Pages Tab -->
+      <div class="tab-content" id="tab-pages">
+        <div class="table-scroll"><table class="data-table" id="tbl-pages"><thead><tr>
+          <th data-sort="url" data-table="pages">URL</th>
+          <th data-sort="sum_traffic" data-table="pages">Traffic</th>
+          <th data-sort="value" data-table="pages">Value</th>
+          <th data-sort="keywords" data-table="pages">Keywords</th>
+          <th data-sort="top_keyword" data-table="pages">Top Keyword</th>
+          <th data-sort="top_keyword_best_position" data-table="pages">Pos</th>
+        </tr></thead><tbody id="body-pages"></tbody></table></div>
+      </div>
+
+      <!-- Referring Domains Tab -->
+      <div class="tab-content" id="tab-refdomains">
+        <div class="table-scroll"><table class="data-table" id="tbl-refdomains"><thead><tr>
+          <th data-sort="domain" data-table="refdomains">Domain</th>
+          <th data-sort="domain_rating" data-table="refdomains">DR</th>
+          <th data-sort="links_to_target" data-table="refdomains">Links</th>
+          <th data-sort="dofollow_links" data-table="refdomains">Dofollow</th>
+          <th data-sort="traffic_domain" data-table="refdomains">Domain Traffic</th>
+          <th data-sort="first_seen" data-table="refdomains">First Seen</th>
+        </tr></thead><tbody id="body-refdomains"></tbody></table></div>
+      </div>
+
+      <!-- Competitors Tab -->
+      <div class="tab-content" id="tab-competitors">
+        <div class="table-scroll"><table class="data-table" id="tbl-competitors"><thead><tr>
+          <th data-sort="competitor_domain" data-table="competitors">Competitor</th>
+          <th data-sort="keywords_common" data-table="competitors">Common KWs</th>
+          <th data-sort="traffic" data-table="competitors">Traffic</th>
+          <th data-sort="share" data-table="competitors">Overlap</th>
+          <th data-sort="domain_rating" data-table="competitors">DR</th>
+        </tr></thead><tbody id="body-competitors"></tbody></table></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+/* ======================== APP ======================== */
+const App = {
+  projects: [],
+  filtered: [],
+  detail: {},
+  charts: {},
+  sortState: {},
+  activeTag: null,
+  kwFilter: '',
+
+  async init() {
+    this.bindTabs();
+    this.bindSortHeaders();
+    const pid = new URLSearchParams(location.search).get('project');
+    await this.loadProjects();
+    if (pid) this.openProject(parseInt(pid));
+  },
+
+  /* --- API helper --- */
+  async api(endpoint, params = {}) {
+    const qs = new URLSearchParams({ endpoint, ...params });
+    const r = await fetch('/api/ahrefs?' + qs);
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
+    return r.json();
+  },
+
+  showLoad(msg) { $('loading').classList.add('show'); $('loading-text').textContent = msg; },
+  hideLoad() { $('loading').classList.remove('show'); },
+  showErr(msg) { const e = $('error-banner'); e.textContent = msg; e.classList.add('show'); },
+  hideErr() { $('error-banner').classList.remove('show'); },
+
+  /* =============== PROJECTS LIST =============== */
+  async loadProjects() {
+    this.showLoad('Loading projects from Ahrefs...');
+    try {
+      const res = await this.api('management/projects');
+      this.projects = (res.projects || []).filter(p => p.keyword_count > 0).sort((a, b) => a.project_name.localeCompare(b.project_name));
+      this.filtered = this.projects;
+      this.renderProjects();
+    } catch (e) { this.showErr(e.message); }
+    finally { this.hideLoad(); }
+  },
+
+  renderProjects() {
+    $('project-count').textContent = `${this.filtered.length} projects`;
+    $('projects-grid').innerHTML = this.filtered.map(p => `
+      <div class="project-card" onclick="App.openProject(${p.project_id})">
+        <div class="pc-name">${esc(p.project_name)}</div>
+        <div class="pc-url">${esc(p.url)}</div>
+        <div class="pc-meta">
+          <div class="pc-stat"><div class="v">${p.keyword_count}</div><div class="l">Keywords</div></div>
+          <div class="pc-stat"><div class="v">${esc(p.mode)}</div><div class="l">Mode</div></div>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  filterProjects(q) {
+    const s = q.toLowerCase();
+    this.filtered = s ? this.projects.filter(p => p.project_name.toLowerCase().includes(s) || p.url.toLowerCase().includes(s)) : this.projects;
+    this.renderProjects();
+  },
+
+  showProjects() {
+    $('view-projects').classList.add('active');
+    $('view-detail').classList.remove('active');
+    $('global-search').style.display = '';
+    history.replaceState({}, '', location.pathname);
+  },
+
+  /* =============== PROJECT DETAIL =============== */
+  async openProject(pid) {
+    const proj = this.projects.find(p => p.project_id == pid);
+    if (!proj) return;
+
+    $('view-projects').classList.remove('active');
+    $('view-detail').classList.add('active');
+    $('global-search').style.display = 'none';
+    history.replaceState({}, '', '?project=' + pid);
+
+    $('bc-name').textContent = proj.project_name;
+    $('detail-name').textContent = proj.project_name;
+    $('detail-url').textContent = proj.url;
+    $('detail-meta').textContent = `Mode: ${proj.mode} · ${proj.keyword_count} tracked keywords`;
+
+    this.hideErr();
+    this.showLoad(`Loading data for ${proj.project_name}...`);
+    this.activeTag = null;
+    this.kwFilter = '';
+
+    const today = new Date();
+    const date = fmtDate(daysAgo(today, 2));
+    const dateCmp = fmtDate(daysAgo(today, 32));
+    const dateFrom = fmtDate(daysAgo(today, 365));
+    const domain = proj.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+
+    try {
+      const [rankings, dr, metrics, backlinks, histRes, pagesRes, refRes, compRes] = await Promise.allSettled([
+        this.api('rank-tracker/overview', {
+          project_id: pid, date, date_compared: dateCmp, device: 'mobile',
+          select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,is_informational,is_transactional,is_commercial,is_navigational,is_local',
+        }),
+        this.api('site-explorer/domain-rating', { target: domain, date }),
+        this.api('site-explorer/metrics', { target: domain, date, country: 'US' }),
+        this.api('site-explorer/backlinks-stats', { target: domain, date }),
+        this.api('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'US', history_grouping: 'monthly' }),
+        this.api('site-explorer/top-pages', { target: domain, date, country: 'US', limit: 50, select: 'url,sum_traffic,value,keywords,top_keyword,top_keyword_best_position', order_by: 'sum_traffic:desc' }),
+        this.api('site-explorer/referring-domains', { target: domain, limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }),
+        this.api('site-explorer/organic-competitors', { target: domain, date, country: 'US', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
+      ]);
+
+      this.detail = {
+        project: proj,
+        rankings: val(rankings, 'overviews') || [],
+        dr: val(dr, 'domain_rating') || {},
+        metrics: val(metrics, 'metrics') || {},
+        backlinks: val(backlinks, 'metrics') || {},
+        history: val(histRes, 'metrics') || [],
+        pages: val(pagesRes, 'pages') || [],
+        refdomains: val(refRes, 'refdomains') || [],
+        competitors: val(compRes, 'competitors') || [],
+      };
+
+      const fails = [rankings, dr, metrics, backlinks, histRes, pagesRes, refRes, compRes].filter(r => r.status === 'rejected');
+      if (fails.length > 0 && fails.length < 8) this.showErr(`${fails.length}/8 data sources failed. Some sections may be incomplete.`);
+      if (fails.length === 8) throw new Error(fails[0].reason?.message || 'All API calls failed');
+
+      this.renderDetail();
+    } catch (e) { this.showErr(e.message); }
+    finally { this.hideLoad(); }
+  },
+
+  renderDetail() {
+    this.renderKPIs();
+    this.renderTrafficChart();
+    this.renderPositionChart();
+    this.renderIntentBars();
+    this.renderTagBar();
+    this.renderRankings();
+    this.renderPages();
+    this.renderRefDomains();
+    this.renderCompetitors();
+  },
+
+  /* --- KPIs --- */
+  renderKPIs() {
+    const { dr, metrics: m, backlinks: b, rankings } = this.detail;
+    if (dr.domain_rating != null) {
+      const v = Math.round(dr.domain_rating);
+      $('dr-val').textContent = v;
+      $('dr-arc').setAttribute('stroke-dashoffset', 163.4 - (163.4 * v / 100));
+      $('dr-rank').textContent = dr.ahrefs_rank ? `#${fmtN(dr.ahrefs_rank)}` : '';
+    }
+    $('kpi-traffic').textContent = fmtN(m.org_traffic || 0);
+    $('kpi-tracked').textContent = rankings.length;
+    const ranked = rankings.filter(k => k.position != null && k.position <= 100).length;
+    $('kpi-ranked').textContent = `${ranked} ranking in top 100`;
+    $('kpi-value').textContent = '$' + fmtN(Math.round((m.org_cost || 0) / 100));
+    $('kpi-backlinks').textContent = fmtN(b.live || 0);
+    $('kpi-bl-sub').textContent = b.all_time ? `${fmtN(b.all_time)} all time` : '';
+    $('kpi-refdom').textContent = fmtN(b.live_refdomains || 0);
+    $('kpi-rd-sub').textContent = b.all_time_refdomains ? `${fmtN(b.all_time_refdomains)} all time` : '';
+  },
+
+  /* --- Traffic Chart --- */
+  renderTrafficChart() {
+    if (this.charts.traffic) this.charts.traffic.destroy();
+    const data = this.detail.history;
+    if (!data.length) return;
+    const ctx = $('traffic-chart').getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 240);
+    grad.addColorStop(0, 'rgba(59,130,246,.18)');
+    grad.addColorStop(1, 'rgba(59,130,246,0)');
+    this.charts.traffic = new Chart(ctx, {
+      type: 'line',
+      data: { labels: data.map(d => new Date(d.date).toLocaleDateString('en-US',{month:'short',year:'2-digit'})),
+        datasets: [{ label: 'Organic Traffic', data: data.map(d => d.org_traffic), borderColor: '#3b82f6', backgroundColor: grad, borderWidth: 2, fill: true, tension: .4, pointRadius: 3, pointBackgroundColor: '#3b82f6', pointBorderColor: '#171a24', pointBorderWidth: 2 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' },
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c2030', borderColor: '#252936', borderWidth: 1, titleColor: '#e4e7ed', bodyColor: '#c0c5d0', bodyFont: { family: "'JetBrains Mono',monospace", size: 12 }, callbacks: { label: c => 'Traffic: ' + fmtN(c.parsed.y) } } },
+        scales: { x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#6b7585', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#6b7585', font: { size: 10, family: "'JetBrains Mono',monospace" }, callback: v => fmtN(v) } } }
+      }
+    });
+  },
+
+  /* --- Position Distribution --- */
+  renderPositionChart() {
+    if (this.charts.pos) this.charts.pos.destroy();
+    const kws = this.detail.rankings;
+    if (!kws.length) return;
+    const bk = { '#1-3': 0, '#4-10': 0, '#11-20': 0, '#21-50': 0, '#51-100': 0, 'Not Ranked': 0 };
+    kws.forEach(k => { const p = k.position; if (!p) bk['Not Ranked']++; else if (p <= 3) bk['#1-3']++; else if (p <= 10) bk['#4-10']++; else if (p <= 20) bk['#11-20']++; else if (p <= 50) bk['#21-50']++; else bk['#51-100']++; });
+    this.charts.pos = new Chart($('position-chart').getContext('2d'), {
+      type: 'doughnut',
+      data: { labels: Object.keys(bk), datasets: [{ data: Object.values(bk), backgroundColor: ['#10b981','#34d399','#3b82f6','#f59e0b','#6b7585','#2a2f3e'], borderColor: '#171a24', borderWidth: 3 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { color: '#6b7585', font: { size: 10 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 } } } }
+    });
+  },
+
+  /* --- Intent Bars --- */
+  renderIntentBars() {
+    const kws = this.detail.rankings;
+    if (!kws.length) return;
+    const t = kws.length;
+    const ints = { Informational: { n: kws.filter(k => k.is_informational).length, c: '#3b82f6' }, Transactional: { n: kws.filter(k => k.is_transactional).length, c: '#10b981' }, Commercial: { n: kws.filter(k => k.is_commercial).length, c: '#f59e0b' }, Local: { n: kws.filter(k => k.is_local).length, c: '#8b5cf6' } };
+    const g = $('intent-grid');
+    const h3 = g.querySelector('h3');
+    g.innerHTML = ''; g.appendChild(h3);
+    Object.entries(ints).forEach(([name, { n, c }]) => {
+      const pct = Math.round(n / t * 100);
+      g.innerHTML += `<div class="intent-item"><div class="dot" style="background:${c}"></div><span>${name}</span><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${c}"></div></div><span class="pct">${pct}%</span></div>`;
+    });
+  },
+
+  /* --- Tag Bar --- */
+  renderTagBar() {
+    const tags = new Set();
+    this.detail.rankings.forEach(k => (k.tags || []).forEach(t => tags.add(t)));
+    const bar = $('tag-bar');
+    bar.innerHTML = '<span style="font-size:.7rem;color:var(--mt);font-weight:600">Filter:</span>';
+    bar.innerHTML += '<button class="tag-btn on" onclick="App.setTag(null)">All</button>';
+    [...tags].sort().forEach(t => {
+      bar.innerHTML += `<button class="tag-btn" onclick="App.setTag('${esc(t)}')">${esc(t)}</button>`;
+    });
+  },
+
+  setTag(tag) {
+    this.activeTag = tag;
+    document.querySelectorAll('.tag-btn').forEach(b => {
+      b.classList.toggle('on', tag === null ? b.textContent === 'All' : b.textContent === tag);
+    });
+    this.renderRankings();
+  },
+
+  getFilteredRankings() {
+    let kws = this.detail.rankings;
+    if (this.activeTag) kws = kws.filter(k => (k.tags || []).includes(this.activeTag));
+    if (this.kwFilter) { const q = this.kwFilter.toLowerCase(); kws = kws.filter(k => (k.keyword || '').toLowerCase().includes(q)); }
+    return kws;
+  },
+
+  filterKW(q) { this.kwFilter = q; this.renderRankings(); },
+
+  /* --- Rankings Table --- */
+  renderRankings() {
+    const kws = this.getFilteredRankings();
+    $('kw-count').textContent = `${kws.length} keywords`;
+    $('body-rankings').innerHTML = kws.map(k => {
+      const isQW = k.position && k.position >= 4 && k.position <= 20 && (k.volume || 0) >= 100;
+      const urlPath = k.url ? tryPath(k.url) : '';
+      const tags = (k.tags || []).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
+      return `<tr class="${isQW ? 'qw' : ''}">
+        <td class="kw-cell">${esc(k.keyword)}${isQW ? '<span class="qw-badge">Quick Win</span>' : ''}<br>${tags}</td>
+        <td><span class="pos ${posClass(k.position)}">${k.position ?? '—'}</span></td>
+        <td>${chgHtml(k.position_diff)}</td>
+        <td class="mono">${fmtN(k.volume)}</td>
+        <td class="mono">${fmtN(k.traffic)}</td>
+        <td><span class="kd ${kdClass(k.keyword_difficulty)}">${k.keyword_difficulty ?? '—'}</span></td>
+        <td style="font-size:.65rem;color:var(--mt)">${esc(k.location || '')}</td>
+        <td class="url-cell" title="${esc(k.url || '')}">${esc(urlPath)}</td>
+      </tr>`;
+    }).join('');
+  },
+
+  /* --- Pages Table --- */
+  renderPages() {
+    $('body-pages').innerHTML = this.detail.pages.map(p => {
+      const path = p.url ? tryPath(p.url) : '';
+      return `<tr>
+        <td class="url-cell"><a href="${esc(p.url||'#')}" target="_blank">${esc(path)}</a></td>
+        <td class="mono">${fmtN(p.sum_traffic)}</td>
+        <td class="mono">${p.value ? '$'+fmtN(Math.round(p.value/100)) : '—'}</td>
+        <td class="mono">${fmtN(p.keywords)}</td>
+        <td class="kw-cell">${esc(p.top_keyword||'—')}</td>
+        <td><span class="pos ${posClass(p.top_keyword_best_position)}">${p.top_keyword_best_position??'—'}</span></td>
+      </tr>`;
+    }).join('');
+  },
+
+  /* --- RefDomains Table --- */
+  renderRefDomains() {
+    $('body-refdomains').innerHTML = this.detail.refdomains.map(r => `<tr>
+      <td><strong>${esc(r.domain)}</strong></td>
+      <td><div class="dr-inline"><span class="mono">${r.domain_rating!=null?r.domain_rating.toFixed(0):'—'}</span><div class="dr-bar"><div class="dr-fill" style="width:${r.domain_rating||0}%;background:${drColor(r.domain_rating)}"></div></div></div></td>
+      <td class="mono">${fmtN(r.links_to_target)}</td>
+      <td class="mono">${fmtN(r.dofollow_links)}</td>
+      <td class="mono">${fmtN(r.traffic_domain)}</td>
+      <td class="mono">${r.first_seen ? new Date(r.first_seen).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '—'}</td>
+    </tr>`).join('');
+  },
+
+  /* --- Competitors Table --- */
+  renderCompetitors() {
+    $('body-competitors').innerHTML = this.detail.competitors.map(c => `<tr>
+      <td><strong>${esc(c.competitor_domain||'')}</strong></td>
+      <td class="mono">${fmtN(c.keywords_common)}</td>
+      <td class="mono">${fmtN(c.traffic)}</td>
+      <td class="mono">${c.share!=null?(c.share*100).toFixed(1)+'%':'—'}</td>
+      <td><div class="dr-inline"><span class="mono">${c.domain_rating!=null?c.domain_rating.toFixed(0):'—'}</span><div class="dr-bar"><div class="dr-fill" style="width:${c.domain_rating||0}%;background:${drColor(c.domain_rating)}"></div></div></div></td>
+    </tr>`).join('');
+  },
+
+  /* --- Tabs --- */
+  bindTabs() {
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+      const bar = t.closest('.tab-bar');
+      const section = bar.parentElement;
+      bar.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      section.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      section.querySelector('#tab-' + t.dataset.tab).classList.add('active');
+    }));
+  },
+
+  /* --- Sorting --- */
+  bindSortHeaders() {
+    document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => this.sortCol(th));
+    });
+  },
+
+  sortCol(th) {
+    const tbl = th.dataset.table;
+    const col = th.dataset.sort;
+    const prev = this.sortState[tbl];
+    const dir = (prev?.col === col && prev?.dir === 'desc') ? 'asc' : 'desc';
+    this.sortState[tbl] = { col, dir };
+    th.closest('thead').querySelectorAll('th').forEach(h => h.classList.remove('sorted-asc','sorted-desc'));
+    th.classList.add('sorted-' + dir);
+    const map = { rankings: 'rankings', pages: 'pages', refdomains: 'refdomains', competitors: 'competitors' };
+    const dataKey = map[tbl];
+    if (!dataKey) return;
+    this.detail[dataKey].sort((a, b) => {
+      let va = a[col], vb = b[col];
+      if (va == null) va = dir === 'desc' ? -Infinity : Infinity;
+      if (vb == null) vb = dir === 'desc' ? -Infinity : Infinity;
+      if (typeof va === 'string') return dir === 'desc' ? vb.localeCompare(va) : va.localeCompare(vb);
+      return dir === 'desc' ? vb - va : va - vb;
+    });
+    const renders = { rankings: 'renderRankings', pages: 'renderPages', refdomains: 'renderRefDomains', competitors: 'renderCompetitors' };
+    this[renders[tbl]]();
+  },
+};
+
+/* ========== UTILITIES ========== */
+const $ = id => document.getElementById(id);
+function fmtN(n) { if (n == null) return '—'; if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1)+'M'; if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1)+'K'; return n.toLocaleString(); }
+function posClass(p) { if (!p) return ''; if (p===1) return 'pos-1'; if (p<=3) return 'pos-2'; if (p<=5) return 'pos-3'; if (p<=10) return 'pos-top10'; if (p<=20) return 'pos-top20'; if (p<=50) return 'pos-top50'; return 'pos-100'; }
+function kdClass(kd) { if (kd==null) return ''; if (kd<=20) return 'kd-easy'; if (kd<=40) return 'kd-medium'; if (kd<=60) return 'kd-hard'; return 'kd-super'; }
+function drColor(dr) { if (dr==null) return '#6b7585'; if (dr>=70) return '#10b981'; if (dr>=40) return '#f59e0b'; if (dr>=20) return '#f97316'; return '#ef4444'; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function daysAgo(d, n) { const x = new Date(d); x.setDate(x.getDate()-n); return x; }
+function fmtDate(d) { return d.toISOString().split('T')[0]; }
+function tryPath(u) { try { return new URL(u).pathname; } catch { return u; } }
+function chgHtml(diff) {
+  if (diff == null) return '<span class="chg flat">—</span>';
+  if (diff < 0) return `<span class="chg up">\u25B2${Math.abs(diff)}</span>`;
+  if (diff > 0) return `<span class="chg down">\u25BC${diff}</span>`;
+  return '<span class="chg flat">—</span>';
+}
+function val(result, key) {
+  if (result.status !== 'fulfilled') return null;
+  return result.value[key] ?? result.value;
 }
 
-document.getElementById('q').addEventListener('input',e=>{srch=e.target.value;R()});
-document.getElementById('rF').addEventListener('change',e=>{regV=e.target.value;R()});
-document.getElementById('sF').addEventListener('change',e=>{stV=e.target.value;R()});
-document.querySelectorAll('.fb').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.fb').forEach(x=>x.classList.remove('on'));b.classList.add('on');flt=b.dataset.f;R()}));
-document.querySelectorAll('.t').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.t').forEach(x=>x.classList.remove('on'));t.classList.add('on');tab=t.dataset.t;R()}));
-R();
-</script></body></html>
+App.init();
+</script>
+</body>
+</html>
