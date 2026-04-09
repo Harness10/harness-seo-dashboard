@@ -844,56 +844,166 @@ const App = {
 
   renderAIOverview() {
     const kws = this.detail.rankings || [];
+    const comps = this.detail.competitors || [];
     if (!kws.length) { $('aiov-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mt);font-size:.8rem">No tracked keywords available.</div>'; return; }
 
-    // Analyze AI Overview data
+    const isAIO = (k) => (k.serp_features||[]).some(f => f === 'ai_overview' || f === 'ai_overview_sitelink' || f === 'ai_overview_found');
+    const isCited = (k) => k.best_position_kind === 'ai_overview' || k.best_position_kind === 'ai_overview_sitelink';
     const total = kws.length;
-    const withAIO = kws.filter(k => (k.serp_features||[]).some(f => f === 'ai_overview' || f === 'ai_overview_sitelink' || f === 'ai_overview_found'));
-    const citedInAIO = kws.filter(k => k.best_position_kind === 'ai_overview' || k.best_position_kind === 'ai_overview_sitelink');
-    const organicWithAIO = withAIO.filter(k => k.best_position_kind === 'organic');
-    const notInAIO = kws.filter(k => !(k.serp_features||[]).some(f => f === 'ai_overview' || f === 'ai_overview_sitelink' || f === 'ai_overview_found'));
-
+    const withAIO = kws.filter(isAIO);
+    const citedInAIO = kws.filter(isCited);
+    const organicWithAIO = withAIO.filter(k => !isCited(k) && k.position != null);
+    const notInAIO = kws.filter(k => !isAIO(k));
     const aioPct = total > 0 ? Math.round(withAIO.length / total * 100) : 0;
     const citedPct = withAIO.length > 0 ? Math.round(citedInAIO.length / withAIO.length * 100) : 0;
 
-    // SERP feature breakdown
+    // Traffic impact
+    const aioRanked = withAIO.filter(k => k.position != null);
+    const noAioRanked = notInAIO.filter(k => k.position != null);
+    const avgTrafficAIO = aioRanked.length > 0 ? Math.round(aioRanked.reduce((s,k) => s + (k.traffic||0), 0) / aioRanked.length) : 0;
+    const avgTrafficNoAIO = noAioRanked.length > 0 ? Math.round(noAioRanked.reduce((s,k) => s + (k.traffic||0), 0) / noAioRanked.length) : 0;
+    const avgPosAIO = aioRanked.length > 0 ? aioRanked.reduce((s,k) => s + k.position, 0) / aioRanked.length : null;
+    const avgPosNoAIO = noAioRanked.length > 0 ? noAioRanked.reduce((s,k) => s + k.position, 0) / noAioRanked.length : null;
+    const totalVolAIO = withAIO.reduce((s,k) => s + (k.volume||0), 0);
+    const totalVolNoAIO = notInAIO.reduce((s,k) => s + (k.volume||0), 0);
+
+    // Per-tag AIO breakdown
+    const tagAIO = {};
+    kws.forEach(k => {
+      const tradeTags = (k.tags||[]).filter(t => t !== 'Bare' && t !== 'Local');
+      if (!tradeTags.length) tradeTags.push('Other');
+      tradeTags.forEach(tag => {
+        if (!tagAIO[tag]) tagAIO[tag] = { total: 0, aio: 0, cited: 0 };
+        tagAIO[tag].total++;
+        if (isAIO(k)) tagAIO[tag].aio++;
+        if (isCited(k)) tagAIO[tag].cited++;
+      });
+    });
+    const tagColors = { 'HVAC – AC': '#3b82f6', 'HVAC – Heating': '#f97316', 'Plumbing': '#06b6d4', 'Electrical': '#f59e0b', 'Generators': '#8b5cf6' };
+
+    // Local Pack co-occurrence
+    const localPack = kws.filter(k => (k.serp_features||[]).includes('local_pack'));
+    const localPackAndAIO = localPack.filter(isAIO);
+
+    // SERP features
     const serpCounts = {};
     kws.forEach(k => (k.serp_features||[]).forEach(f => { serpCounts[f] = (serpCounts[f]||0) + 1; }));
     const serpFeatures = Object.entries(serpCounts).sort((a,b) => b[1] - a[1]);
+    const serpLabel = (f) => ({ ai_overview:'AI Overview', ai_overview_sitelink:'AIO Sitelink', ai_overview_found:'AIO Found', question:'People Also Ask', local_pack:'Local Pack', local_teaser:'Local Teaser', snippet:'Featured Snippet', image:'Images', image_th:'Image Thumb', video:'Video', video_th:'Video Thumb', discussion:'Discussions', news:'News', shopping:'Shopping', review:'Reviews', knowledge_card:'Knowledge Card', knowledge_panel:'Knowledge Panel', tweet:'X/Twitter', organic:'Organic', sitelink:'Sitelinks', article:'Articles', organic_shopping:'Organic Shopping', paid_top:'Paid Top', paid_bottom:'Paid Bottom' })[f] || f;
+    const serpColor = (f) => { if (f.startsWith('ai_overview')) return 'var(--ac2)'; if (f === 'local_pack' || f === 'local_teaser') return 'var(--gn)'; if (f === 'question') return 'var(--cy)'; if (f === 'snippet') return 'var(--am)'; return 'var(--mt)'; };
 
-    const serpLabel = (f) => ({ ai_overview:'AI Overview', ai_overview_sitelink:'AI Overview Sitelink', ai_overview_found:'AI Overview Found', question:'People Also Ask', local_pack:'Local Pack', local_teaser:'Local Teaser', snippet:'Featured Snippet', image:'Images', image_th:'Image Thumbnail', video:'Video', video_th:'Video Thumbnail', discussion:'Discussions', news:'News', shopping:'Shopping', review:'Reviews', knowledge_card:'Knowledge Card', knowledge_panel:'Knowledge Panel', tweet:'X/Twitter', organic:'Organic', sitelink:'Sitelinks', article:'Articles', organic_shopping:'Organic Shopping', paid_top:'Paid Top', paid_bottom:'Paid Bottom' })[f] || f;
-
-    const serpColor = (f) => {
-      if (f.startsWith('ai_overview')) return 'var(--ac2)';
-      if (f === 'local_pack' || f === 'local_teaser') return 'var(--gn)';
-      if (f === 'question') return 'var(--cy)';
-      if (f === 'snippet') return 'var(--am)';
-      return 'var(--mt)';
-    };
+    // Competitors by segment
+    const compsBySegment = {};
+    if (comps.length > 0) {
+      const tradeTags = new Set();
+      kws.forEach(k => (k.tags||[]).filter(t => t !== 'Bare' && t !== 'Local').forEach(t => tradeTags.add(t)));
+      tradeTags.forEach(tag => {
+        const tagKws = kws.filter(k => (k.tags||[]).includes(tag));
+        const tagRanked = tagKws.filter(k => k.position != null).length;
+        // Assign competitors proportionally - those with more common keywords likely compete across more segments
+        compsBySegment[tag] = { kws: tagKws.length, ranked: tagRanked, comps: comps.slice(0, 8).map(c => ({ ...c, overlap_est: Math.round((c.keywords_common || 0) * tagKws.length / total) })).filter(c => c.overlap_est > 0) };
+      });
+    }
 
     $('aiov-content').innerHTML =
+      // KPI stats row
       `<div class="aio-stats">
         <div class="aio-stat"><div class="aio-v" style="color:var(--ac2)">${withAIO.length}</div><div class="aio-l">SERPs with AI Overview</div><div class="aio-pct" style="color:var(--ac2)">${aioPct}% of tracked</div></div>
         <div class="aio-stat"><div class="aio-v" style="color:var(--gn)">${citedInAIO.length}</div><div class="aio-l">Cited in AI Overview</div><div class="aio-pct" style="color:var(--gn)">${citedPct}% citation rate</div></div>
         <div class="aio-stat"><div class="aio-v" style="color:var(--am)">${organicWithAIO.length}</div><div class="aio-l">Organic + AIO Present</div><div class="aio-pct" style="color:var(--mt)">Competing with AIO</div></div>
-        <div class="aio-stat"><div class="aio-v">${notInAIO.length}</div><div class="aio-l">No AI Overview</div><div class="aio-pct" style="color:var(--mt)">${total > 0 ? 100 - aioPct : 0}% traditional SERP</div></div>
-      </div>
-      <div class="aio-grid">
+        <div class="aio-stat"><div class="aio-v">${notInAIO.length}</div><div class="aio-l">No AI Overview</div><div class="aio-pct" style="color:var(--mt)">${100 - aioPct}% traditional</div></div>
+      </div>` +
+
+      // Traffic impact comparison
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;border-bottom:1px solid var(--bd)">
+        <div style="background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px">
+          <div style="font-size:.6rem;color:var(--ac2);text-transform:uppercase;font-weight:600;letter-spacing:.3px;margin-bottom:6px">Keywords WITH AI Overview</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+            <div><div style="font-family:var(--mono);font-weight:700;font-size:.9rem;color:var(--tx)">${avgPosAIO != null ? avgPosAIO.toFixed(1) : 'N/R'}</div><div style="font-size:.48rem;color:var(--mt)">AVG POS</div></div>
+            <div><div style="font-family:var(--mono);font-weight:700;font-size:.9rem;color:var(--tx)">${fmtN(avgTrafficAIO)}</div><div style="font-size:.48rem;color:var(--mt)">AVG TRAFFIC</div></div>
+            <div><div style="font-family:var(--mono);font-weight:700;font-size:.9rem;color:var(--tx)">${fmtN(totalVolAIO)}</div><div style="font-size:.48rem;color:var(--mt)">TOTAL VOL</div></div>
+          </div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px">
+          <div style="font-size:.6rem;color:var(--mt);text-transform:uppercase;font-weight:600;letter-spacing:.3px;margin-bottom:6px">Keywords WITHOUT AI Overview</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+            <div><div style="font-family:var(--mono);font-weight:700;font-size:.9rem;color:var(--tx)">${avgPosNoAIO != null ? avgPosNoAIO.toFixed(1) : 'N/R'}</div><div style="font-size:.48rem;color:var(--mt)">AVG POS</div></div>
+            <div><div style="font-family:var(--mono);font-weight:700;font-size:.9rem;color:var(--tx)">${fmtN(avgTrafficNoAIO)}</div><div style="font-size:.48rem;color:var(--mt)">AVG TRAFFIC</div></div>
+            <div><div style="font-family:var(--mono);font-weight:700;font-size:.9rem;color:var(--tx)">${fmtN(totalVolNoAIO)}</div><div style="font-size:.48rem;color:var(--mt)">TOTAL VOL</div></div>
+          </div>
+        </div>
+      </div>` +
+
+      // AIO by service category
+      `<div style="padding:14px;border-bottom:1px solid var(--bd)">
+        <h4 style="font-size:.72rem;font-weight:700;color:var(--tx2);margin-bottom:10px">AI Overview Exposure by Service Category</h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+          ${Object.entries(tagAIO).map(([tag, d]) => {
+            const pct = d.total > 0 ? Math.round(d.aio / d.total * 100) : 0;
+            const col = tagColors[tag] || '#6b7585';
+            return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px;border-top:3px solid ${col}">
+              <div style="font-size:.68rem;font-weight:700;margin-bottom:4px">${esc(tag)}</div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-family:var(--mono);font-weight:800;font-size:1.1rem;color:var(--ac2)">${d.aio}<span style="font-size:.6rem;color:var(--mt)">/${d.total}</span></span>
+                <span style="font-family:var(--mono);font-size:.7rem;color:${pct > 50 ? 'var(--ac2)' : 'var(--mt)'}">${pct}%</span>
+              </div>
+              <div style="height:4px;background:var(--bd);border-radius:2px;margin:4px 0;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--ac2);border-radius:2px"></div></div>
+              ${d.cited > 0 ? `<div style="font-size:.54rem;color:var(--gn)"><strong>${d.cited}</strong> cited in AIO</div>` : '<div style="font-size:.54rem;color:var(--mt)">0 citations</div>'}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` +
+
+      // Local Pack + AIO co-occurrence
+      `<div style="padding:14px;border-bottom:1px solid var(--bd)">
+        <h4 style="font-size:.72rem;font-weight:700;color:var(--tx2);margin-bottom:8px">Local Pack & AI Overview Co-occurrence</h4>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:.7rem">
+          <span>Local Pack SERPs: <strong style="color:var(--gn)">${localPack.length}</strong> (${total > 0 ? Math.round(localPack.length/total*100) : 0}%)</span>
+          <span>Local Pack + AI Overview: <strong style="color:var(--ac2)">${localPackAndAIO.length}</strong></span>
+          <span>Local Pack only: <strong>${localPack.length - localPackAndAIO.length}</strong></span>
+        </div>
+      </div>` +
+
+      // Main grid: keywords list + SERP features + competitors by segment
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px">
         <div class="aio-card" style="border-top:3px solid var(--ac2)">
-          <h4><span style="font-size:.9rem">🤖</span> Keywords with AI Overview on SERP</h4>
+          <h4><span style="font-size:.9rem">🤖</span> Keywords with AI Overview</h4>
           ${withAIO.length > 0 ? `<ul class="aio-list">${withAIO.sort((a,b)=>(b.volume||0)-(a.volume||0)).map(k => {
-            const cited = k.best_position_kind === 'ai_overview' || k.best_position_kind === 'ai_overview_sitelink';
-            return `<li><span class="aio-kw">${esc(k.keyword)}</span><span style="display:flex;gap:4px;align-items:center"><span class="opp-vol">${fmtN(k.volume)} vol</span>${cited ? '<span class="aio-badge cited">Cited</span>' : '<span class="aio-badge present">AIO Present</span>'}${posBadgeD(k.position)}</span></li>`;
-          }).join('')}</ul>` : '<div style="padding:20px;text-align:center;color:var(--mt);font-size:.7rem">No AI Overviews detected on tracked keyword SERPs</div>'}
+            const cited = isCited(k);
+            const tags = (k.tags||[]).filter(t=>t!=='Bare'&&t!=='Local').map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
+            return `<li><span class="aio-kw">${esc(k.keyword)} ${tags}</span><span style="display:flex;gap:4px;align-items:center"><span class="opp-vol">${fmtN(k.volume)}</span>${cited ? '<span class="aio-badge cited">Cited</span>' : '<span class="aio-badge present">AIO</span>'}${posBadgeD(k.position)}</span></li>`;
+          }).join('')}</ul>` : '<div style="padding:20px;text-align:center;color:var(--mt);font-size:.7rem">No AI Overviews detected</div>'}
         </div>
-        <div class="aio-card" style="border-top:3px solid var(--cy)">
-          <h4><span style="font-size:.9rem">📊</span> SERP Feature Landscape</h4>
-          <ul class="aio-list">${serpFeatures.map(([f, count]) => {
-            const pct = Math.round(count / total * 100);
-            return `<li><span class="aio-kw" style="color:${serpColor(f)}">${serpLabel(f)}</span><span style="display:flex;gap:6px;align-items:center"><span style="font-family:var(--mono);font-size:.6rem;color:var(--mt)">${pct}%</span><span style="font-family:var(--mono);font-size:.68rem;font-weight:600">${count}</span></span></li>`;
-          }).join('')}</ul>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="aio-card" style="border-top:3px solid var(--cy);flex:1">
+            <h4><span style="font-size:.9rem">📊</span> SERP Feature Landscape</h4>
+            <ul class="aio-list">${serpFeatures.slice(0,12).map(([f, count]) => {
+              const pct = Math.round(count / total * 100);
+              return `<li><span class="aio-kw" style="color:${serpColor(f)}">${serpLabel(f)}</span><span style="display:flex;gap:4px;align-items:center"><div style="width:60px;height:4px;background:var(--bd);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${serpColor(f)};border-radius:2px"></div></div><span style="font-family:var(--mono);font-size:.58rem;color:var(--mt);min-width:28px;text-align:right">${pct}%</span><span style="font-family:var(--mono);font-size:.64rem;font-weight:600;min-width:20px;text-align:right">${count}</span></span></li>`;
+            }).join('')}</ul>
+          </div>
         </div>
-      </div>`;
+      </div>` +
+
+      // Competitors by segment
+      (Object.keys(compsBySegment).length > 0 ? `<div style="padding:14px;border-top:1px solid var(--bd)">
+        <h4 style="font-size:.72rem;font-weight:700;color:var(--tx2);margin-bottom:10px">Competitors by Service Category</h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+          ${Object.entries(compsBySegment).map(([tag, d]) => {
+            const col = tagColors[tag] || '#6b7585';
+            return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px;border-top:3px solid ${col}">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:.72rem;font-weight:700">${esc(tag)}</span>
+                <span style="font-size:.58rem;color:var(--mt)">${d.ranked}/${d.kws} ranking</span>
+              </div>
+              <ul class="aio-list" style="max-height:150px">${d.comps.map(c =>
+                `<li><span class="aio-kw"><strong>${esc(c.competitor_domain)}</strong></span><span style="display:flex;gap:6px;align-items:center"><span style="font-size:.54rem;color:var(--mt)">~${c.overlap_est} KWs</span><span style="font-family:var(--mono);font-size:.58rem">DR ${c.domain_rating != null ? Math.round(c.domain_rating) : '?'}</span></span></li>`
+              ).join('')}${d.comps.length === 0 ? '<li style="color:var(--mt);font-size:.6rem;text-align:center;padding:6px 0">No competitor data</li>' : ''}</ul>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="font-size:.54rem;color:var(--mt);margin-top:6px;font-style:italic">Competitor overlap estimated from organic keyword intersection. Add competitors in Ahrefs RT for exact per-keyword data.</div>
+      </div>` : '');
   },
 
   renderAvgRank() {
