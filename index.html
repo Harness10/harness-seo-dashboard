@@ -221,7 +221,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
     <div class="logo" onclick="App.showMain()"><b>Harness Digital</b><span>SEO Intelligence</span></div>
     <div class="hd-ctrls" id="main-ctrls">
       <input type="text" id="search" placeholder="Search projects..." oninput="App.filterProjects(this.value)">
-      <button class="btn btn-gn" id="fetch-btn" onclick="App.fetchAllRankings()" disabled>Fetch All Rankings</button>
+      <button class="btn btn-gn" id="fetch-btn" onclick="App.fetchAllRankings()" disabled>Fetch All Rankings &amp; Data</button>
     </div>
   </div>
   <div class="sort-bar" id="sort-bar">
@@ -395,7 +395,7 @@ const App = {
     const offset = circ - (circ * stats.health / 100);
     const pTotal = kws.length || 1;
     const isOrg = kws.some(k => k._source === 'organic');
-    const srcBadge = isOrg ? '<span style="font-size:.48rem;background:rgba(59,130,246,.12);color:var(--ac);padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px">SE</span>' : '<span style="font-size:.48rem;background:rgba(16,185,129,.12);color:var(--gn);padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px">RT</span>';
+    const srcBadge = isOrg ? '<span style="font-size:.46rem;background:rgba(59,130,246,.12);color:var(--ac);padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px" title="Data from Site Explorer organic keywords">Organic</span>' : '<span style="font-size:.46rem;background:rgba(16,185,129,.12);color:var(--gn);padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px" title="Data from Rank Tracker">Tracked</span>';
 
     return `<div class="c" onclick="App.openProject(${p.project_id})">
       <div class="c-top"><div class="c-nm">${esc(p.project_name)}${srcBadge}</div><div class="c-badge">${p.keyword_count} KWs</div></div>
@@ -480,66 +480,57 @@ const App = {
     const dateCmp = fmtDate(daysAgo(today, 32));
     const BATCH = 8;
     const list = this.projects;
+    const total = list.length * 2; // RT + organic for each
     let done = 0, fails = 0;
 
+    // Phase 1: Fetch Rank Tracker data (free API units) + Organic Keywords (real rankings) in parallel
     for (let i = 0; i < list.length; i += BATCH) {
       const batch = list.slice(i, i + BATCH);
-      const results = await Promise.allSettled(batch.map(p =>
-        this.api('rank-tracker/overview', {
-          project_id: p.project_id, date, date_compared: dateCmp, device: 'mobile', limit: 100,
-          select: 'keyword,position,position_prev,position_diff,volume,traffic,keyword_difficulty,url,tags,location,is_informational,is_transactional,is_commercial,is_local'
-        })
-      ));
-      results.forEach((r, j) => {
-        if (r.status === 'fulfilled') {
-          this.rankData[batch[j].project_id] = r.value.overviews || [];
-        } else { fails++; }
-        done++;
-      });
-      $('progress-fill').style.width = (done / list.length * 100) + '%';
-      $('progress-text').textContent = `${done}/${list.length} projects loaded` + (fails ? ` (${fails} failed)` : '');
-      this.renderGrid();
-      this.updateAggregates();
-    }
-    // Second pass: fetch organic keywords for projects with no rank tracker rankings
-    const needsOrg = list.filter(p => {
-      const rd = this.rankData[p.project_id];
-      return rd && rd.every(k => k.position == null);
-    });
-    if (needsOrg.length > 0) {
-      $('progress-text').textContent = `Fetching organic rankings for ${needsOrg.length} projects...`;
-      $('progress-fill').style.width = '0%';
-      let orgDone = 0;
-      for (let i = 0; i < needsOrg.length; i += BATCH) {
-        const batch = needsOrg.slice(i, i + BATCH);
-        const orgResults = await Promise.allSettled(batch.map(p => {
+      const [rtResults, orgResults] = await Promise.all([
+        Promise.allSettled(batch.map(p =>
+          this.api('rank-tracker/overview', {
+            project_id: p.project_id, date, date_compared: dateCmp, device: 'mobile', limit: 100,
+            select: 'keyword,position,position_prev,position_diff,volume,traffic,keyword_difficulty,url,tags,location,is_informational,is_transactional,is_commercial,is_local'
+          })
+        )),
+        Promise.allSettled(batch.map(p => {
           const domain = p.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
           return this.api('site-explorer/organic-keywords', {
-            target: domain, date, country: 'us', mode: p.mode || 'subdomains', limit: 100,
+            target: domain, date, country: 'us', mode: p.mode || 'subdomains', limit: 20,
             order_by: 'sum_traffic:desc',
             select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational'
           });
-        }));
-        orgResults.forEach((r, j) => {
-          if (r.status === 'fulfilled') {
-            const kws = (r.value.keywords || []).map(k => ({
-              keyword: k.keyword, position: k.best_position, volume: k.volume,
-              traffic: k.sum_traffic, keyword_difficulty: k.keyword_difficulty,
-              url: k.best_position_url, is_local: k.is_local, is_commercial: k.is_commercial,
-              is_transactional: k.is_transactional, is_informational: k.is_informational,
-              _source: 'organic'
-            }));
-            this.orgData[batch[j].project_id] = kws;
-            // Use organic data for card stats when RT has no rankings
-            this.rankData[batch[j].project_id] = kws;
+        }))
+      ]);
+      batch.forEach((p, j) => {
+        const pid = p.project_id;
+        // Store RT data
+        if (rtResults[j].status === 'fulfilled') {
+          const rt = rtResults[j].value.overviews || [];
+          this.rankData[pid] = rt;
+        } else { fails++; }
+        // Store organic data
+        if (orgResults[j].status === 'fulfilled') {
+          const orgKws = (orgResults[j].value.keywords || []).map(k => ({
+            keyword: k.keyword, position: k.best_position, volume: k.volume,
+            traffic: k.sum_traffic, keyword_difficulty: k.keyword_difficulty,
+            url: k.best_position_url, is_local: k.is_local, is_commercial: k.is_commercial,
+            is_transactional: k.is_transactional, is_informational: k.is_informational,
+            _source: 'organic'
+          }));
+          this.orgData[pid] = orgKws;
+          // If RT has no real rankings, use organic for card display
+          const rt = this.rankData[pid];
+          if (!rt || rt.every(k => k.position == null)) {
+            this.rankData[pid] = orgKws;
           }
-          orgDone++;
-        });
-        $('progress-fill').style.width = (orgDone / needsOrg.length * 100) + '%';
-        $('progress-text').textContent = `Organic: ${orgDone}/${needsOrg.length} projects`;
-        this.renderGrid();
-        this.updateAggregates();
-      }
+        }
+        done += 2;
+      });
+      $('progress-fill').style.width = (done / total * 100) + '%';
+      $('progress-text').textContent = `${Math.floor(done/2)}/${list.length} projects loaded` + (fails ? ` (${fails} failed)` : '');
+      this.renderGrid();
+      this.updateAggregates();
     }
     btn.textContent = 'Refresh Rankings'; btn.disabled = false;
     setTimeout(() => pw.classList.remove('show'), 2000);
