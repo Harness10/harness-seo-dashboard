@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
 
-  const { messages, projectContext } = req.body || {};
+  const { messages, projectContext, model } = req.body || {};
   if (!messages || !messages.length) return res.status(400).json({ error: 'No messages' });
 
   const client = new Anthropic({ apiKey });
@@ -94,8 +94,8 @@ ${(ctx.competitors || []).slice(0, 10).map(c => `- ${c.competitor_domain} (DR: $
 
     while (toolLoops <= MAX_TOOL_LOOPS) {
       const stream = await client.messages.stream({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 8192,
+        model: model === 'opus' ? 'claude-opus-4-20250514' : 'claude-sonnet-4-20250514',
+        max_tokens: model === 'opus' ? 16384 : 8192,
         system: sys,
         messages: conversationMessages,
         tools,

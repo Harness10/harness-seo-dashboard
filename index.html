@@ -301,6 +301,21 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .data-table tr.qw{background:rgba(16,185,129,.04)}
 .data-table tr.nr{opacity:.55}.data-table tr.nr:hover{opacity:.85}
 
+/* AI Gen Panel */
+.ai-gen-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 30px;text-align:center}
+.ai-gen-icon{font-size:3rem;margin-bottom:12px}
+.ai-gen-title{font-size:1rem;font-weight:800;margin-bottom:8px;color:var(--tx)}
+.ai-gen-desc{font-size:.72rem;color:var(--mt);max-width:500px;line-height:1.6;margin-bottom:20px}
+.ai-gen-go{padding:12px 28px;font-size:.88rem;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:10px;color:#fff;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(59,130,246,.25)}
+.ai-gen-go:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(59,130,246,.35)}
+.ai-gen-go:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.ai-gen-note{font-size:.58rem;color:var(--mt);margin-top:10px}
+.ai-gen-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px}
+.ai-gen-loading .ld-ring{width:48px;height:48px}
+.ai-gen-loading .ld-ring svg{width:48px;height:48px}
+#ai-gen-output{padding:14px}
+#ai-gen-output .chat-msg.assistant{max-width:100%;font-size:.76rem;line-height:1.7}
+
 /* AI Chat */
 .chat-wrap{display:flex;flex-direction:column;height:600px}
 .chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
@@ -470,6 +485,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <button class="tab" data-tab="avgrank">Average Rank</button>
       <button class="tab" data-tab="rankings">Tracked Rankings</button>
       <button class="tab" data-tab="gsc">Search Console</button>
+      <button class="tab" data-tab="actionitems">Action Items</button>
       <button class="tab" data-tab="content">Content Suggestions</button>
       <button class="tab" data-tab="sitehealth">Site Health</button>
       <button class="tab" data-tab="ai">AI Writer</button>
@@ -490,6 +506,18 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
     </div>
     <div class="tab-content" id="tab-avgrank">
       <div id="avgrank-content"></div>
+    </div>
+    <div class="tab-content" id="tab-actionitems">
+      <div id="actionitems-content">
+        <div class="ai-gen-panel" id="ai-gen-panel">
+          <div class="ai-gen-icon">🧠</div>
+          <h3 class="ai-gen-title">AI-Powered Action Items</h3>
+          <p class="ai-gen-desc">Generate a comprehensive, prioritized action plan using Claude Opus. The AI will analyze all fetched data — rankings, organic keywords, GSC clicks, site audit issues, competitors, backlinks, and traffic — to produce specific tasks with URLs, keyword targets, and justification.</p>
+          <button class="btn ai-gen-go" id="ai-gen-go" onclick="App.generateActionItems()">Generate Action Items</button>
+          <div class="ai-gen-note">Uses Claude claude-opus-4-20250514 for deep reasoning. May take 30-60 seconds.</div>
+        </div>
+        <div id="ai-gen-output" style="display:none"></div>
+      </div>
     </div>
     <div class="tab-content" id="tab-gsc">
       <div id="gsc-content"></div>
@@ -1183,6 +1211,186 @@ const App = {
       $('tab-ai').classList.add('active');
     }
     setTimeout(() => this.sendChat(prompt), 300);
+  },
+
+  buildFullYAML() {
+    const d = this.detail;
+    const y = (obj, indent=0) => {
+      const pad = '  '.repeat(indent);
+      if (Array.isArray(obj)) return obj.map(v => pad + '- ' + (typeof v === 'object' ? '\n' + y(v, indent+1) : String(v ?? ''))).join('\n');
+      if (typeof obj === 'object' && obj !== null) return Object.entries(obj).filter(([,v]) => v != null && v !== '').map(([k,v]) => {
+        if (typeof v === 'object') return pad + k + ':\n' + y(v, indent+1);
+        return pad + k + ': ' + String(v);
+      }).join('\n');
+      return pad + String(obj);
+    };
+    const rt = (d.rankings||[]).map(k => ({ keyword: k.keyword, position: k.position, position_diff: k.position_diff, volume: k.volume, traffic: k.traffic, tags: (k.tags||[]).join(', '), url: k.url, serp_features: (k.serp_features||[]).join(', '), best_position_kind: k.best_position_kind }));
+    const org = (d.organic||[]).map(k => ({ keyword: k.keyword, position: k.best_position, traffic: k.sum_traffic, volume: k.volume, url: k.best_position_url, is_local: k.is_local }));
+    const gsc = (d.gscKeywords||[]).map(k => ({ keyword: k.keyword, clicks: k.clicks, impressions: k.impressions, ctr: (k.ctr||0).toFixed(1)+'%', position: (k.position||0).toFixed(1) }));
+    const auditErrors = (d.auditIssues||[]).filter(i=>i.importance==='Error'&&i.crawled>0).map(i=>({ issue: i.name, category: i.category, affected_urls: i.crawled }));
+    const auditWarnings = (d.auditIssues||[]).filter(i=>i.importance==='Warning'&&i.crawled>0).slice(0,15).map(i=>({ issue: i.name, category: i.category, affected_urls: i.crawled }));
+    return `project:
+  name: "${d.project?.project_name}"
+  url: "${d.project?.url}"
+  region: "${this.getRegion(d.project?.url)}"
+domain_authority:
+  domain_rating: ${d.dr?.domain_rating ?? 'N/A'}
+  ahrefs_rank: ${d.dr?.ahrefs_rank ?? 'N/A'}
+traffic:
+  organic_traffic: ${d.metrics?.org_traffic ?? 0}
+  organic_keywords: ${d.metrics?.org_keywords ?? 0}
+  traffic_value_cents: ${d.metrics?.org_cost ?? 0}
+backlinks:
+  live: ${d.bl?.live ?? 0}
+  referring_domains: ${d.bl?.live_refdomains ?? 0}
+  all_time: ${d.bl?.all_time ?? 0}
+site_audit:
+  health_score: ${d.audit?.health_score ?? 'N/A'}
+  errors: ${d.audit?.urls_with_errors ?? 'N/A'}
+  warnings: ${d.audit?.urls_with_warnings ?? 'N/A'}
+  error_details:\n${y(auditErrors, 2)}
+  warning_details:\n${y(auditWarnings, 2)}
+rank_tracker_keywords:\n${y(rt, 1)}
+organic_keywords_site_explorer:\n${y(org, 1)}
+google_search_console_90d:\n${y(gsc, 1)}
+top_pages:\n${y((d.pages||[]).slice(0,20).map(p=>({ url: p.url, traffic: p.sum_traffic, keywords: p.keywords, top_keyword: p.top_keyword })), 1)}
+competitors:\n${y((d.competitors||[]).slice(0,10).map(c=>({ domain: c.competitor_domain, common_keywords: c.keywords_common, traffic: c.traffic, domain_rating: c.domain_rating?.toFixed(0) })), 1)}
+referring_domains:\n${y((d.refdomains||[]).slice(0,15).map(r=>({ domain: r.domain, dr: r.domain_rating?.toFixed(0), links: r.links_to_target })), 1)}`;
+  },
+
+  async generateActionItems() {
+    const btn = $('ai-gen-go');
+    const panel = $('ai-gen-panel');
+    const output = $('ai-gen-output');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    // Show loading state
+    panel.innerHTML = `<div class="ai-gen-loading">
+      <div class="ld-ring"><svg width="48" height="48" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="24" stroke="var(--bd)" stroke-width="4"/><circle cx="28" cy="28" r="24" stroke="url(#ldG)" stroke-width="4" stroke-linecap="round" stroke-dasharray="100 51"/></svg></div>
+      <div style="font-size:.86rem;font-weight:700;color:var(--tx)">Claude Opus is analyzing your data...</div>
+      <div style="font-size:.66rem;color:var(--mt);max-width:400px;text-align:center">Deep reasoning over rankings, keywords, site health, GSC data, competitors, and backlink profile. This takes 30-60 seconds.</div>
+      <div class="ld-steps" style="max-width:200px">
+        <div class="ld-step active"><div class="ld-dot"></div><span>Loading project data</span></div>
+        <div class="ld-step active"><div class="ld-dot"></div><span>Analyzing keyword gaps</span></div>
+        <div class="ld-step active"><div class="ld-dot"></div><span>Evaluating site health</span></div>
+        <div class="ld-step active"><div class="ld-dot"></div><span>Prioritizing actions</span></div>
+        <div class="ld-step active"><div class="ld-dot"></div><span>Generating plan</span></div>
+      </div>
+    </div>`;
+
+    const yaml = this.buildFullYAML();
+    const prompt = `You are a senior SEO strategist at a digital marketing agency. Below is the COMPLETE raw data for a local home services client. Analyze every data point and produce a comprehensive, prioritized action plan.
+
+## RAW PROJECT DATA (YAML)
+\`\`\`yaml
+${yaml}
+\`\`\`
+
+## YOUR TASK
+Generate a DETAILED action plan with the following structure. Be extremely specific — reference exact keywords, URLs, positions, volumes, and data points.
+
+### Format your response as:
+
+# SEO Action Plan: [Project Name]
+
+## Executive Summary
+2-3 sentences on overall SEO health and the single biggest opportunity.
+
+## Priority 1: Critical Actions (Do This Week)
+For each action:
+- **Action**: What specifically to do
+- **Target URL**: The exact page to modify (or "Create new page")
+- **Target Keywords**: Specific keywords with their current position and volume
+- **Justification**: Why this matters, using specific data points (position, traffic, volume, GSC impressions)
+- **Expected Impact**: Estimated traffic/ranking improvement
+
+## Priority 2: High-Impact Actions (Do This Month)
+Same format as above.
+
+## Priority 3: Growth Opportunities (Next Quarter)
+Same format as above.
+
+## Technical SEO Fixes
+List the most impactful site audit issues with specific error counts and what to fix.
+
+## Content Calendar
+Suggest 4-6 blog posts or content pieces with:
+- Title
+- Target keywords (with volume)
+- Content angle/outline
+- Why this topic (based on gaps, GSC data, competitor analysis)
+
+## Quick Wins Summary
+A numbered list of the 5 fastest things that would improve rankings, with expected timeline.
+
+Be specific, actionable, and reference the data. No generic advice.`;
+
+    try {
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          projectContext: this.buildProjectContext(),
+          model: 'opus'
+        })
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || resp.statusText);
+      }
+
+      output.style.display = 'block';
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '';
+      let buffer = '';
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-msg assistant';
+      output.innerHTML = '';
+      output.appendChild(msgDiv);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.type === 'text') {
+              fullText += data.text;
+              msgDiv.textContent = fullText;
+              output.scrollIntoView({ block: 'end', behavior: 'smooth' });
+            } else if (data.type === 'done') {
+              msgDiv.innerHTML = mdToHtml(fullText);
+            } else if (data.type === 'error') {
+              throw new Error(data.text);
+            }
+          } catch(e) { if (e.message && !e.message.includes('JSON')) throw e; }
+        }
+      }
+      if (fullText && msgDiv.textContent === fullText) msgDiv.innerHTML = mdToHtml(fullText);
+
+      // Replace panel with regenerate button
+      panel.innerHTML = `<div style="display:flex;gap:8px;padding:14px;border-bottom:1px solid var(--bd);align-items:center">
+        <span style="font-size:.7rem;color:var(--gn);font-weight:600">✓ Generated by Claude Opus</span>
+        <button class="btn" style="font-size:.62rem;padding:5px 12px;margin-left:auto" onclick="App.generateActionItems()">Regenerate</button>
+      </div>`;
+
+    } catch(e) {
+      panel.innerHTML = `<div class="ai-gen-panel">
+        <div class="ai-gen-icon">⚠️</div>
+        <h3 class="ai-gen-title">Generation Failed</h3>
+        <p class="ai-gen-desc" style="color:var(--rd)">${esc(e.message)}</p>
+        <button class="btn ai-gen-go" onclick="App.generateActionItems()">Try Again</button>
+      </div>`;
+      output.style.display = 'none';
+    }
   },
 
   renderSiteHealth() {
