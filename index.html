@@ -325,12 +325,23 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .chat-typing span:nth-child(2){animation-delay:.2s}.chat-typing span:nth-child(3){animation-delay:.4s}
 @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
 
-/* Loading overlay (for detail) */
-.loading{display:none;position:fixed;inset:0;background:rgba(6,7,11,.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(4px)}
+/* Loading overlay */
+.loading{display:none;position:fixed;inset:0;background:rgba(6,7,11,.92);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:0;backdrop-filter:blur(6px)}
 .loading.show{display:flex}
-.spinner{width:36px;height:36px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}
+.ld-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:30px 40px;background:var(--card);border:1px solid var(--bd);border-radius:16px;min-width:280px;box-shadow:0 8px 40px rgba(0,0,0,.4)}
+.ld-ring{width:56px;height:56px;position:relative}
+.ld-ring svg{animation:spin 1.2s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{color:var(--mt);font-size:.82rem}
+.ld-ring .ld-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.loading-text{color:var(--tx);font-size:.86rem;font-weight:600;text-align:center}
+.ld-sub{color:var(--mt);font-size:.66rem;text-align:center;max-width:240px}
+.ld-steps{display:flex;flex-direction:column;gap:5px;width:100%;margin-top:4px}
+.ld-step{display:flex;align-items:center;gap:8px;font-size:.64rem;color:var(--mt)}
+.ld-step .ld-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:2px solid var(--bd);transition:all .3s}
+.ld-step.done .ld-dot{background:var(--gn);border-color:var(--gn)}
+.ld-step.active .ld-dot{border-color:var(--ac);animation:pulse 1s infinite}
+.ld-step.active{color:var(--tx)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3)}50%{box-shadow:0 0 0 4px rgba(59,130,246,.1)}}
 
 /* Responsive */
 @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.charts-row{grid-template-columns:1fr}}
@@ -375,7 +386,17 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 </div>
 </header>
 
-<div class="loading" id="loading"><div class="spinner"></div><div class="loading-text" id="loading-text">Loading...</div></div>
+<div class="loading" id="loading">
+  <div class="ld-wrap">
+    <div class="ld-ring">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="24" stroke="var(--bd)" stroke-width="4"/><circle cx="28" cy="28" r="24" stroke="url(#ldG)" stroke-width="4" stroke-linecap="round" stroke-dasharray="100 51"/><defs><linearGradient id="ldG" x1="0%" y1="0%" x2="100%"><stop offset="0%" stop-color="var(--ac)"/><stop offset="100%" stop-color="var(--ac2)"/></linearGradient></defs></svg>
+      <div class="ld-icon" id="ld-icon">📊</div>
+    </div>
+    <div class="loading-text" id="loading-text">Loading...</div>
+    <div class="ld-sub" id="ld-sub">Fetching live data from Ahrefs</div>
+    <div class="ld-steps" id="ld-steps"></div>
+  </div>
+</div>
 
 <main>
 <div class="error-banner" id="error-banner"></div>
@@ -871,10 +892,20 @@ const App = {
     $('d-url').textContent = proj.url;
     $('d-meta').textContent = `Mode: ${proj.mode} · ${proj.keyword_count} tracked keywords`;
     this.hideErr();
-    $('loading').classList.add('show'); $('loading-text').textContent = `Loading ${proj.project_name}...`;
+    $('loading').classList.add('show');
+    $('loading-text').textContent = proj.project_name;
+    $('ld-sub').textContent = 'Connecting to Ahrefs API...';
+    $('ld-icon').textContent = '📊';
+    const stepNames = ['Rank Tracker','Organic Keywords','Domain Rating','Site Metrics','Backlinks','Traffic History','Top Pages','Referring Domains','Competitors'];
+    $('ld-steps').innerHTML = stepNames.map(s => `<div class="ld-step active" id="lds-${s.replace(/\s/g,'')}"><div class="ld-dot"></div><span>${s}</span></div>`).join('');
     this.activeTag = null; this.kwFilter = ''; this.orgFilter = ''; this.rtFilter = 'all';
-    // Safety: force-remove loading after 35s no matter what
-    const safetyTimer = setTimeout(() => { $('loading').classList.remove('show'); this.showErr('Loading took too long — some data may be missing.'); }, 35000);
+    const safetyTimer = setTimeout(() => { $('loading').classList.remove('show'); this.showErr('Loading took too long — some data may be missing.'); }, 45000);
+
+    const markStep = (name, ok) => {
+      const el = document.getElementById('lds-' + name.replace(/\s/g,''));
+      if (el) { el.classList.remove('active'); el.classList.add('done'); if (!ok) el.querySelector('.ld-dot').style.background = 'var(--rd)'; }
+    };
+    const tracked = (promise, name) => promise.then(r => { markStep(name, true); return r; }).catch(e => { markStep(name, false); throw e; });
 
     const today = new Date(), date = fmtDate(today), dateCmp = fmtDate(daysAgo(today, 30)), dateFrom = fmtDate(daysAgo(today, 365));
     const domain = proj.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
@@ -882,18 +913,20 @@ const App = {
     try {
       const cachedRT = this.rtRaw[pid];
       const cachedOrg = this.orgData[pid];
+      $('ld-sub').textContent = 'Fetching rankings & site data...';
       const [rankings, orgKws, dr, metrics, bl, hist, pages, refs, comps] = await Promise.allSettled([
-        cachedRT ? Promise.resolve({ overviews: cachedRT }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,serp_features,is_informational,is_transactional,is_commercial,is_local' }),
-        cachedOrg ? Promise.resolve({ keywords: cachedOrg }) : this.api('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 50, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }),
-        this.api('site-explorer/domain-rating', { target: domain, date }),
-        this.api('site-explorer/metrics', { target: domain, date, country: 'us' }),
-        this.api('site-explorer/backlinks-stats', { target: domain, date }),
-        this.api('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'us', history_grouping: 'monthly' }),
-        this.api('site-explorer/top-pages', { target: domain, date, country: 'us', limit: 50, select: 'url,sum_traffic,value,keywords,top_keyword,top_keyword_best_position', order_by: 'sum_traffic:desc' }),
-        this.api('site-explorer/referring-domains', { target: domain.split('/')[0], limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }),
-        this.api('site-explorer/organic-competitors', { target: domain, date, country: 'us', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
+        tracked(cachedRT ? Promise.resolve({ overviews: cachedRT }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,serp_features,is_informational,is_transactional,is_commercial,is_local' }), 'Rank Tracker'),
+        tracked(cachedOrg ? Promise.resolve({ keywords: cachedOrg }) : this.api('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 50, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }), 'Organic Keywords'),
+        tracked(this.api('site-explorer/domain-rating', { target: domain, date }), 'Domain Rating'),
+        tracked(this.api('site-explorer/metrics', { target: domain, date, country: 'us' }), 'Site Metrics'),
+        tracked(this.api('site-explorer/backlinks-stats', { target: domain, date }), 'Backlinks'),
+        tracked(this.api('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'us', history_grouping: 'monthly' }), 'Traffic History'),
+        tracked(this.api('site-explorer/top-pages', { target: domain, date, country: 'us', limit: 50, select: 'url,sum_traffic,value,keywords,top_keyword,top_keyword_best_position', order_by: 'sum_traffic:desc' }), 'Top Pages'),
+        tracked(this.api('site-explorer/referring-domains', { target: domain.split('/')[0], limit: 50, history: 'live', select: 'domain,domain_rating,links_to_target,dofollow_links,traffic_domain,first_seen', order_by: 'domain_rating:desc' }), 'Referring Domains'),
+        tracked(this.api('site-explorer/organic-competitors', { target: domain, date, country: 'us', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }), 'Competitors'),
       ]);
       const orgKeywords = val(orgKws, 'keywords') || [];
+      $('ld-sub').textContent = 'Loading site audit & search console...';
       // Fetch audit issues + GSC data in parallel (both free, fast)
       const auditDomain = proj.url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '');
       const auditProj = this.auditMap[auditDomain] || this.auditMap[auditDomain.split('/')[0]] || null;
