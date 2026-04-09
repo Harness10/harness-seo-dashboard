@@ -1,1 +1,8 @@
-{"name":"harness-seo-dashboard","version":"5.0.0","private":true}
+{
+  "name": "harness-seo-dashboard",
+  "version": "5.0.0",
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  }
+}
