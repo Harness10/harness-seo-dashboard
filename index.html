@@ -903,37 +903,30 @@ const App = {
     // Group keywords by tag
     const tagGroups = {};
     kws.forEach(k => {
-      const tags = k.tags || [];
-      // Filter out "Bare" and "Local" as those are type tags, not trade tags
-      const tradeTags = tags.filter(t => t !== 'Bare' && t !== 'Local');
+      const tradeTags = (k.tags || []).filter(t => t !== 'Bare' && t !== 'Local');
       if (tradeTags.length === 0) tradeTags.push('Uncategorized');
-      tradeTags.forEach(tag => {
-        if (!tagGroups[tag]) tagGroups[tag] = [];
-        tagGroups[tag].push(k);
-      });
+      tradeTags.forEach(tag => { if (!tagGroups[tag]) tagGroups[tag] = []; tagGroups[tag].push(k); });
     });
-
-    // Also build an "All Keywords" group and type groups
     const typeGroups = {};
-    kws.forEach(k => {
-      (k.tags || []).forEach(t => {
-        if (t === 'Bare' || t === 'Local') {
-          if (!typeGroups[t]) typeGroups[t] = [];
-          typeGroups[t].push(k);
-        }
-      });
-    });
+    kws.forEach(k => { (k.tags || []).forEach(t => { if (t === 'Bare' || t === 'Local') { if (!typeGroups[t]) typeGroups[t] = []; typeGroups[t].push(k); } }); });
 
-    // Compute stats per group
+    // Compute stats with 30-day comparison
     const computeGroup = (name, items) => {
       const ranked = items.filter(k => k.position != null);
+      const rankedPrev = items.filter(k => k.position_prev != null);
       const avgPos = ranked.length > 0 ? ranked.reduce((s, k) => s + k.position, 0) / ranked.length : null;
+      const avgPosPrev = rankedPrev.length > 0 ? rankedPrev.reduce((s, k) => s + k.position_prev, 0) / rankedPrev.length : null;
+      const avgDiff = (avgPos != null && avgPosPrev != null) ? avgPos - avgPosPrev : null;
       const top3 = ranked.filter(k => k.position <= 3).length;
+      const top3Prev = rankedPrev.filter(k => k.position_prev <= 3).length;
       const top10 = ranked.filter(k => k.position <= 10).length;
+      const top10Prev = rankedPrev.filter(k => k.position_prev <= 10).length;
       const top20 = ranked.filter(k => k.position <= 20).length;
       const totalVol = items.reduce((s, k) => s + (k.volume || 0), 0);
       const totalTraffic = ranked.reduce((s, k) => s + (k.traffic || 0), 0);
-      return { name, items, ranked: ranked.length, total: items.length, avgPos, top3, top10, top20, totalVol, totalTraffic };
+      const improved = items.filter(k => k.position_diff != null && k.position_diff < 0).length;
+      const declined = items.filter(k => k.position_diff != null && k.position_diff > 0).length;
+      return { name, items, ranked: ranked.length, rankedPrev: rankedPrev.length, total: items.length, avgPos, avgPosPrev, avgDiff, top3, top3Prev, top10, top10Prev, top20, totalVol, totalTraffic, improved, declined };
     };
 
     const allGroup = computeGroup('All Keywords', kws);
@@ -942,14 +935,21 @@ const App = {
 
     const tagColors = { 'HVAC – AC': '#3b82f6', 'HVAC – Heating': '#f97316', 'Plumbing': '#06b6d4', 'Electrical': '#f59e0b', 'Generators': '#8b5cf6', 'Uncategorized': '#6b7585' };
     const getColor = (name) => tagColors[name] || '#6b7585';
+    const posColor = (avg) => { if (avg == null) return 'var(--mt)'; if (avg <= 3) return '#10b981'; if (avg <= 10) return '#34d399'; if (avg <= 20) return '#3b82f6'; if (avg <= 50) return '#f59e0b'; return '#ef4444'; };
 
-    const posColor = (avg) => {
-      if (avg == null) return 'var(--mt)';
-      if (avg <= 3) return '#10b981';
-      if (avg <= 10) return '#34d399';
-      if (avg <= 20) return '#3b82f6';
-      if (avg <= 50) return '#f59e0b';
-      return '#ef4444';
+    const diffHtml = (diff) => {
+      if (diff == null) return '<span style="color:var(--mt);font-size:.65rem">—</span>';
+      const abs = Math.abs(diff).toFixed(1);
+      if (diff < -0.1) return `<span style="color:var(--gn);font-family:var(--mono);font-size:.72rem;font-weight:700">\u25B2${abs}</span>`;
+      if (diff > 0.1) return `<span style="color:var(--rd);font-family:var(--mono);font-size:.72rem;font-weight:700">\u25BC${abs}</span>`;
+      return '<span style="color:var(--mt);font-family:var(--mono);font-size:.72rem;font-weight:700">\u2014</span>';
+    };
+
+    const countDiff = (now, prev) => {
+      const d = now - prev;
+      if (d > 0) return `<span style="color:var(--gn);font-size:.56rem;font-weight:600">+${d}</span>`;
+      if (d < 0) return `<span style="color:var(--rd);font-size:.56rem;font-weight:600">${d}</span>`;
+      return '';
     };
 
     const renderCard = (g) => {
@@ -958,13 +958,21 @@ const App = {
       return `<div class="ar-card" style="border-top:3px solid ${col}">
         <div class="ar-hdr">
           <span class="ar-tag">${esc(g.name)}</span>
-          <span class="ar-avg" style="color:${posColor(g.avgPos)}">${g.avgPos != null ? g.avgPos.toFixed(1) : 'N/R'}</span>
+          <div style="text-align:right">
+            <div class="ar-avg" style="color:${posColor(g.avgPos)}">${g.avgPos != null ? g.avgPos.toFixed(1) : 'N/R'}</div>
+            <div style="margin-top:2px">${diffHtml(g.avgDiff)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;font-size:.58rem;color:var(--mt)">
+          <span>30d ago: <span style="font-family:var(--mono);color:var(--tx2);font-weight:600">${g.avgPosPrev != null ? g.avgPosPrev.toFixed(1) : 'N/R'}</span></span>
+          <span>\u25B2 <span style="color:var(--gn)">${g.improved}</span></span>
+          <span>\u25BC <span style="color:var(--rd)">${g.declined}</span></span>
         </div>
         <div class="ar-meta">
           <span>Keywords: <span class="mv">${g.total}</span></span>
-          <span>Ranking: <span class="mv" style="color:var(--gn)">${g.ranked}</span></span>
-          <span>Top 3: <span class="mv">${g.top3}</span></span>
-          <span>Top 10: <span class="mv">${g.top10}</span></span>
+          <span>Ranking: <span class="mv" style="color:var(--gn)">${g.ranked}</span> ${countDiff(g.ranked, g.rankedPrev)}</span>
+          <span>Top 3: <span class="mv">${g.top3}</span> ${countDiff(g.top3, g.top3Prev)}</span>
+          <span>Top 10: <span class="mv">${g.top10}</span> ${countDiff(g.top10, g.top10Prev)}</span>
         </div>
         <div class="ar-bar">
           <div class="seg" style="width:${(g.top3/pTotal*100).toFixed(1)}%;background:#10b981"></div>
@@ -977,19 +985,30 @@ const App = {
           <span>Volume: <span class="mv">${fmtN(g.totalVol)}</span></span>
           <span>Traffic: <span class="mv">${fmtN(g.totalTraffic)}</span></span>
         </div>
-        <ul class="ar-kws">${g.items.sort((a,b) => (a.position||999) - (b.position||999)).map(k =>
-          `<li><span class="ar-kw">${esc(k.keyword)}</span>${posBadgeD(k.position)}</li>`
-        ).join('')}</ul>
+        <ul class="ar-kws">${g.items.sort((a,b) => (a.position||999) - (b.position||999)).map(k => {
+          const kDiff = k.position_diff;
+          const kChg = kDiff == null ? '' : kDiff < 0 ? `<span style="color:var(--gn);font-size:.54rem;font-weight:600;margin-right:3px">\u25B2${Math.abs(kDiff)}</span>` : kDiff > 0 ? `<span style="color:var(--rd);font-size:.54rem;font-weight:600;margin-right:3px">\u25BC${kDiff}</span>` : '';
+          return `<li><span class="ar-kw">${esc(k.keyword)}</span><span style="display:flex;align-items:center;gap:2px">${kChg}${posBadgeD(k.position)}</span></li>`;
+        }).join('')}</ul>
       </div>`;
     };
 
-    // Summary row
+    // Summary row with comparison
     const summaryHtml = `<div class="ar-summary">
-      <div class="ar-sum-card"><div class="ar-sum-v" style="color:${posColor(allGroup.avgPos)}">${allGroup.avgPos != null ? allGroup.avgPos.toFixed(1) : 'N/R'}</div><div class="ar-sum-l">Avg Position (All)</div></div>
-      ${tradeGroups.map(g => `<div class="ar-sum-card"><div class="ar-sum-v" style="color:${posColor(g.avgPos)}">${g.avgPos != null ? g.avgPos.toFixed(1) : 'N/R'}</div><div class="ar-sum-l">${esc(g.name)}</div></div>`).join('')}
+      <div class="ar-sum-card">
+        <div class="ar-sum-v" style="color:${posColor(allGroup.avgPos)}">${allGroup.avgPos != null ? allGroup.avgPos.toFixed(1) : 'N/R'}</div>
+        <div class="ar-sum-l">Avg Position (All)</div>
+        <div style="margin-top:4px">${diffHtml(allGroup.avgDiff)}</div>
+        <div style="font-size:.5rem;color:var(--mt);margin-top:1px">30d ago: ${allGroup.avgPosPrev != null ? allGroup.avgPosPrev.toFixed(1) : 'N/R'}</div>
+      </div>
+      ${tradeGroups.map(g => `<div class="ar-sum-card">
+        <div class="ar-sum-v" style="color:${posColor(g.avgPos)}">${g.avgPos != null ? g.avgPos.toFixed(1) : 'N/R'}</div>
+        <div class="ar-sum-l">${esc(g.name)}</div>
+        <div style="margin-top:4px">${diffHtml(g.avgDiff)}</div>
+        <div style="font-size:.5rem;color:var(--mt);margin-top:1px">30d ago: ${g.avgPosPrev != null ? g.avgPosPrev.toFixed(1) : 'N/R'}</div>
+      </div>`).join('')}
     </div>`;
 
-    // Build all + type groups if they exist
     const typeHtml = typeGroupsArr.length > 0 ? `<div style="padding:10px 14px 0"><h4 style="font-size:.68rem;color:var(--mt);font-weight:600;margin-bottom:6px">By Keyword Type</h4></div><div class="ar-grid" style="padding-top:0">${typeGroupsArr.map(renderCard).join('')}</div>` : '';
 
     $('avgrank-content').innerHTML = summaryHtml +
