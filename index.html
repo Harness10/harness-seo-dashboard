@@ -192,6 +192,27 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .opp-vol{font-family:var(--mono);font-size:.6rem;color:var(--mt)}
 @media(max-width:900px){.opps-grid{grid-template-columns:1fr}}
 
+/* Average Rank */
+.ar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;padding:14px}
+.ar-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--radius);padding:14px;position:relative;overflow:hidden}
+.ar-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.ar-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ar-tag{font-size:.76rem;font-weight:700;color:var(--tx)}
+.ar-avg{font-family:var(--mono);font-weight:800;font-size:1.4rem}
+.ar-meta{display:flex;gap:12px;margin-bottom:10px;font-size:.62rem;color:var(--mt)}
+.ar-meta span{display:flex;align-items:center;gap:3px}
+.ar-meta .mv{font-family:var(--mono);font-weight:600;color:var(--tx2)}
+.ar-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--bd);margin-bottom:10px}
+.ar-bar .seg{height:100%}
+.ar-kws{list-style:none;max-height:180px;overflow-y:auto}
+.ar-kws li{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-top:1px solid rgba(255,255,255,.03);font-size:.66rem}
+.ar-kws li:first-child{border-top:none}
+.ar-kw{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx2)}
+.ar-summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;padding:14px;border-bottom:1px solid var(--bd)}
+.ar-sum-card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center}
+.ar-sum-card .ar-sum-v{font-family:var(--mono);font-weight:800;font-size:1.1rem}
+.ar-sum-card .ar-sum-l{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+
 /* Tag filter */
 .tag-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
 .tag-btn{background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:3px 9px;font-size:.65rem;color:var(--mt);cursor:pointer;font-weight:600;transition:all .12s;font-family:var(--font)}
@@ -356,6 +377,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
   <section class="table-card">
     <div class="tab-bar">
       <button class="tab active" data-tab="organic">Organic Rankings</button>
+      <button class="tab" data-tab="avgrank">Average Rank</button>
       <button class="tab" data-tab="rankings">Tracked Rankings</button>
       <button class="tab" data-tab="pages">Top Pages</button>
       <button class="tab" data-tab="refdomains">Referring Domains</button>
@@ -368,6 +390,9 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
         <th data-sort="sum_traffic" data-tbl="organic">Traffic</th><th data-sort="volume" data-tbl="organic">Volume</th><th data-sort="keyword_difficulty" data-tbl="organic">KD</th>
         <th data-sort="is_local" data-tbl="organic">Type</th><th data-sort="best_position_url" data-tbl="organic">URL</th>
       </tr></thead><tbody id="body-organic"></tbody></table></div>
+    </div>
+    <div class="tab-content" id="tab-avgrank">
+      <div id="avgrank-content"></div>
     </div>
     <div class="tab-content" id="tab-rankings">
       <div class="rt-summary" id="rt-summary"></div>
@@ -783,7 +808,109 @@ const App = {
 
   renderDetail() {
     const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
-    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAvgRank, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+  },
+
+  renderAvgRank() {
+    const kws = this.detail.rankings || [];
+    if (!kws.length) { $('avgrank-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mt);font-size:.8rem">No tracked keywords with tags available.</div>'; return; }
+
+    // Group keywords by tag
+    const tagGroups = {};
+    kws.forEach(k => {
+      const tags = k.tags || [];
+      // Filter out "Bare" and "Local" as those are type tags, not trade tags
+      const tradeTags = tags.filter(t => t !== 'Bare' && t !== 'Local');
+      if (tradeTags.length === 0) tradeTags.push('Uncategorized');
+      tradeTags.forEach(tag => {
+        if (!tagGroups[tag]) tagGroups[tag] = [];
+        tagGroups[tag].push(k);
+      });
+    });
+
+    // Also build an "All Keywords" group and type groups
+    const typeGroups = {};
+    kws.forEach(k => {
+      (k.tags || []).forEach(t => {
+        if (t === 'Bare' || t === 'Local') {
+          if (!typeGroups[t]) typeGroups[t] = [];
+          typeGroups[t].push(k);
+        }
+      });
+    });
+
+    // Compute stats per group
+    const computeGroup = (name, items) => {
+      const ranked = items.filter(k => k.position != null);
+      const avgPos = ranked.length > 0 ? ranked.reduce((s, k) => s + k.position, 0) / ranked.length : null;
+      const top3 = ranked.filter(k => k.position <= 3).length;
+      const top10 = ranked.filter(k => k.position <= 10).length;
+      const top20 = ranked.filter(k => k.position <= 20).length;
+      const totalVol = items.reduce((s, k) => s + (k.volume || 0), 0);
+      const totalTraffic = ranked.reduce((s, k) => s + (k.traffic || 0), 0);
+      return { name, items, ranked: ranked.length, total: items.length, avgPos, top3, top10, top20, totalVol, totalTraffic };
+    };
+
+    const allGroup = computeGroup('All Keywords', kws);
+    const tradeGroups = Object.entries(tagGroups).map(([name, items]) => computeGroup(name, items)).sort((a, b) => (a.avgPos || 999) - (b.avgPos || 999));
+    const typeGroupsArr = Object.entries(typeGroups).map(([name, items]) => computeGroup(name, items));
+
+    const tagColors = { 'HVAC – AC': '#3b82f6', 'HVAC – Heating': '#f97316', 'Plumbing': '#06b6d4', 'Electrical': '#f59e0b', 'Generators': '#8b5cf6', 'Uncategorized': '#6b7585' };
+    const getColor = (name) => tagColors[name] || '#6b7585';
+
+    const posColor = (avg) => {
+      if (avg == null) return 'var(--mt)';
+      if (avg <= 3) return '#10b981';
+      if (avg <= 10) return '#34d399';
+      if (avg <= 20) return '#3b82f6';
+      if (avg <= 50) return '#f59e0b';
+      return '#ef4444';
+    };
+
+    const renderCard = (g) => {
+      const col = getColor(g.name);
+      const pTotal = g.total || 1;
+      return `<div class="ar-card" style="border-top:3px solid ${col}">
+        <div class="ar-hdr">
+          <span class="ar-tag">${esc(g.name)}</span>
+          <span class="ar-avg" style="color:${posColor(g.avgPos)}">${g.avgPos != null ? g.avgPos.toFixed(1) : 'N/R'}</span>
+        </div>
+        <div class="ar-meta">
+          <span>Keywords: <span class="mv">${g.total}</span></span>
+          <span>Ranking: <span class="mv" style="color:var(--gn)">${g.ranked}</span></span>
+          <span>Top 3: <span class="mv">${g.top3}</span></span>
+          <span>Top 10: <span class="mv">${g.top10}</span></span>
+        </div>
+        <div class="ar-bar">
+          <div class="seg" style="width:${(g.top3/pTotal*100).toFixed(1)}%;background:#10b981"></div>
+          <div class="seg" style="width:${((g.top10-g.top3)/pTotal*100).toFixed(1)}%;background:#34d399"></div>
+          <div class="seg" style="width:${((g.top20-g.top10)/pTotal*100).toFixed(1)}%;background:#3b82f6"></div>
+          <div class="seg" style="width:${((g.ranked-g.top20)/pTotal*100).toFixed(1)}%;background:#f59e0b"></div>
+          <div class="seg" style="width:${((g.total-g.ranked)/pTotal*100).toFixed(1)}%;background:var(--bd2)"></div>
+        </div>
+        <div class="ar-meta">
+          <span>Volume: <span class="mv">${fmtN(g.totalVol)}</span></span>
+          <span>Traffic: <span class="mv">${fmtN(g.totalTraffic)}</span></span>
+        </div>
+        <ul class="ar-kws">${g.items.sort((a,b) => (a.position||999) - (b.position||999)).map(k =>
+          `<li><span class="ar-kw">${esc(k.keyword)}</span>${posBadgeD(k.position)}</li>`
+        ).join('')}</ul>
+      </div>`;
+    };
+
+    // Summary row
+    const summaryHtml = `<div class="ar-summary">
+      <div class="ar-sum-card"><div class="ar-sum-v" style="color:${posColor(allGroup.avgPos)}">${allGroup.avgPos != null ? allGroup.avgPos.toFixed(1) : 'N/R'}</div><div class="ar-sum-l">Avg Position (All)</div></div>
+      ${tradeGroups.map(g => `<div class="ar-sum-card"><div class="ar-sum-v" style="color:${posColor(g.avgPos)}">${g.avgPos != null ? g.avgPos.toFixed(1) : 'N/R'}</div><div class="ar-sum-l">${esc(g.name)}</div></div>`).join('')}
+    </div>`;
+
+    // Build all + type groups if they exist
+    const typeHtml = typeGroupsArr.length > 0 ? `<div style="padding:10px 14px 0"><h4 style="font-size:.68rem;color:var(--mt);font-weight:600;margin-bottom:6px">By Keyword Type</h4></div><div class="ar-grid" style="padding-top:0">${typeGroupsArr.map(renderCard).join('')}</div>` : '';
+
+    $('avgrank-content').innerHTML = summaryHtml +
+      `<div style="padding:10px 14px 0"><h4 style="font-size:.68rem;color:var(--mt);font-weight:600;margin-bottom:6px">By Service Category</h4></div>` +
+      `<div class="ar-grid" style="padding-top:0">${tradeGroups.map(renderCard).join('')}</div>` +
+      typeHtml;
   },
 
   renderOpportunities() {
