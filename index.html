@@ -370,9 +370,18 @@ const App = {
 
   async api(endpoint, params = {}) {
     const qs = new URLSearchParams({ endpoint, ...params });
-    const r = await fetch('/api/ahrefs?' + qs);
-    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
-    return r.json();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000);
+    try {
+      const r = await fetch('/api/ahrefs?' + qs, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
+      return r.json();
+    } catch (e) {
+      clearTimeout(timer);
+      if (e.name === 'AbortError') throw new Error('Request timed out');
+      throw e;
+    }
   },
 
   /* ============ PROJECTS LIST ============ */
@@ -592,15 +601,17 @@ const App = {
     this.hideErr();
     $('loading').classList.add('show'); $('loading-text').textContent = `Loading ${proj.project_name}...`;
     this.activeTag = null; this.kwFilter = ''; this.orgFilter = ''; this.rtFilter = 'all';
+    // Safety: force-remove loading after 35s no matter what
+    const safetyTimer = setTimeout(() => { $('loading').classList.remove('show'); this.showErr('Loading took too long — some data may be missing.'); }, 35000);
 
     const today = new Date(), date = fmtDate(daysAgo(today, 2)), dateCmp = fmtDate(daysAgo(today, 32)), dateFrom = fmtDate(daysAgo(today, 365));
     const domain = proj.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 
     try {
-      const cached = this.rankData[pid];
+      const cachedRT = this.rtRaw[pid];
       const cachedOrg = this.orgData[pid];
       const [rankings, orgKws, dr, metrics, bl, hist, pages, refs, comps] = await Promise.allSettled([
-        cached ? Promise.resolve({ overviews: cached }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,is_informational,is_transactional,is_commercial,is_local' }),
+        cachedRT ? Promise.resolve({ overviews: cachedRT }) : this.api('rank-tracker/overview', { project_id: pid, date, date_compared: dateCmp, device: 'mobile', limit: 100, select: 'keyword,position,position_prev,position_diff,volume,traffic,traffic_diff,keyword_difficulty,url,tags,location,best_position_kind,is_informational,is_transactional,is_commercial,is_local' }),
         cachedOrg ? Promise.resolve({ keywords: cachedOrg }) : this.api('site-explorer/organic-keywords', { target: domain, date, country: 'us', mode: proj.mode || 'subdomains', limit: 100, order_by: 'sum_traffic:desc', select: 'keyword,best_position,sum_traffic,volume,keyword_difficulty,best_position_url,is_local,is_commercial,is_transactional,is_informational' }),
         this.api('site-explorer/domain-rating', { target: domain, date }),
         this.api('site-explorer/metrics', { target: domain, date, country: 'us' }),
@@ -623,18 +634,19 @@ const App = {
         refdomains: val(refs, 'refdomains') || [],
         competitors: val(comps, 'competitors') || [],
       };
-      if (!cached) { this.rankData[pid] = this.detail.rankings; this.rtRaw[pid] = this.detail.rankings; }
+      if (!cachedRT) { this.rtRaw[pid] = this.detail.rankings; }
       if (!cachedOrg) this.orgData[pid] = orgKeywords;
       const f = [rankings,orgKws,dr,metrics,bl,hist,pages,refs,comps].filter(r => r.status==='rejected');
       if (f.length === 9) throw new Error(f[0].reason?.message || 'All API calls failed');
       if (f.length > 0) this.showErr(`${f.length}/9 data sources failed.`);
       this.renderDetail();
     } catch (e) { this.showErr(e.message); }
-    finally { $('loading').classList.remove('show'); }
+    finally { clearTimeout(safetyTimer); $('loading').classList.remove('show'); }
   },
 
   renderDetail() {
-    this.renderHealthBanner(); this.renderKPIs(); this.renderTrafficChart(); this.renderPosChart(); this.renderIntents(); this.renderOrganic(); this.renderTagBar(); this.renderRankings(); this.renderPages(); this.renderRefDomains(); this.renderCompetitors();
+    const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
+    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
   },
 
   renderHealthBanner() {
