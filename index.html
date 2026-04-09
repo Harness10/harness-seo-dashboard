@@ -23,9 +23,9 @@ a{color:var(--cy);text-decoration:none}a:hover{text-decoration:underline}
 header{background:linear-gradient(180deg,#0b0d14,#0e1018);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
 .hd{max-width:1520px;margin:0 auto;padding:10px 24px}
 .hd-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.logo{font-size:1.1rem;font-weight:800;letter-spacing:-.5px;cursor:pointer;white-space:nowrap}
-.logo b{background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.logo span{color:var(--mt);font-weight:400;font-size:.8rem;margin-left:6px}
+.logo{cursor:pointer;display:flex;align-items:center;gap:8px}
+.logo img{height:28px;width:auto}
+.logo span{color:var(--mt);font-weight:400;font-size:.72rem;margin-left:2px;white-space:nowrap}
 .hd-ctrls{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
 .hd-ctrls input{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 11px;color:var(--tx);font-size:.78rem;font-family:var(--font);outline:none;width:220px;transition:border .15s}
 .hd-ctrls input:focus{border-color:var(--ac)}
@@ -108,9 +108,13 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .c-skeleton .mr,.c-skeleton .pbar,.c-skeleton .kt,.c-skeleton .pbar-legend,.c-skeleton .chg-sum,.c-skeleton .hs-ring{display:none}
 .c-pre{text-align:center;padding:16px 0;color:var(--mt);font-size:.7rem}
 
-/* ===== BREADCRUMB ===== */
-.breadcrumb{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--mt);margin-bottom:12px}
-.breadcrumb a{color:var(--ac);cursor:pointer;text-decoration:none}.breadcrumb a:hover{text-decoration:underline}
+/* ===== BACK NAV ===== */
+.back-nav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.back-btn{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 14px;color:var(--tx2);font-size:.76rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
+.back-btn:hover{border-color:var(--ac);color:var(--ac);background:rgba(59,130,246,.06)}
+.back-btn svg{width:14px;height:14px}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--mt)}
+.breadcrumb span{color:var(--mt)}
 
 /* ===== DETAIL VIEW ===== */
 .detail-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
@@ -229,7 +233,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 <header>
 <div class="hd">
   <div class="hd-top">
-    <div class="logo" onclick="App.showMain()"><b>Harness Digital</b><span>SEO Intelligence</span></div>
+    <div class="logo" onclick="App.showMain()"><img src="https://harness10.com/wp-content/uploads/2025/06/cropped-harness_full_custom_colors-1.webp" alt="Harness Digital"><span>SEO Intelligence</span></div>
     <div class="hd-ctrls" id="main-ctrls">
       <input type="text" id="search" placeholder="Search projects..." oninput="App.filterProjects(this.value)">
       <button class="btn btn-gn" id="fetch-btn" onclick="App.fetchAllRankings()" disabled>Fetch All Rankings &amp; Data</button>
@@ -269,7 +273,10 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 
 <!-- ========== DETAIL VIEW ========== -->
 <div class="view" id="view-detail">
-  <div class="breadcrumb"><a onclick="App.showMain()">All Projects</a><span>/</span><span id="bc-name"></span></div>
+  <div class="back-nav">
+    <button class="back-btn" onclick="App.showMain()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>All Projects</button>
+    <div class="breadcrumb"><span>/</span><span id="bc-name"></span></div>
+  </div>
   <div class="detail-hdr"><div><h2 id="d-name"></h2><div class="dh-url" id="d-url"></div><div class="dh-meta" id="d-meta"></div></div></div>
 
   <!-- Health Summary Banner -->
@@ -364,6 +371,12 @@ const App = {
 
   async init() {
     this.bindTabs(); this.bindSort();
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', () => {
+      const pid = new URLSearchParams(location.search).get('project');
+      if (pid) this.openProject(parseInt(pid));
+      else this.showMain();
+    });
     await this.loadProjects();
     const pid = new URLSearchParams(location.search).get('project');
     if (pid) this.openProject(parseInt(pid));
@@ -524,8 +537,8 @@ const App = {
     const btn = $('fetch-btn'); btn.disabled = true; btn.textContent = 'Fetching...';
     const pw = $('progress-wrap'); pw.classList.add('show');
     const today = new Date();
-    const date = fmtDate(daysAgo(today, 2));
-    const dateCmp = fmtDate(daysAgo(today, 32));
+    const date = fmtDate(today);
+    const dateCmp = fmtDate(daysAgo(today, 30));
     const BATCH = 8;
     const list = this.projects;
     let done = 0, fails = 0;
@@ -619,7 +632,7 @@ const App = {
   showMain() {
     $('view-main').classList.add('active'); $('view-detail').classList.remove('active');
     $('main-ctrls').style.display = ''; $('sort-bar').style.display = '';
-    history.replaceState({}, '', location.pathname);
+    if (location.search) history.pushState({}, '', location.pathname);
   },
 
   /* ============ DETAIL VIEW ============ */
@@ -628,7 +641,8 @@ const App = {
     if (!proj) return;
     $('view-main').classList.remove('active'); $('view-detail').classList.add('active');
     $('main-ctrls').style.display = 'none'; $('sort-bar').style.display = 'none';
-    history.replaceState({}, '', '?project=' + pid);
+    const newUrl = '?project=' + pid;
+    if (location.search !== newUrl) history.pushState({}, '', newUrl);
     $('bc-name').textContent = proj.project_name;
     $('d-name').textContent = proj.project_name;
     $('d-url').textContent = proj.url;
@@ -639,7 +653,7 @@ const App = {
     // Safety: force-remove loading after 35s no matter what
     const safetyTimer = setTimeout(() => { $('loading').classList.remove('show'); this.showErr('Loading took too long — some data may be missing.'); }, 35000);
 
-    const today = new Date(), date = fmtDate(daysAgo(today, 2)), dateCmp = fmtDate(daysAgo(today, 32)), dateFrom = fmtDate(daysAgo(today, 365));
+    const today = new Date(), date = fmtDate(today), dateCmp = fmtDate(daysAgo(today, 30)), dateFrom = fmtDate(daysAgo(today, 365));
     const domain = proj.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 
     try {
