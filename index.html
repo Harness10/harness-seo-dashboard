@@ -33,8 +33,11 @@ header{background:linear-gradient(180deg,#0b0d14,#0e1018);border-bottom:1px soli
 .btn:hover{background:#2563eb;transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .btn-gn{background:var(--gn)}.btn-gn:hover{background:#059669}
 .btn-ghost{background:transparent;border:1px solid var(--bd);color:var(--tx2)}.btn-ghost:hover{border-color:var(--ac);background:rgba(59,130,246,.06)}
+/* Filter bar */
+.filter-bar{display:flex;gap:5px;margin-top:8px;align-items:center;font-size:.7rem;color:var(--mt);flex-wrap:wrap}
+.filter-bar label{font-weight:600;margin-right:2px}
 /* Sort bar */
-.sort-bar{display:flex;gap:5px;margin-top:8px;align-items:center;font-size:.7rem;color:var(--mt);flex-wrap:wrap}
+.sort-bar{display:flex;gap:5px;margin-top:4px;align-items:center;font-size:.7rem;color:var(--mt);flex-wrap:wrap}
 .sort-bar label{font-weight:600;margin-right:2px}
 .sb{background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:3px 8px;font-size:.65rem;color:var(--mt);cursor:pointer;font-weight:600;transition:all .12s;font-family:var(--font)}
 .sb:hover,.sb.on{background:var(--ac2);color:#fff;border-color:var(--ac2)}
@@ -259,6 +262,17 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <button class="btn btn-gn" id="fetch-btn" onclick="App.fetchAllRankings()" disabled>Fetch All Rankings &amp; Data</button>
     </div>
   </div>
+  <div class="filter-bar" id="filter-bar">
+    <label>Region:</label>
+    <button class="sb on" onclick="App.setRegion('all')">All</button>
+    <button class="sb" onclick="App.setRegion('Gulf')">Gulf</button>
+    <button class="sb" onclick="App.setRegion('Midwest')">Midwest</button>
+    <button class="sb" onclick="App.setRegion('Atlantic North')">Atlantic North</button>
+    <button class="sb" onclick="App.setRegion('Atlantic South')">Atlantic South</button>
+    <button class="sb" onclick="App.setRegion('Southeast')">Southeast</button>
+    <button class="sb" onclick="App.setRegion('Mountain West')">Mountain West</button>
+    <button class="sb" onclick="App.setRegion('Pacific')">Pacific</button>
+  </div>
   <div class="sort-bar" id="sort-bar">
     <label>Sort:</label>
     <button class="sb on" onclick="App.setSort('name')">Name</button>
@@ -392,7 +406,36 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 <script>
 const $ = id => document.getElementById(id);
 const App = {
-  projects: [], filtered: [], rankData: {}, orgData: {}, rtRaw: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '', rtFilter: 'all',
+  projects: [], filtered: [], rankData: {}, orgData: {}, rtRaw: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '', rtFilter: 'all', activeRegion: 'all',
+
+  // Region mapping: domain → region (from Harness Client Master List)
+  regionMap: {
+    'folkeshomeservices.com':'Atlantic North','coteelectric.com':'Atlantic North','chapmanbros.com':'Atlantic North','callyourplumber.com':'Atlantic North',
+    'danley911.com':'Atlantic South','fantesphvac.com':'Atlantic South','oceansidehomeservices.com':'Atlantic South','barstowhvac.com':'Atlantic South',
+    'anumber1air.com':'Gulf','bobsacandheat.com':'Gulf','calldreamteam.com':'Gulf','hansensupertechs.com':'Gulf','evergreencomfort.com':'Gulf',
+    'aceair.net':'Gulf','airtechofconroe.com':'Gulf','airtechofhumble.com':'Gulf','airtechofkaty.com':'Gulf','airtechofpasadena.com':'Gulf',
+    'axsomair.com':'Gulf','baldwinhvac.com':'Gulf','callballthatsall.com':'Gulf','barkerservices.com':'Gulf','blancoheatingandcooling.com':'Gulf',
+    'brownheatingandcooling.com':'Gulf','ccacac.com':'Gulf','channellandsonsac.com':'Gulf','efficient-systems.com':'Gulf',
+    'foulksheatingandcooling.com':'Gulf','heblonheatingandcooling.com':'Gulf','slableak.us':'Gulf','islandairco.com':'Gulf',
+    'kcaservices.net':'Gulf','natchezheatingandcooling.com':'Gulf','publicserviceplumbers.com':'Gulf','skeltonsair.com':'Gulf',
+    'southernairbr.com':'Gulf','southernairms.com':'Gulf','surgisac.com':'Gulf','tims-ac.com':'Gulf','trahansnow.com':'Gulf',
+    'ba-hvac.com':'Gulf','airtechofhouston.com':'Gulf','atchleyair.com':'Gulf','alertplumbingok.com':'Gulf',
+    'championacaustin.com':'Gulf','jacksonac.com':'Gulf','calldougs.com':'Gulf','bryansunited.com':'Gulf','onecallhouston.com':'Gulf',
+    'dupontac.com':'Gulf','evansair.net':'Gulf','hillcountryrefrigeration.com':'Gulf','lochridgepriesthome.com':'Gulf',
+    'robertsac.com':'Gulf','shockwavegenerators.com':'Gulf','expertairac.com':'Gulf','aircomfortsolutions.net':'Gulf',
+    'dentairconditioning.com':'Gulf','southernairnow.com':'Gulf','championac.com':'Gulf','callgreenway.com':'Gulf',
+    'westallisheating.com':'Midwest','wisconsin-air.com':'Midwest','rolairrepair.com':'Midwest','fivestarheating.com':'Midwest',
+    'edwardsroyalcomfort.com':'Midwest','theawefactor.com':'Midwest','haleymechanical.com':'Midwest','davisonheating.com':'Midwest',
+    'serviceone.com':'Midwest','canfieldph.com':'Midwest','72degrees.com':'Midwest',
+    'welzig-heating-and-air.com':'Mountain West','abetterplumberco.com':'Mountain West','haddonheatingcooling.com':'Mountain West',
+    'socalairflowpros.com':'Pacific','dereksawyers.com':'Pacific','homecomfortusa.com':'Pacific',
+    'comfortmasterinc.com':'Southeast','frogair.com':'Southeast','schwartzplumbing.com':'Southeast','palmairac.com':'Southeast','homemaxmemphis.com':'Southeast',
+  },
+
+  getRegion(url) {
+    const domain = (url || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+    return this.regionMap[domain] || 'Other';
+  },
 
   async init() {
     this.bindTabs(); this.bindSort();
@@ -483,7 +526,7 @@ const App = {
     }
 
     return `<div class="c" onclick="App.openProject(${p.project_id})">
-      <div class="c-top"><div class="c-nm">${esc(p.project_name)}</div><div class="c-badge">${rtTotal} tracked</div></div>
+      <div class="c-top"><div class="c-nm">${esc(p.project_name)}</div><div style="display:flex;gap:4px;align-items:center"><span class="c-badge" style="background:rgba(139,92,246,.1);color:var(--ac2)">${esc(this.getRegion(p.url))}</span><span class="c-badge">${rtTotal} tracked</span></div></div>
       <div class="c-url">${esc(p.url)}</div>
       <div class="hs-ring"><svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="none" stroke="var(--bd)" stroke-width="3.5"/><circle cx="24" cy="24" r="18" fill="none" stroke="${hsColor}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/></svg><div class="score" style="color:${hsColor}">${stats.health}</div></div>
       <div class="mr">
@@ -552,10 +595,27 @@ const App = {
     this.renderGrid();
   },
 
+  setRegion(r) {
+    this.activeRegion = r;
+    document.querySelectorAll('#filter-bar .sb').forEach(b => b.classList.toggle('on', r === 'all' ? b.textContent === 'All' : b.textContent === r));
+    this.applyFilters();
+  },
+
   filterProjects(q) {
-    const s = q.toLowerCase();
-    this.filtered = s ? this.projects.filter(p => p.project_name.toLowerCase().includes(s) || p.url.toLowerCase().includes(s)) : this.projects;
+    this._searchQ = q;
+    this.applyFilters();
+  },
+
+  applyFilters() {
+    let list = this.projects;
+    if (this.activeRegion && this.activeRegion !== 'all') {
+      list = list.filter(p => this.getRegion(p.url) === this.activeRegion);
+    }
+    const s = (this._searchQ || '').toLowerCase();
+    if (s) list = list.filter(p => p.project_name.toLowerCase().includes(s) || p.url.toLowerCase().includes(s));
+    this.filtered = list;
     this.renderGrid();
+    this.updateAggregates();
   },
 
   /* ============ FETCH ALL RANKINGS ============ */
@@ -657,7 +717,7 @@ const App = {
 
   showMain() {
     $('view-main').classList.add('active'); $('view-detail').classList.remove('active');
-    $('main-ctrls').style.display = ''; $('sort-bar').style.display = '';
+    $('main-ctrls').style.display = ''; $('sort-bar').style.display = ''; $('filter-bar').style.display = '';
     if (location.search) history.pushState({}, '', location.pathname);
   },
 
@@ -666,7 +726,7 @@ const App = {
     const proj = this.projects.find(p => p.project_id == pid);
     if (!proj) return;
     $('view-main').classList.remove('active'); $('view-detail').classList.add('active');
-    $('main-ctrls').style.display = 'none'; $('sort-bar').style.display = 'none';
+    $('main-ctrls').style.display = 'none'; $('sort-bar').style.display = 'none'; $('filter-bar').style.display = 'none';
     const newUrl = '?project=' + pid;
     if (location.search !== newUrl) history.pushState({}, '', newUrl);
     $('bc-name').textContent = proj.project_name;
