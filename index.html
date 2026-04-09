@@ -686,9 +686,11 @@ const App = {
       };
       if (!cachedRT) { this.rtRaw[pid] = this.detail.rankings; }
       if (!cachedOrg) this.orgData[pid] = orgKeywords;
-      const f = [rankings,orgKws,dr,metrics,bl,hist,pages,refs,comps].filter(r => r.status==='rejected');
-      if (f.length === 9) throw new Error(f[0].reason?.message || 'All API calls failed');
-      if (f.length > 0) this.showErr(`${f.length}/9 data sources failed.`);
+      const names = ['Rank Tracker','Organic Keywords','Domain Rating','Site Metrics','Backlinks','Traffic History','Top Pages','Referring Domains','Competitors'];
+      const all = [rankings,orgKws,dr,metrics,bl,hist,pages,refs,comps];
+      const failed = all.map((r,i) => r.status==='rejected' ? names[i] : null).filter(Boolean);
+      if (failed.length === 9) throw new Error(all[0].reason?.message || 'All API calls failed');
+      if (failed.length > 0) this.showErr(`Failed to load: ${failed.join(', ')}`);
       this.renderDetail();
     } catch (e) { this.showErr(e.message); }
     finally { clearTimeout(safetyTimer); $('loading').classList.remove('show'); }
