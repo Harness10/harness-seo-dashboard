@@ -29,6 +29,8 @@ export default async function handler(req, res) {
     'management/projects',
     'management/project-keywords',
     'management/project-competitors',
+    'site-audit/issues',
+    'site-audit/projects',
   ];
 
   if (!allowed.includes(endpoint)) {

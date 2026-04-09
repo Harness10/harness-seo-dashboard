@@ -230,6 +230,31 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .ar-sum-card .ar-sum-v{font-family:var(--mono);font-weight:800;font-size:1.1rem}
 .ar-sum-card .ar-sum-l{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
 
+/* Action Items */
+.act-section{padding:14px}
+.act-section h4{font-size:.76rem;font-weight:700;color:var(--tx2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.act-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
+.act-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--radius);padding:12px;position:relative;overflow:hidden}
+.act-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.act-card.p-critical::before{background:var(--rd)}.act-card.p-high::before{background:var(--or)}.act-card.p-medium::before{background:var(--am)}.act-card.p-low::before{background:var(--ac)}
+.act-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.act-title{font-size:.72rem;font-weight:700;color:var(--tx)}
+.act-pri{font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 6px;border-radius:3px}
+.act-pri.critical{background:rgba(239,68,68,.12);color:var(--rd)}.act-pri.high{background:rgba(249,115,22,.12);color:var(--or)}.act-pri.medium{background:rgba(245,158,11,.1);color:var(--am)}.act-pri.low{background:rgba(59,130,246,.1);color:var(--ac)}
+.act-desc{font-size:.64rem;color:var(--mt);line-height:1.5;margin-bottom:8px}
+.act-kws{list-style:none;max-height:140px;overflow-y:auto}
+.act-kws li{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-top:1px solid rgba(255,255,255,.03);font-size:.64rem}
+.act-kws li:first-child{border-top:none}
+.act-impact{font-family:var(--mono);font-size:.56rem;color:var(--mt)}
+.sh-score{display:flex;align-items:center;gap:16px;padding:14px;border-bottom:1px solid var(--bd)}
+.sh-ring{width:70px;height:70px;position:relative;flex-shrink:0}
+.sh-ring svg{transform:rotate(-90deg)}
+.sh-ring .sh-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:1.2rem}
+.sh-issues{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1}
+.sh-issue{text-align:center}
+.sh-issue .sh-n{font-family:var(--mono);font-weight:700;font-size:1rem}
+.sh-issue .sh-l{font-size:.5rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px}
+
 /* Tag filter */
 .tag-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
 .tag-btn{background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:3px 9px;font-size:.65rem;color:var(--mt);cursor:pointer;font-weight:600;transition:all .12s;font-family:var(--font)}
@@ -399,6 +424,8 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <button class="tab" data-tab="aiov">AI Overviews</button>
       <button class="tab" data-tab="avgrank">Average Rank</button>
       <button class="tab" data-tab="rankings">Tracked Rankings</button>
+      <button class="tab" data-tab="content">Content Suggestions</button>
+      <button class="tab" data-tab="sitehealth">Site Health</button>
       <button class="tab" data-tab="pages">Top Pages</button>
       <button class="tab" data-tab="refdomains">Referring Domains</button>
       <button class="tab" data-tab="competitors">Competitors</button>
@@ -416,6 +443,12 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
     </div>
     <div class="tab-content" id="tab-avgrank">
       <div id="avgrank-content"></div>
+    </div>
+    <div class="tab-content" id="tab-content">
+      <div id="content-suggestions"></div>
+    </div>
+    <div class="tab-content" id="tab-sitehealth">
+      <div id="sitehealth-content"></div>
     </div>
     <div class="tab-content" id="tab-rankings">
       <div class="rt-summary" id="rt-summary"></div>
@@ -454,7 +487,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 <script>
 const $ = id => document.getElementById(id);
 const App = {
-  projects: [], filtered: [], rankData: {}, orgData: {}, rtRaw: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '', rtFilter: 'all', activeRegion: 'all',
+  projects: [], filtered: [], rankData: {}, orgData: {}, rtRaw: {}, auditMap: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '', rtFilter: 'all', activeRegion: 'all',
 
   // Region mapping: domain → region (from Harness Client Master List)
   regionMap: {
@@ -518,9 +551,17 @@ const App = {
   async loadProjects() {
     $('loading').classList.add('show'); $('loading-text').textContent = 'Loading projects...';
     try {
-      const res = await this.api('management/projects');
-      const hidden = ['8451778']; // Duplicate Aircomfortsolutions (use OKC + Tulsa instead)
+      const [res, auditRes] = await Promise.all([
+        this.api('management/projects'),
+        this.api('site-audit/projects').catch(() => ({ healthscores: [] }))
+      ]);
+      const hidden = ['8451778'];
       this.projects = (res.projects || []).filter(p => p.keyword_count > 0 && !hidden.includes(String(p.project_id))).sort((a, b) => a.project_name.localeCompare(b.project_name));
+      // Map audit projects by domain for lookup
+      (auditRes.healthscores || []).forEach(a => {
+        const d = (a.target_url || '').replace(/^www\./, '').replace(/\/+$/, '');
+        this.auditMap[d] = a;
+      });
       this.filtered = this.projects;
       this.renderGrid();
       $('fetch-btn').disabled = false;
@@ -813,6 +854,13 @@ const App = {
         this.api('site-explorer/organic-competitors', { target: domain, date, country: 'us', limit: 30, select: 'competitor_domain,keywords_common,traffic,share,domain_rating', order_by: 'keywords_common:desc' }),
       ]);
       const orgKeywords = val(orgKws, 'keywords') || [];
+      // Find matching site audit project
+      const auditDomain = proj.url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '');
+      const auditProj = this.auditMap[auditDomain] || this.auditMap[auditDomain.split('/')[0]] || null;
+      let auditIssues = [];
+      if (auditProj) {
+        try { const ai = await this.api('site-audit/issues', { project_id: auditProj.project_id }); auditIssues = ai.issues || []; } catch(e) { /* no audit data */ }
+      }
       this.detail = {
         project: proj,
         rankings: val(rankings, 'overviews') || [],
@@ -824,6 +872,8 @@ const App = {
         pages: val(pages, 'pages') || [],
         refdomains: val(refs, 'refdomains') || [],
         competitors: val(comps, 'competitors') || [],
+        audit: auditProj,
+        auditIssues: auditIssues,
       };
       if (!cachedRT) { this.rtRaw[pid] = this.detail.rankings; }
       if (!cachedOrg) this.orgData[pid] = orgKeywords;
@@ -839,7 +889,146 @@ const App = {
 
   renderDetail() {
     const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
-    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderContentSuggestions, this.renderSiteHealth, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderRefDomains, this.renderCompetitors].forEach(safe);
+  },
+
+  renderContentSuggestions() {
+    const rt = this.detail.rankings || [];
+    const org = this.detail.organic || [];
+    const m = this.detail.metrics || {};
+    const dr = this.detail.dr || {};
+    const actions = [];
+
+    // 1. Quick wins: positions 4-20, high volume → optimize existing pages
+    const quickWins = rt.filter(k => k.position && k.position >= 4 && k.position <= 20 && (k.volume||0) >= 50).sort((a,b) => (b.volume||0) - (a.volume||0));
+    if (quickWins.length > 0) {
+      actions.push({ pri: 'critical', title: 'Optimize Existing Pages (Quick Wins)', desc: 'These keywords rank positions 4-20 with significant volume. Optimize title tags, H1s, and on-page content to push into top 3.', kws: quickWins.slice(0,8).map(k => ({ kw: k.keyword, meta: `Pos ${k.position} · ${fmtN(k.volume)} vol`, tags: k.tags })) });
+    }
+
+    // 2. Declining keywords → defend content
+    const declining = rt.filter(k => k.position_diff != null && k.position_diff > 3 && k.position != null).sort((a,b) => b.position_diff - a.position_diff);
+    if (declining.length > 0) {
+      actions.push({ pri: 'high', title: 'Defend Declining Rankings', desc: 'These keywords dropped 3+ positions in the last 30 days. Update content, check for technical issues, and refresh with new information.', kws: declining.slice(0,6).map(k => ({ kw: k.keyword, meta: `Dropped ${k.position_diff} pos · Now #${k.position}`, tags: k.tags })) });
+    }
+
+    // 3. Content gaps: tracked keywords not ranking → new content needed
+    const gaps = rt.filter(k => k.position == null && (k.volume||0) >= 100).sort((a,b) => (b.volume||0) - (a.volume||0));
+    if (gaps.length > 0) {
+      actions.push({ pri: 'high', title: 'Create New Content (Keyword Gaps)', desc: 'High-volume tracked keywords with no ranking. Create dedicated service pages or blog posts targeting these terms.', kws: gaps.slice(0,8).map(k => ({ kw: k.keyword, meta: `${fmtN(k.volume)} vol · Not ranking`, tags: k.tags })) });
+    }
+
+    // 4. AI Overview opportunities
+    const aioOpps = rt.filter(k => (k.serp_features||[]).some(f => f.startsWith('ai_overview')) && k.best_position_kind === 'organic' && k.position && k.position <= 10).sort((a,b) => (b.volume||0) - (a.volume||0));
+    if (aioOpps.length > 0) {
+      actions.push({ pri: 'medium', title: 'Target AI Overview Citations', desc: 'Keywords where you rank top 10 and an AI Overview exists but doesn\'t cite you. Add structured FAQ schema, concise answer paragraphs, and authoritative data.', kws: aioOpps.slice(0,6).map(k => ({ kw: k.keyword, meta: `Pos ${k.position} · AIO present · ${fmtN(k.volume)} vol`, tags: k.tags })) });
+    }
+
+    // 5. Local content opportunities
+    const localGaps = rt.filter(k => (k.tags||[]).includes('Local') && (k.position == null || k.position > 10)).sort((a,b) => (b.volume||0) - (a.volume||0));
+    if (localGaps.length > 0) {
+      actions.push({ pri: 'medium', title: 'Improve Local Service Pages', desc: 'Local keywords not in the top 10. Ensure each service area has a dedicated page with unique local content, NAP info, and embedded map.', kws: localGaps.slice(0,6).map(k => ({ kw: k.keyword, meta: k.position ? `Pos ${k.position}` : 'Not ranking' + ` · ${fmtN(k.volume)} vol`, tags: k.tags })) });
+    }
+
+    // 6. Organic keywords with high traffic but no tracked RT keyword → add to RT
+    const orgNotTracked = org.filter(k => k.best_position && k.best_position <= 10 && (k.sum_traffic||0) > 20 && !rt.some(r => r.keyword === k.keyword)).sort((a,b) => (b.sum_traffic||0) - (a.sum_traffic||0));
+    if (orgNotTracked.length > 0) {
+      actions.push({ pri: 'low', title: 'Add to Rank Tracker', desc: 'Organic keywords driving traffic that aren\'t being tracked in Ahrefs RT. Add these to monitor performance over time.', kws: orgNotTracked.slice(0,6).map(k => ({ kw: k.keyword, meta: `Pos ${k.best_position} · ${fmtN(k.sum_traffic)} traffic/mo` })) });
+    }
+
+    // 7. Backlink/DR suggestions
+    if ((dr.domain_rating||0) < 30) {
+      actions.push({ pri: 'high', title: 'Build Domain Authority', desc: `Domain Rating is ${Math.round(dr.domain_rating||0)}. Focus on earning backlinks from local directories, industry associations, and partner businesses to improve authority.`, kws: [] });
+    }
+
+    if (actions.length === 0) {
+      actions.push({ pri: 'low', title: 'Looking Good!', desc: 'No critical content gaps detected. Continue monitoring rankings and creating fresh content regularly.', kws: [] });
+    }
+
+    $('content-suggestions').innerHTML = `<div class="act-section">
+      <h4>📝 Content Action Items <span style="font-size:.58rem;color:var(--mt);font-weight:400">${actions.length} recommendations based on live Ahrefs data</span></h4>
+      <div class="act-grid">${actions.map(a => `<div class="act-card p-${a.pri}">
+        <div class="act-hdr"><span class="act-title">${esc(a.title)}</span><span class="act-pri ${a.pri}">${a.pri}</span></div>
+        <div class="act-desc">${a.desc}</div>
+        ${a.kws.length > 0 ? `<ul class="act-kws">${a.kws.map(k => `<li><span class="aio-kw">${esc(k.kw)} ${(k.tags||[]).filter(t=>t!=='Bare').slice(0,2).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('')}</span><span class="act-impact">${k.meta}</span></li>`).join('')}</ul>` : ''}
+      </div>`).join('')}</div>
+    </div>`;
+  },
+
+  renderSiteHealth() {
+    const audit = this.detail.audit;
+    const issues = this.detail.auditIssues || [];
+    const m = this.detail.metrics || {};
+    const dr = this.detail.dr || {};
+    const bl = this.detail.bl || {};
+    const rt = this.detail.rankings || [];
+
+    // Site audit section
+    let auditHtml = '';
+    if (audit) {
+      const hs = audit.health_score || 0;
+      const hsCol = hs >= 90 ? '#10b981' : hs >= 70 ? '#f59e0b' : '#ef4444';
+      const circ = 2 * Math.PI * 28;
+      const offset = circ - (circ * hs / 100);
+      const errors = issues.filter(i => i.importance === 'Error').sort((a,b) => b.crawled - a.crawled);
+      const warnings = issues.filter(i => i.importance === 'Warning').sort((a,b) => b.crawled - a.crawled);
+      const notices = issues.filter(i => i.importance === 'Notice').sort((a,b) => b.crawled - a.crawled);
+
+      const issueRow = (items, label, color) => items.length > 0 ? `<div style="margin-bottom:14px">
+        <h4 style="font-size:.7rem;font-weight:700;color:${color};margin-bottom:6px">${label} (${items.length} types, ${items.reduce((s,i)=>s+i.crawled,0)} URLs)</h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px">
+          ${items.slice(0,12).map(i => `<div style="background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:8px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid ${color}">
+            <div style="flex:1;min-width:0"><div style="font-size:.66rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name)}</div><div style="font-size:.52rem;color:var(--mt)">${esc(i.category)}</div></div>
+            <div style="text-align:right;flex-shrink:0;margin-left:8px"><div style="font-family:var(--mono);font-weight:700;font-size:.76rem">${fmtN(i.crawled)}</div>
+            ${i.change != null && i.change !== 0 ? `<div style="font-size:.5rem;color:${i.change > 0 ? 'var(--rd)' : 'var(--gn)'}">${i.change > 0 ? '+' : ''}${i.change}</div>` : ''}</div>
+          </div>`).join('')}
+        </div>
+        ${items.length > 12 ? `<div style="font-size:.56rem;color:var(--mt);margin-top:4px">+${items.length - 12} more ${label.toLowerCase()}</div>` : ''}
+      </div>` : '';
+
+      auditHtml = `<div class="sh-score">
+        <div class="sh-ring"><svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="28" fill="none" stroke="var(--bd)" stroke-width="5"/><circle cx="35" cy="35" r="28" fill="none" stroke="${hsCol}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/></svg><div class="sh-val" style="color:${hsCol}">${hs}</div></div>
+        <div>
+          <div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Site Health Score</div>
+          <div style="font-size:.62rem;color:var(--mt)">Last crawl: ${new Date(audit.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · ${fmtN(audit.total)} pages</div>
+        </div>
+        <div class="sh-issues">
+          <div class="sh-issue"><div class="sh-n" style="color:var(--rd)">${fmtN(audit.urls_with_errors)}</div><div class="sh-l">Errors</div></div>
+          <div class="sh-issue"><div class="sh-n" style="color:var(--am)">${fmtN(audit.urls_with_warnings)}</div><div class="sh-l">Warnings</div></div>
+          <div class="sh-issue"><div class="sh-n" style="color:var(--cy)">${fmtN(audit.urls_with_notices)}</div><div class="sh-l">Notices</div></div>
+        </div>
+      </div>
+      <div class="act-section">
+        ${issueRow(errors, 'Errors — Fix Immediately', 'var(--rd)')}
+        ${issueRow(warnings, 'Warnings — Fix Soon', 'var(--am)')}
+        ${issueRow(notices, 'Notices — Improve When Possible', 'var(--cy)')}
+      </div>`;
+    } else {
+      auditHtml = '<div style="padding:20px;text-align:center;color:var(--mt);font-size:.76rem">No Site Audit project found for this domain. Set one up in Ahrefs to see crawl issues.</div>';
+    }
+
+    // General SEO health recommendations
+    const recs = [];
+    const drVal = dr.domain_rating || 0;
+    if (drVal < 20) recs.push({ pri: 'critical', text: `Domain Rating is ${Math.round(drVal)} — critically low. Aggressive link building needed.` });
+    else if (drVal < 40) recs.push({ pri: 'high', text: `Domain Rating is ${Math.round(drVal)} — below average. Focus on earning quality backlinks.` });
+
+    if ((bl.live_refdomains||0) < 50) recs.push({ pri: 'high', text: `Only ${bl.live_refdomains||0} referring domains. Target local directories, chambers of commerce, and industry sites.` });
+
+    const ranked = rt.filter(k => k.position != null).length;
+    const notRanked = rt.length - ranked;
+    if (notRanked > ranked) recs.push({ pri: 'high', text: `${notRanked} of ${rt.length} tracked keywords not ranking. Review keyword targeting and content coverage.` });
+
+    if ((m.org_traffic||0) < 500) recs.push({ pri: 'medium', text: `Organic traffic is ${fmtN(m.org_traffic||0)}/mo — below threshold. Content creation and technical SEO needed.` });
+
+    const recsHtml = recs.length > 0 ? `<div class="act-section" style="border-top:1px solid var(--bd)">
+      <h4>💡 General SEO Recommendations</h4>
+      <div style="display:flex;flex-direction:column;gap:6px">${recs.map(r => `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px">
+        <span class="act-pri ${r.pri}" style="flex-shrink:0">${r.pri}</span>
+        <span style="font-size:.68rem;color:var(--tx2)">${r.text}</span>
+      </div>`).join('')}</div>
+    </div>` : '';
+
+    $('sitehealth-content').innerHTML = auditHtml + recsHtml;
   },
 
   renderAIOverview() {
