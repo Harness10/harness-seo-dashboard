@@ -93,7 +93,7 @@ ${(ctx.competitors || []).slice(0, 10).map(c => `- ${c.competitor_domain} (DR: $
 
     while (toolLoops <= MAX_TOOL_LOOPS) {
       const stream = await client.messages.stream({
-        model: model === 'opus' ? 'claude-opus-4-20250514' : 'claude-sonnet-4-20250514',
+        model: model === 'opus' ? 'claude-opus-4-6-20250514' : 'claude-sonnet-4-6-20250514',
         max_tokens: model === 'opus' ? 16384 : 8192,
         system: sys,
         messages: conversationMessages,
