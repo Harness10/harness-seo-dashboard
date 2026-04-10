@@ -164,6 +164,11 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .charts-row{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:14px}
 .chart-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:14px;min-height:0;overflow:hidden}
 .chart-card h3{font-size:.72rem;font-weight:700;margin-bottom:8px;color:var(--tx2)}
+.chart-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.chart-hdr h3{margin-bottom:0}
+.range-btns{display:flex;gap:3px}
+.rb{background:var(--card2);border:1px solid var(--bd);border-radius:5px;padding:2px 8px;font-size:.58rem;color:var(--mt);cursor:pointer;font-weight:600;font-family:var(--font);transition:all .12s}
+.rb:hover{color:var(--tx);border-color:var(--ac)}.rb.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .chart-wrap{position:relative;width:100%}
 .intent-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
 .intent-item{display:flex;align-items:center;gap:5px;font-size:.65rem}
@@ -229,6 +234,29 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 .ar-sum-card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center}
 .ar-sum-card .ar-sum-v{font-family:var(--mono);font-weight:800;font-size:1.1rem}
 .ar-sum-card .ar-sum-l{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+
+/* ServiceTitan */
+.st-kpis{display:none;margin-bottom:14px}
+.st-kpis.show{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.st-kpi{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:12px;text-align:center;position:relative;overflow:hidden}
+.st-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--or)}
+.st-kpi .st-icon{font-size:1.1rem;margin-bottom:2px}
+.st-kpi .st-val{font-family:var(--mono);font-weight:700;font-size:1.3rem;line-height:1.2}
+.st-kpi .st-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);margin-bottom:3px;font-weight:600}
+.st-kpi .st-sub{font-size:.58rem;color:var(--mt);margin-top:2px;font-family:var(--mono)}
+.st-kpi:nth-child(1)::before{background:var(--or)}
+.st-kpi:nth-child(2)::before{background:var(--gn)}
+.st-kpi:nth-child(3)::before{background:var(--ac)}
+.st-kpi:nth-child(4)::before{background:var(--am)}
+.st-section{padding:14px}
+.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+.st-channel{background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);padding:14px;overflow:hidden}
+.st-channel h4{font-size:.74rem;font-weight:700;color:var(--tx2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.st-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.st-stat{background:var(--sf);border-radius:8px;padding:10px;text-align:center}
+.st-stat .st-stat-v{font-family:var(--mono);font-weight:700;font-size:1rem}
+.st-stat .st-stat-l{font-size:.52rem;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+@media(max-width:768px){.st-kpis.show{grid-template-columns:repeat(2,1fr)}.st-grid{grid-template-columns:1fr}}
 
 /* Action Items */
 .act-section{padding:14px}
@@ -465,8 +493,15 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
     <div class="kpi"><div class="label">Backlinks</div><div class="value" id="kpi-bl">--</div><div class="sub" id="kpi-bl-sub"></div></div>
   </section>
 
+  <section class="st-kpis" id="st-kpis">
+    <div class="st-kpi"><div class="st-icon">📞</div><div class="st-label">ST Calls</div><div class="st-val" id="st-kpi-calls">--</div><div class="st-sub" id="st-kpi-calls-sub"></div></div>
+    <div class="st-kpi"><div class="st-icon">🔧</div><div class="st-label">ST Jobs</div><div class="st-val" id="st-kpi-jobs">--</div><div class="st-sub" id="st-kpi-jobs-sub"></div></div>
+    <div class="st-kpi"><div class="st-icon">💰</div><div class="st-label">ST Revenue</div><div class="st-val" id="st-kpi-revenue">--</div><div class="st-sub" id="st-kpi-revenue-sub"></div></div>
+    <div class="st-kpi"><div class="st-icon">🎯</div><div class="st-label">ST Leads</div><div class="st-val" id="st-kpi-leads">--</div><div class="st-sub" id="st-kpi-leads-sub"></div></div>
+  </section>
+
   <section class="charts-row">
-    <div class="chart-card"><h3>Organic Traffic — 12 Month Trend</h3><div class="chart-wrap" style="height:220px"><canvas id="traffic-chart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-hdr"><h3 id="traffic-chart-title">Organic Traffic — 1 Year Trend</h3><div class="range-btns" id="traffic-range"><button class="rb" onclick="App.setTrafficRange(180)">6m</button><button class="rb on" onclick="App.setTrafficRange(365)">1y</button><button class="rb" onclick="App.setTrafficRange(730)">2y</button><button class="rb" onclick="App.setTrafficRange(1095)">3y</button><button class="rb" onclick="App.setTrafficRange(1825)">5y</button></div></div><div class="chart-wrap" style="height:220px"><canvas id="traffic-chart"></canvas></div></div>
     <div class="chart-card"><h3>Rank Distribution</h3><div class="chart-wrap" style="height:170px"><canvas id="pos-chart"></canvas></div>
       <div class="intent-grid" id="intent-grid" style="margin-top:10px"><h3 style="grid-column:1/-1;font-size:.66rem;font-weight:700;color:var(--tx2);margin-bottom:2px">Search Intent</h3></div>
     </div>
@@ -490,6 +525,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <button class="tab" data-tab="ai">AI Writer</button>
       <button class="tab" data-tab="pages">Top Pages</button>
       <button class="tab" data-tab="competitors">Competitors</button>
+      <button class="tab" data-tab="servicetitan" id="st-tab-btn" style="display:none">ServiceTitan</button>
     </div>
     <div class="tab-content active" id="tab-organic">
       <div class="tab-tools"><input type="text" id="org-search" placeholder="Search organic keywords..." oninput="App.filterOrg(this.value)"><span style="color:var(--mt);font-size:.6rem;margin-left:auto" id="org-count"></span></div>
@@ -563,6 +599,11 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
       <th data-sort="competitor_domain" data-tbl="competitors">Competitor</th><th data-sort="keywords_common" data-tbl="competitors">Common KWs</th>
       <th data-sort="traffic" data-tbl="competitors">Traffic</th><th data-sort="share" data-tbl="competitors">Overlap</th><th data-sort="domain_rating" data-tbl="competitors">DR</th>
     </tr></thead><tbody id="body-competitors"></tbody></table></div></div>
+    <div class="tab-content" id="tab-servicetitan">
+      <div id="st-content">
+        <div style="padding:30px;text-align:center;color:var(--mt);font-size:.8rem">Loading ServiceTitan data...</div>
+      </div>
+    </div>
   </section>
 </div>
 </main>
@@ -570,7 +611,7 @@ main{max-width:1520px;margin:0 auto;padding:14px 24px 60px}
 <script>
 const $ = id => document.getElementById(id);
 const App = {
-  projects: [], filtered: [], rankData: {}, orgData: {}, rtRaw: {}, auditMap: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '', rtFilter: 'all', activeRegion: 'all', chatMessages: [], chatStreaming: false,
+  projects: [], filtered: [], rankData: {}, orgData: {}, rtRaw: {}, auditMap: {}, charts: {}, sortState: {}, sortMode: 'name', detail: {}, activeTag: null, kwFilter: '', orgFilter: '', rtFilter: 'all', activeRegion: 'all', chatMessages: [], chatStreaming: false, trafficRange: 365, stConfig: null, stData: null,
 
   // Region mapping: domain → region (from Harness Client Master List)
   regionMap: {
@@ -920,7 +961,7 @@ const App = {
     $('ld-icon').textContent = '📊';
     const stepNames = ['Rank Tracker','Organic Keywords','Domain Rating','Site Metrics','Backlinks','Traffic History','Top Pages','Competitors'];
     $('ld-steps').innerHTML = stepNames.map(s => `<div class="ld-step active" id="lds-${s.replace(/\s/g,'')}"><div class="ld-dot"></div><span>${s}</span></div>`).join('');
-    this.activeTag = null; this.kwFilter = ''; this.orgFilter = ''; this.rtFilter = 'all';
+    this.activeTag = null; this.kwFilter = ''; this.orgFilter = ''; this.rtFilter = 'all'; this.trafficRange = 365; this.stData = null;
     const safetyTimer = setTimeout(() => { $('loading').classList.remove('show'); this.showErr('Loading took too long — some data may be missing.'); }, 45000);
 
     const markStep = (name, ok) => {
@@ -982,12 +1023,16 @@ const App = {
       if (failed.length === 8) throw new Error(all[0].reason?.message || 'All API calls failed');
       if (failed.length > 0) this.showErr(`Failed to load: ${failed.join(', ')}`);
       this.renderDetail();
+      // Fetch ServiceTitan data in background (non-blocking)
+      this.fetchSTData(pid);
     } catch (e) { this.showErr(e.message); }
     finally { clearTimeout(safetyTimer); $('loading').classList.remove('show'); }
   },
 
   renderDetail() {
     const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
+    // Reset ST UI until fetchSTData resolves
+    $('st-kpis').classList.remove('show'); $('st-tab-btn').style.display = 'none';
     [this.resetActionItems, this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderGSC, this.renderContentSuggestions, this.renderSiteHealth, this.renderAIChat, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderCompetitors].forEach(safe);
   },
 
@@ -1259,7 +1304,15 @@ rank_tracker_keywords:\n${y(rt, 1)}
 organic_keywords_site_explorer:\n${y(org, 1)}
 google_search_console_90d:\n${y(gsc, 1)}
 top_pages:\n${y((d.pages||[]).slice(0,20).map(p=>({ url: p.url, traffic: p.sum_traffic, keywords: p.keywords, top_keyword: p.top_keyword })), 1)}
-competitors:\n${y((d.competitors||[]).slice(0,10).map(c=>({ domain: c.competitor_domain, common_keywords: c.keywords_common, traffic: c.traffic, domain_rating: c.domain_rating?.toFixed(0) })), 1)}`;
+competitors:\n${y((d.competitors||[]).slice(0,10).map(c=>({ domain: c.competitor_domain, common_keywords: c.keywords_common, traffic: c.traffic, domain_rating: c.domain_rating?.toFixed(0) })), 1)}${this.stData ? `\nservicetitan_90d:
+  total_calls: ${this.stData.totals.calls}
+  calls_answered: ${this.stData.totals.callsAnswered}
+  total_jobs: ${this.stData.totals.jobs}
+  jobs_completed: ${this.stData.totals.jobsCompleted}
+  total_revenue: ${this.stData.totals.revenue}
+  total_leads: ${this.stData.totals.leads}
+  leads_booked: ${this.stData.totals.leadsBooked}
+  channels:\n${y(Object.entries(this.stData.channels).map(([k,v])=>({channel:k,calls:v.calls.total,answered:v.calls.answered,jobs:v.jobs.total,revenue:v.jobs.revenue,leads:v.leads.total})),2)}` : ''}`;
   },
 
   async generateActionItems() {
@@ -1883,10 +1936,31 @@ Be specific, actionable, and reference the data. No generic advice.`;
 
   renderTrafficChart() {
     if (this.charts.traffic) this.charts.traffic.destroy();
+    // Sync range button UI
+    document.querySelectorAll('#traffic-range .rb').forEach(b => { const map = {'6m':180,'1y':365,'2y':730,'3y':1095,'5y':1825}; b.classList.toggle('on', map[b.textContent] === this.trafficRange); });
+    const rangeLabels = {180:'6 Month',365:'1 Year',730:'2 Year',1095:'3 Year',1825:'5 Year'};
+    $('traffic-chart-title').textContent = `Organic Traffic — ${rangeLabels[this.trafficRange] || '1 Year'} Trend`;
     const d = this.detail.history; if (!d.length) return;
     const ctx = $('traffic-chart').getContext('2d');
     const g = ctx.createLinearGradient(0, 0, 0, 220); g.addColorStop(0, 'rgba(59,130,246,.18)'); g.addColorStop(1, 'rgba(59,130,246,0)');
     this.charts.traffic = new Chart(ctx, { type: 'line', data: { labels: d.map(x => new Date(x.date).toLocaleDateString('en-US',{month:'short',year:'2-digit'})), datasets: [{ data: d.map(x => x.org_traffic), borderColor: '#3b82f6', backgroundColor: g, borderWidth: 2, fill: true, tension: .4, pointRadius: 2, pointBackgroundColor: '#3b82f6' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c2030', borderColor: '#252936', borderWidth: 1, bodyFont: { family: "'JetBrains Mono',monospace", size: 11 }, callbacks: { label: c => fmtN(c.parsed.y) } } }, scales: { x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#6b7585', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#6b7585', font: { size: 10, family: "'JetBrains Mono',monospace" }, callback: v => fmtN(v) } } } } });
+  },
+
+  async setTrafficRange(days) {
+    this.trafficRange = days;
+    document.querySelectorAll('#traffic-range .rb').forEach(b => { const map = {'6m':180,'1y':365,'2y':730,'3y':1095,'5y':1825}; b.classList.toggle('on', map[b.textContent] === days); });
+    const labels = {180:'6 Month',365:'1 Year',730:'2 Year',1095:'3 Year',1825:'5 Year'};
+    $('traffic-chart-title').textContent = `Organic Traffic — ${labels[days] || '1 Year'} Trend`;
+    const proj = this.detail.project;
+    if (!proj) return;
+    const domain = proj.url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    const today = new Date();
+    const dateFrom = fmtDate(daysAgo(today, days));
+    try {
+      const resp = await this.api('site-explorer/metrics-history', { target: domain, date_from: dateFrom, country: 'us', history_grouping: 'monthly' });
+      this.detail.history = resp.metrics || [];
+      this.renderTrafficChart();
+    } catch(e) { console.error('Traffic range fetch error', e); }
   },
 
   renderPosChart() {
@@ -1991,6 +2065,111 @@ Be specific, actionable, and reference the data. No generic advice.`;
     $('body-competitors').innerHTML = this.detail.competitors.map(c => `<tr><td><strong>${esc(c.competitor_domain||'')}</strong></td><td class="mono">${fmtN(c.keywords_common)}</td><td class="mono">${fmtN(c.traffic)}</td><td class="mono">${c.share!=null?(c.share*100).toFixed(1)+'%':'—'}</td><td><div class="dr-i"><span class="mono">${c.domain_rating!=null?c.domain_rating.toFixed(0):'—'}</span><div class="dr-b"><div class="dr-f" style="width:${c.domain_rating||0}%;background:${drCol(c.domain_rating)}"></div></div></div></td></tr>`).join('');
   },
 
+  /* ============ SERVICETITAN ============ */
+  async fetchSTData(projectId) {
+    try {
+      // Check if ST is configured for this project
+      const cfgResp = await fetch(`/api/servicetitan?action=config&project_id=${projectId}`);
+      const cfg = await cfgResp.json();
+      this.stConfig = cfg;
+
+      if (!cfg.configured || !cfg.hasProject) {
+        $('st-kpis').classList.remove('show');
+        $('st-tab-btn').style.display = 'none';
+        this.stData = null;
+        return;
+      }
+
+      // Show the ST tab button
+      $('st-tab-btn').style.display = '';
+
+      // Fetch last 90 days of data
+      const today = new Date();
+      const dateFrom = new Date(today); dateFrom.setDate(dateFrom.getDate() - 90);
+      const df = fmtDate(dateFrom);
+      const dt = fmtDate(today);
+
+      const dataResp = await fetch(`/api/servicetitan?action=data&project_id=${projectId}&date_from=${df}&date_to=${dt}`);
+      const data = await dataResp.json();
+
+      if (data.hasProject && data.totals) {
+        this.stData = data;
+        this.renderSTKPIs();
+        this.renderSTTab();
+      }
+    } catch (e) {
+      console.error('ServiceTitan fetch error:', e);
+      $('st-kpis').classList.remove('show');
+      $('st-tab-btn').style.display = 'none';
+    }
+  },
+
+  renderSTKPIs() {
+    const t = this.stData?.totals;
+    if (!t) { $('st-kpis').classList.remove('show'); return; }
+    $('st-kpis').classList.add('show');
+    $('st-kpi-calls').textContent = fmtN(t.calls);
+    $('st-kpi-calls-sub').textContent = `${fmtN(t.callsAnswered)} answered`;
+    $('st-kpi-jobs').textContent = fmtN(t.jobs);
+    $('st-kpi-jobs-sub').textContent = `${fmtN(t.jobsCompleted)} completed`;
+    $('st-kpi-revenue').textContent = '$' + fmtN(t.revenue);
+    $('st-kpi-revenue-sub').textContent = t.jobs > 0 ? '$' + fmtN(Math.round(t.revenue / t.jobs)) + ' avg ticket' : '';
+    $('st-kpi-leads').textContent = fmtN(t.leads);
+    $('st-kpi-leads-sub').textContent = `${fmtN(t.leadsBooked)} booked`;
+  },
+
+  renderSTTab() {
+    const data = this.stData;
+    if (!data || !data.channels) {
+      $('st-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mt);font-size:.8rem">No ServiceTitan data available for this project.</div>';
+      return;
+    }
+
+    const t = data.totals;
+    const channelNames = { gbp: 'Google Business Profile', organic: 'Website (Organic)' };
+    const channelIcons = { gbp: '📍', organic: '🌐' };
+
+    const channelHtml = Object.entries(data.channels).map(([key, ch]) => `
+      <div class="st-channel">
+        <h4>${channelIcons[key] || '📊'} ${channelNames[key] || key}</h4>
+        <div class="st-stats">
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--or)">${fmtN(ch.calls.total)}</div><div class="st-stat-l">Total Calls</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--gn)">${fmtN(ch.calls.answered)}</div><div class="st-stat-l">Answered</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--rd)">${fmtN(ch.calls.missed)}</div><div class="st-stat-l">Missed</div></div>
+          <div class="st-stat"><div class="st-stat-v">${ch.calls.avgDuration}s</div><div class="st-stat-l">Avg Duration</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--ac)">${fmtN(ch.jobs.total)}</div><div class="st-stat-l">Jobs</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--gn)">${fmtN(ch.jobs.completed)}</div><div class="st-stat-l">Completed</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--am)">$${fmtN(ch.jobs.revenue)}</div><div class="st-stat-l">Revenue</div></div>
+          <div class="st-stat"><div class="st-stat-v">$${fmtN(ch.jobs.avgTicket)}</div><div class="st-stat-l">Avg Ticket</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--cy)">${fmtN(ch.leads.total)}</div><div class="st-stat-l">Leads</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--gn)">${fmtN(ch.leads.booked)}</div><div class="st-stat-l">Booked</div></div>
+        </div>
+      </div>`).join('');
+
+    const convRate = t.calls > 0 ? ((t.leadsBooked / t.calls) * 100).toFixed(1) : '0.0';
+    const closeRate = t.leads > 0 ? ((t.jobsCompleted / t.leads) * 100).toFixed(1) : '0.0';
+
+    $('st-content').innerHTML = `
+      <div class="st-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <h4 style="font-size:.76rem;font-weight:700;color:var(--tx2);display:flex;align-items:center;gap:6px">ServiceTitan Performance <span style="font-size:.58rem;color:var(--mt);font-weight:400">Last 90 days · GBP + Organic campaigns</span></h4>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--or)">${fmtN(t.calls)}</div><div class="st-stat-l">Total Calls</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--ac)">${fmtN(t.jobs)}</div><div class="st-stat-l">Total Jobs</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--am)">$${fmtN(t.revenue)}</div><div class="st-stat-l">Total Revenue</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--cy)">${fmtN(t.leads)}</div><div class="st-stat-l">Total Leads</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--gn)">${convRate}%</div><div class="st-stat-l">Call → Booking Rate</div></div>
+          <div class="st-stat"><div class="st-stat-v" style="color:var(--gn)">${closeRate}%</div><div class="st-stat-l">Lead → Job Close Rate</div></div>
+          <div class="st-stat"><div class="st-stat-v">$${t.jobs > 0 ? fmtN(Math.round(t.revenue / t.jobs)) : '0'}</div><div class="st-stat-l">Avg Ticket</div></div>
+        </div>
+        <h4 style="font-size:.72rem;font-weight:700;color:var(--tx2);margin-bottom:8px">By Channel</h4>
+        <div class="st-grid">${channelHtml}</div>
+      </div>`;
+  },
+
   showErr(msg) { const e=$('error-banner'); e.textContent=msg; e.classList.add('show'); },
   hideErr() { $('error-banner').classList.remove('show'); },
 
@@ -2055,6 +2234,7 @@ Be specific, actionable, and reference the data. No generic advice.`;
       competitors: (d.competitors||[]).slice(0,10),
       audit: d.audit ? { health_score: d.audit.health_score, urls_with_errors: d.audit.urls_with_errors, urls_with_warnings: d.audit.urls_with_warnings } : null,
       auditIssues: (d.auditIssues||[]).filter(i=>i.importance==='Error').slice(0,10).map(i=>({ name:i.name, crawled:i.crawled })),
+      serviceTitan: this.stData ? { totals: this.stData.totals, channels: this.stData.channels } : null,
     };
   },
 
