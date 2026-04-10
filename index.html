@@ -988,7 +988,21 @@ const App = {
 
   renderDetail() {
     const safe = (fn) => { try { fn.call(this); } catch(e) { console.error('Render error in', fn.name, e); } };
-    [this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderGSC, this.renderContentSuggestions, this.renderSiteHealth, this.renderAIChat, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderCompetitors].forEach(safe);
+    [this.resetActionItems, this.renderHealthBanner, this.renderKPIs, this.renderTrafficChart, this.renderPosChart, this.renderIntents, this.renderOpportunities, this.renderAIOverview, this.renderAvgRank, this.renderGSC, this.renderContentSuggestions, this.renderSiteHealth, this.renderAIChat, this.renderOrganic, this.renderTagBar, this.renderRankings, this.renderPages, this.renderCompetitors].forEach(safe);
+  },
+
+  resetActionItems() {
+    const panel = $('ai-gen-panel');
+    const output = $('ai-gen-output');
+    const d = this.detail;
+    const projectName = d.project?.project_name || 'this project';
+    panel.innerHTML = `<div class="ai-gen-icon">🧠</div>
+      <h3 class="ai-gen-title">AI-Powered Action Items</h3>
+      <p class="ai-gen-desc">Generate a comprehensive, prioritized action plan for <strong>${esc(projectName)}</strong> using Claude Opus. The AI will analyze all fetched data — rankings, organic keywords, GSC clicks, site audit issues, competitors, backlinks, and traffic — to produce specific tasks with URLs, keyword targets, and justification.</p>
+      <button class="btn ai-gen-go" id="ai-gen-go" onclick="App.generateActionItems()">Generate Action Items</button>
+      <div class="ai-gen-note">Uses Claude claude-opus-4-20250514 for deep reasoning. May take 30-60 seconds.</div>`;
+    output.innerHTML = '';
+    output.style.display = 'none';
   },
 
   renderGSC() {
